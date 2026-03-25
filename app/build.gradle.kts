@@ -62,6 +62,11 @@ dependencies {
     // Retrofit
     implementation(libs.squareup.retrofit)
     implementation(libs.squareup.retrofit.converter.gson)
+    implementation(libs.squareup.retrofit.converter.kotlinx.serialization)
+
+    // OkHttp
+    implementation("com.squareup.okhttp3:okhttp:5.3.0")
+    implementation(libs.okhttp.logging)
 
     // Room
     implementation(libs.androidx.room.runtime)
