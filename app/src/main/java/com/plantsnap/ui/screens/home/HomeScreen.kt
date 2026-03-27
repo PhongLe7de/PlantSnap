@@ -3,6 +3,8 @@ package com.plantsnap.ui.screens.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -75,7 +81,7 @@ fun HomeScreen() {
         ) {
             item { WelcomeSection(colors) }
             item { Spacer(Modifier.height(20.dp)) }
-            item { HeroCard(colors) }
+            item { IdentifySection(colors) }
             item { Spacer(Modifier.height(20.dp)) }
             item { RecentScansSection(colors) }
             item { Spacer(Modifier.height(20.dp)) }
@@ -120,12 +126,79 @@ private fun TopBar(colors: AppColors) {
 
 @Composable
 private fun WelcomeSection(colors: AppColors) {
-
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 24.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.home_greeting),
+            fontSize = 34.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = colors.primary,
+            letterSpacing = (-0.5).sp,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.home_subtitle),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable
-private fun HeroCard(colors: AppColors) {
-
+private fun IdentifySection(colors: AppColors) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        colors.primaryContainer.copy(alpha = 0.75f),
+                        colors.primary
+                    )
+                )
+            )
+            .padding(24.dp),
+        contentAlignment = Alignment.BottomStart,
+    ) {
+        Column {
+            Text(
+                text = stringResource(R.string.identify_title),
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.identify_description),
+                fontSize = 14.sp,
+                color = Color.White.copy(alpha = 0.80f),
+                modifier = Modifier.fillMaxWidth(0.72f),
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = {}, // TODO: Open camera
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.primary,
+                    contentColor = Color.White,
+                ),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.identify_button),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                )
+            }
+        }
+    }
 }
 
 @Composable
