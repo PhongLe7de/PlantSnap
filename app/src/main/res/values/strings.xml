@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">PlantSnap</string>
+
+    <!-- Home Screen -->
+    <string name="home_greeting">Good morning, Gardener</string> <!-- Replace with username variable? -->
+    <string name="home_subtitle">Your digital herbarium has 12 new updates today.</string> <!-- Placeholder -->
+    <string name="identify_title">Identify any plant</string>
+    <string name="identify_description">Point your camera at a leaf, flower, or tree for instant identification.</string>
+    <string name="identify_button">Identify Plant</string>
+    <string name="recent_scans">Recent Scans</string>
+    <string name="view_all">View All</string>
+    <string name="scan_time">Scanned yesterday</string> <!-- Placeholder -->
+    <string name="plant_of_the_day">Plant of the Day</string>
+    <string name="learn_more">Learn More</string>
+    <string name="daily_care_tasks">Daily Care Tasks</string>
+    <string name="done">Done</string>
+    <string name="care_watering_title">Watering: (Plant Name)</string> <!-- Placeholder -->
+    <string name="care_watering_desc">Check soil moisture today</string>
+    <string name="care_rotate_title">Rotate: Succulents</string>
+    <string name="care_rotate_desc">Ensure even sun exposure</string>
 </resources>
