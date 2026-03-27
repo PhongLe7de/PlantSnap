@@ -3,9 +3,9 @@ name: PlantSnap CI
 # Run on every push to main and on every pull request targeting main.
 on:
   push:
-    branches: [ main ]
+    branches: [ main, testing ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, testing ]
 
 jobs:
   ui-tests:
