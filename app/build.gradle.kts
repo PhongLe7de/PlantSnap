@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -5,8 +7,6 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
-
-import java.util.Properties
 
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
@@ -16,11 +16,7 @@ if (localPropertiesFile.exists()) {
 
 android {
     namespace = "com.plantsnap"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.plantsnap"
@@ -28,12 +24,12 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL") ?: ""}\"")
         buildConfigField("String", "SUPABASE_KEY", "\"${localProperties.getProperty("SUPABASE_KEY") ?: ""}\"")
         buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"${localProperties.getProperty("GOOGLE_SERVER_CLIENT_ID") ?: ""}\"")
+        buildConfigField("String", "PLANTNET_API_KEY", "\"${localProperties.getProperty("PLANTNET_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -75,6 +71,11 @@ dependencies {
     // Retrofit
     implementation(libs.squareup.retrofit)
     implementation(libs.squareup.retrofit.converter.gson)
+    implementation(libs.squareup.retrofit.converter.kotlinx.serialization)
+
+    // OkHttp
+    implementation("com.squareup.okhttp3:okhttp:5.3.0")
+    implementation(libs.okhttp.logging)
 
     // Room
     implementation(libs.androidx.room.runtime)
