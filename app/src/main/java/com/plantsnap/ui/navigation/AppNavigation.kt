@@ -1,10 +1,13 @@
 package com.plantsnap.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -13,9 +16,12 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -26,6 +32,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
 import com.plantsnap.ui.screens.home.HomeScreen
+import com.plantsnap.ui.screens.profile.AuthViewModel
+import com.plantsnap.ui.screens.profile.AuthenticationScreen
 import com.plantsnap.ui.screens.profile.ProfileScreen
 import com.plantsnap.ui.screens.identify.CameraScreen
 import com.plantsnap.ui.screens.identify.IdentificationScreen
@@ -135,7 +143,34 @@ fun AppNavigation() {
             }
 
             composable(BottomNavItem.PROFILE.route) {
-                ProfileScreen()
+                val viewModel: AuthViewModel = hiltViewModel()
+                val uiState by viewModel.uiState.collectAsState()
+
+                when {
+                    uiState.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    uiState.isLoggedIn -> {
+                        ProfileScreen(
+                            userEmail = uiState.userEmail,
+                            displayName = uiState.displayName,
+                            onSignOut = viewModel::signOut
+                        )
+                    }
+                    else -> {
+                        AuthenticationScreen(
+                            supabaseClient = viewModel.supabaseClient,
+                            isLoading = false,
+                            errorMessage = uiState.errorMessage,
+                            onClearError = viewModel::clearError
+                        )
+                    }
+                }
             }
         }
     }
