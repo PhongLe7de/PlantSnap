@@ -1,15 +1,17 @@
 package com.plantsnap.data.plantnet
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 // ─── Root response ────────────────────────────────────────────────────────────
 
+@Serializable
 data class IdentifyPlantResponse(
     val query: Query,
     val language: String,
     val preferedReferential: String,
     /** Set when the API auto-switched to a more appropriate project than requested. */
-    val switchToProject: String?,
+    val switchToProject: String? = null,
     /** Shortcut to the top-1 species full scientific name. */
     val bestMatch: String,
     /** Probable species sorted by confidence score descending (0–1). */
@@ -20,11 +22,12 @@ data class IdentifyPlantResponse(
     /** Top-1 predicted organ for each submitted image. */
     val predictedOrgans: List<PredictedOrgan>,
     /** Present only when request was made with detailed=true. */
-    val otherResults: OtherResults?
+    val otherResults: OtherResults? = null
 )
 
 // ─── Query summary ────────────────────────────────────────────────────────────
 
+@Serializable
 data class Query(
     val project: String,
     val images: List<String>,
@@ -34,40 +37,44 @@ data class Query(
     val organs: List<String>,
     val includeRelatedImages: Boolean,
     val noReject: Boolean,
-    val type: String?
+    val type: String? = null
 )
 
 // ─── Species results ──────────────────────────────────────────────────────────
 
+@Serializable
 data class Result(
     /** Confidence score between 0 and 1. */
     val score: Double,
     val species: Species,
     /** Populated only when include-related-images=true. */
-    val images: List<SpeciesImage>?,
-    val gbif: Gbif?,
-    val powo: Powo?,
-    val iucn: Iucn?
+    val images: List<SpeciesImage>? = null,
+    val gbif: Gbif? = null,
+    val powo: Powo? = null,
+    val iucn: Iucn? = null
 )
 
+@Serializable
 data class Species(
-    @SerializedName("scientificNameWithoutAuthor") val scientificName: String,
+    @SerialName("scientificNameWithoutAuthor") val scientificName: String,
     val scientificNameAuthorship: String,
     /** Full name including authorship. */
-    @SerializedName("scientificName") val scientificNameFull: String,
+    @SerialName("scientificName") val scientificNameFull: String,
     val genus: Taxon,
     val family: Taxon,
     val commonNames: List<String>
 )
 
+@Serializable
 data class Taxon(
-    @SerializedName("scientificNameWithoutAuthor") val name: String,
+    @SerialName("scientificNameWithoutAuthor") val name: String,
     val scientificNameAuthorship: String,
-    @SerializedName("scientificName") val nameFull: String
+    @SerialName("scientificName") val nameFull: String
 )
 
 // ─── Images ───────────────────────────────────────────────────────────────────
 
+@Serializable
 data class SpeciesImage(
     val organ: String,
     val author: String,
@@ -78,11 +85,13 @@ data class SpeciesImage(
     val url: ImageUrl
 )
 
+@Serializable
 data class ImageDate(
     val timestamp: Long,
     val string: String
 )
 
+@Serializable
 data class ImageUrl(
     /** Original resolution. */
     val o: String,
@@ -94,16 +103,22 @@ data class ImageUrl(
 
 // ─── External IDs ─────────────────────────────────────────────────────────────
 
+@Serializable
 data class Gbif(val id: Int)
+
+@Serializable
 data class Powo(val id: String)
+
+@Serializable
 data class Iucn(
     val id: String,
-    /** IUCN Red List category, e.g. "LC", "EN", "CR". */
+    /** IUCN Red List category e.g. "LC" (least concern), "EN" (endangered), "CR" (critically endangered). */
     val category: String
 )
 
 // ─── Predicted organs ─────────────────────────────────────────────────────────
 
+@Serializable
 data class PredictedOrgan(
     val image: String,
     val filename: String,
@@ -113,31 +128,36 @@ data class PredictedOrgan(
 
 // ─── Other results (detailed=true) ───────────────────────────────────────────
 
+@Serializable
 data class OtherResults(
-    val genus: List<GenusResult>?,
-    val family: List<FamilyResult>?
+    val genus: List<GenusResult>? = null,
+    val family: List<FamilyResult>? = null
 )
 
+@Serializable
 data class GenusResult(
     val score: Double,
     val genus: GenusInfo,
-    val gbif: Gbif?,
-    val images: List<SpeciesImage>?
+    val gbif: Gbif? = null,
+    val images: List<SpeciesImage>? = null
 )
 
+@Serializable
 data class GenusInfo(
     val scientificName: String,
     val family: Taxon,
     val commonNames: List<String>
 )
 
+@Serializable
 data class FamilyResult(
     val score: Double,
     val family: FamilyInfo,
-    val gbif: Gbif?,
-    val images: List<SpeciesImage>?
+    val gbif: Gbif? = null,
+    val images: List<SpeciesImage>? = null
 )
 
+@Serializable
 data class FamilyInfo(
     val scientificName: String,
     val commonNames: List<String>

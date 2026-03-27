@@ -14,22 +14,22 @@ import javax.inject.Singleton
 class PlantNetRepository @Inject constructor(
     private val api: PlantNetApi
 ) {
-    // 1 image file
-    suspend fun identifyPlant(imageFile: File): IdentifyPlantResponse {
+    // 1 image file. This might be redundant
+    suspend fun identifyPlant(imageFile: File, organ: String?): IdentifyPlantResponse {
         val body = imageFile.asRequestBody("image/jpeg".toMediaType())
-        val part = MultipartBody.Part.createFormData("images", imageFile.name, body)
-        val organ = MultipartBody.Part.createFormData("organs", "auto")
-        return api.identify(images = listOf(part), organs = listOf(organ))
+        val imagePart = MultipartBody.Part.createFormData("images", imageFile.name, body)
+        val organPart = MultipartBody.Part.createFormData("organs", organ ?: "auto")
+        return api.identify(images = listOf(imagePart), organs = listOf(organPart))
     }
 
     // Multiple files
-    suspend fun identifyPlantFromMultipleImages(imageFiles: List<File>): IdentifyPlantResponse {
+    suspend fun identifyPlantFromMultipleImages(imageFiles: List<File>, organs: List<String>?): IdentifyPlantResponse {
         val imageParts = imageFiles.map { file ->
             val body = file.asRequestBody("image/jpeg".toMediaType())
             MultipartBody.Part.createFormData("images", file.name, body)
         }
-        val organParts = imageFiles.map {
-            MultipartBody.Part.createFormData("organs", "auto")
+        val organParts = imageFiles.mapIndexed { index, _ ->
+            MultipartBody.Part.createFormData("organs", organs?.getOrNull(index) ?: "auto")
         }
         return api.identify(images = imageParts, organs = organParts)
     }
