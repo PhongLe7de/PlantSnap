@@ -1,5 +1,6 @@
 package com.plantsnap.data.plantnet
 
+import com.plantsnap.BuildConfig
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -8,9 +9,6 @@ import retrofit2.http.Part
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-
-// TODO: move to local.properties / BuildConfig
-const val PLANTNET_API_KEY = ""
 
 /**
  * PlantNet API
@@ -46,7 +44,7 @@ interface PlantNetApi {
     @POST("v2/identify/{project}")
     suspend fun identify(
         @Path("project") project: String = "all",
-        @Query("api-key") apiKey: String = PLANTNET_API_KEY,
+        @Query("api-key") apiKey: String = BuildConfig.PLANTNET_API_KEY,
         @Part images: List<MultipartBody.Part>,
         @Part organs: List<MultipartBody.Part>,
         @Query("no-reject") noReject: Boolean = false,
@@ -75,7 +73,7 @@ interface PlantNetApi {
     @Multipart
     @POST("v2/diseases/identify")
     suspend fun identifyDisease(
-        @Query("api-key") apiKey: String = PLANTNET_API_KEY,
+        @Query("api-key") apiKey: String = BuildConfig.PLANTNET_API_KEY,
         @Part images: List<MultipartBody.Part>,
         @Part organs: List<MultipartBody.Part>,
         @Query("no-reject") noReject: Boolean = false,

@@ -1,9 +1,12 @@
 package com.plantsnap.data.plantnet
 
+import kotlinx.serialization.Serializable
+
 // Reuses SpeciesImage, ImageDate, ImageUrl from PlantNetIdentifyDto.kt
 
 // ─── Root response ────────────────────────────────────────────────────────────
 
+@Serializable
 data class DiseaseResponse(
     val query: DiseaseQuery,
     val language: String,
@@ -16,6 +19,7 @@ data class DiseaseResponse(
 
 // ─── Query summary ────────────────────────────────────────────────────────────
 
+@Serializable
 data class DiseaseQuery(
     val images: List<String>,
     /** One organ value per image: leaf | flower | fruit | bark | auto. */
@@ -26,6 +30,7 @@ data class DiseaseQuery(
 
 // ─── Disease result ───────────────────────────────────────────────────────────
 
+@Serializable
 data class DiseaseResult(
     /** EPPO code identifying the disease (e.g. "PHYTIN" for Phytophthora infestans). */
     val name: String,
@@ -34,5 +39,5 @@ data class DiseaseResult(
     /** Confidence score between 0 and 1. */
     val score: Double,
     /** Populated only when include-related-images=true. */
-    val images: List<SpeciesImage>?
+    val images: List<SpeciesImage>? = null
 )
