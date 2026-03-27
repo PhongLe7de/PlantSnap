@@ -14,7 +14,7 @@ fun IdentificationScreen(
 ) {
     Column(
         modifier = Modifier
-            .testTag("screen_identification")
+            .testTag("screen_identify")
     ){
         Text(
             text = "Identification Screen"
