@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -76,6 +77,7 @@ fun AppNavigation() {
                                 restoreState = true
                             }
                         },
+                        modifier = Modifier.testTag("nav_${item.route}"),
                         icon = {
                             Icon(
                                 imageVector = item.icon,
