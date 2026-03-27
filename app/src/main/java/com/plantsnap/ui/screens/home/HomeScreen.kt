@@ -5,20 +5,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plantsnap.R
-
+import com.plantsnap.ui.components.TopBar
 
 private data class AppColors(
     val primary: Color,
@@ -70,7 +66,7 @@ fun HomeScreen() {
 
     Scaffold(
         containerColor = colors.surface,
-        topBar = { TopBar(colors) },
+        topBar = { TopBar() },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -89,37 +85,6 @@ fun HomeScreen() {
             item { Spacer(Modifier.height(20.dp)) }
             item { DailyCareSection(colors) }
             item { Spacer(Modifier.height(20.dp)) }
-        }
-    }
-}
-
-@Composable
-private fun TopBar(colors: AppColors) {
-    Surface(
-        color = colors.surface.copy(alpha = 0.92f),
-        shadowElevation = 0.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = colors.primary,
-                letterSpacing = (-0.5).sp,
-            )
-            // Avatar placeholder
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(colors.surfaceContainerLow)
-            )
         }
     }
 }
