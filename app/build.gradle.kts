@@ -8,6 +8,12 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { stream -> localProperties.load(stream) }
+}
+
 android {
     namespace = "com.plantsnap"
     compileSdk = 36
@@ -22,9 +28,10 @@ android {
 
         testInstrumentationRunner = "com.plantsnap.HiltTestRunner"
 
-        val properties = Properties()
-        properties.load(rootProject.file("local.properties").inputStream())
-        buildConfigField("String", "PLANTNET_API_KEY", "\"${properties["PLANTNET_API_KEY"]}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL") ?: ""}\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"${localProperties.getProperty("SUPABASE_KEY") ?: ""}\"")
+        buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"${localProperties.getProperty("GOOGLE_SERVER_CLIENT_ID") ?: ""}\"")
+        buildConfigField("String", "PLANTNET_API_KEY", "\"${localProperties.getProperty("PLANTNET_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -90,12 +97,18 @@ dependencies {
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth.kt)
     implementation(libs.supabase.postgrest.kt)
+    implementation(libs.supabase.compose.auth)
 
     // Ktor (HTTP engine for Supabase)
     implementation(libs.ktor.client.android)
 
     // Kotlinx Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // Credentials (for Google Sign-In)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.googleid)
 
     androidTestImplementation(libs.hilt.android.testing)
     kspAndroidTest(libs.hilt.android.compiler)
