@@ -12,9 +12,9 @@ import com.plantsnap.ui.state.UiState
 
 @Composable
 fun HistoryScreen(
-    viewModelView: HistoryViewModel = hiltViewModel()
+    viewModel: HistoryViewModel = hiltViewModel()
 ) {
-    val state by viewModelView.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -28,12 +28,7 @@ fun HistoryScreen(
             is UiState.Idle -> Text("Idle")
             is UiState.Loading -> Text("Loading...")
             is UiState.Success -> {
-                val history = s.data
-                if (history == Unit) {
-                    Text("No history found")
-                } else {
-                    Text("History loaded successfully")
-                }
+                // TODO: Display history data here when available
             }
             is UiState.Error -> Text("Error: ${s.message}")
         }

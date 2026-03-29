@@ -35,9 +35,12 @@ fun IdentificationScreen(
             is UiState.Loading -> CircularProgressIndicator()
             is UiState.Success -> {
                 val result = s.data
-                Text("Identified Plant: ${result.candidates.forEach { 
-                    Text("${it.family} (${it.scientificName})")
-                }}")
+                Column {
+                    Text("Identified Plant:")
+                    result.candidates.forEach { candidate ->
+                        Text("${candidate.family} (${candidate.scientificName})")
+                    }
+                }
             }
 
             is UiState.Error -> Text("Error: ${s.message}")

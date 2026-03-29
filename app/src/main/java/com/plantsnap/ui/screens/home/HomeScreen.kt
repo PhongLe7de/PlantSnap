@@ -10,7 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.plantsnap.domain.models.Candidate
 import com.plantsnap.ui.state.UiState
 
 @Composable

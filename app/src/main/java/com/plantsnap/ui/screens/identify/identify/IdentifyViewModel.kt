@@ -22,6 +22,10 @@ class IdentifyViewModel @Inject constructor(
     val uiState: StateFlow<UiState<ScanResult>> = _uiState.asStateFlow()
 
     fun identifyPlant(imagePaths: List<File>, organs: List<String>) {
+        if (imagePaths.isEmpty()) {
+            _uiState.value = UiState.Error("No images provided")
+            return
+        }
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             try {

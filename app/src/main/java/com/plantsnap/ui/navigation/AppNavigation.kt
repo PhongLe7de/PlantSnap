@@ -149,7 +149,6 @@ fun AppNavigation() {
             composable(BottomNavItem.PROFILE.route) {
                 val viewModel: AuthViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsState()
-                Log.d("AppNavigation", "Profile UI State: ${uiState.userEmail}")
                 Column(
                     modifier = Modifier.testTag("screen_profile")
                 ) {
