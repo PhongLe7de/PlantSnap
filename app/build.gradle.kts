@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sonarqube)
+    jacoco
 }
 
 val localProperties = Properties()
@@ -50,6 +52,86 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+afterEvaluate {
+    tasks.register<JacocoReport>("jacocoTestReport") {
+        dependsOn("connectedDebugAndroidTest")
+
+        reports {
+            xml.required.set(true)
+            xml.outputLocation.set(
+                layout.buildDirectory.file(
+                    "reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+                )
+            )
+            html.required.set(true)
+            html.outputLocation.set(
+                layout.buildDirectory.dir(
+                    "reports/jacoco/jacocoTestReport/html"
+                )
+            )
+            csv.required.set(false)
+        }
+
+
+        sourceDirectories.setFrom(
+            files(
+                "${projectDir}/src/main/java",
+                "${projectDir}/src/main/kotlin"
+            )
+        )
+
+
+        classDirectories.setFrom(
+            fileTree(layout.buildDirectory.dir(
+                "intermediates/javac/debug/compileDebugJavaWithJavac/classes"
+            )) {
+                exclude(
+                    // Android generated
+                    "**/R.class",
+                    "**/R$*.class",
+                    "**/BuildConfig.*",
+                    "**/Manifest*.*",
+                    // Hilt generated
+                    "**/*_MembersInjector.class",
+                    "**/*_Factory.class",
+                    "**/*Module_*Factory.class",
+                    "**/Hilt_*.class",
+                    "**/*HiltModules*.class",
+                    "**/*_HiltComponents*.class",
+                    // DI modules and application class
+                    "**/di/**",
+                    "**/*Application.class",
+                    // Pure data / model classes
+                    "**/model/**",
+                    "**/*Entity.class",
+                    "**/*Dto.class",
+                    // Navigation constants
+                    "**/*NavRoutes*",
+                    // Theme
+                    "**/ui/theme/**"
+                )
+            },
+
+            fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+                exclude(
+                    "**/R.class", "**/R$*.class", "**/BuildConfig.*",
+                    "**/*_MembersInjector.class", "**/*_Factory.class",
+                    "**/Hilt_*.class", "**/di/**", "**/model/**"
+                )
+            }
+        )
+
+        executionData.setFrom(
+            fileTree(layout.buildDirectory) {
+                include(
+                    "outputs/code_coverage/**/*.ec",
+                    "jacoco/**/*.ec"
+                )
+            }
+        )
     }
 }
 
