@@ -1,7 +1,7 @@
 package com.plantsnap.domain.services
 
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
-import com.plantsnap.data.repository.PlantNetRepository
+import com.plantsnap.data.repository.PlantNetRepositoryImpl
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
 import java.io.File
@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 
 class PlantService @Inject constructor(
-    private val plantNetRepo: PlantNetRepository,
+    private val plantNetRepo: PlantNetRepositoryImpl,
 //    private val llmRepo: LlmRepository,
 //    private val scanRepo: ScanRepository
 ) {
