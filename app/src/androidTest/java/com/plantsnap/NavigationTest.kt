@@ -159,7 +159,7 @@ class NavigationTest {
     @Test
     fun profile_placeholder_shows_label(){
         composeRule.onNodeWithTag("nav_profile").performClick()
-        composeRule.onNodeWithText("Profile Screen").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome to PlantSnap").assertIsDisplayed()
     }
 
 

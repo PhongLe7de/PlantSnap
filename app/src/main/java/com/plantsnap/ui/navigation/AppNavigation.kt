@@ -1,6 +1,8 @@
 package com.plantsnap.ui.navigation
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -147,30 +149,34 @@ fun AppNavigation() {
             composable(BottomNavItem.PROFILE.route) {
                 val viewModel: AuthViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsState()
-
-                when {
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+                Log.d("AppNavigation", "Profile UI State: ${uiState.userEmail}")
+                Column(
+                    modifier = Modifier.testTag("screen_profile")
+                ) {
+                    when {
+                        uiState.isLoading -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
-                    }
-                    uiState.isLoggedIn -> {
-                        ProfileScreen(
-                            userEmail = uiState.userEmail,
-                            displayName = uiState.displayName,
-                            onSignOut = viewModel::signOut
-                        )
-                    }
-                    else -> {
-                        AuthenticationScreen(
-                            supabaseClient = viewModel.supabaseClient,
-                            isLoading = false,
-                            errorMessage = uiState.errorMessage,
-                            onClearError = viewModel::clearError
-                        )
+                        uiState.isLoggedIn -> {
+                            ProfileScreen(
+                                userEmail = uiState.userEmail,
+                                displayName = uiState.displayName,
+                                onSignOut = viewModel::signOut
+                            )
+                        }
+                        else -> {
+                            AuthenticationScreen(
+                                supabaseClient = viewModel.supabaseClient,
+                                isLoading = false,
+                                errorMessage = uiState.errorMessage,
+                                onClearError = viewModel::clearError
+                            )
+                        }
                     }
                 }
             }
