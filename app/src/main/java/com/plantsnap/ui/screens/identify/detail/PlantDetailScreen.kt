@@ -1,51 +1,46 @@
-package com.plantsnap.ui.screens.home
+package com.plantsnap.ui.screens.identify.detail
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.plantsnap.domain.models.Candidate
 import com.plantsnap.ui.state.UiState
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
-
+fun PlantDetailScreen(
+    plantId: String,
+    onBack: () -> Unit,
+    viewModel: PlantDetailViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.loadData()
-    }
 
     Column(
         modifier = Modifier
-            .testTag("screen_home")
+            .testTag("screen_plantDetail")
     ) {
-        Text(
-            text = "Home Screen"
-        )
+        Text(text = "Plant ID: $plantId")
+
         when (val s = state) {
             is UiState.Idle -> Text("Idle")
             is UiState.Loading -> CircularProgressIndicator()
             is UiState.Success -> {
-                val plants = s.data
-                if (plants.isEmpty()) {
-                    Text("No plants found")
-                } else {
-                    plants.forEach { plant ->
-                        Text("${plant.family} (${plant.scientificName})")
-                    }
+                val result = s.data
+                Text("Best Match: ${result.bestMatch}")
+                result.candidates.forEach { candidate ->
+                    Text("${candidate.family} (${candidate.scientificName})")
                 }
-
             }
-
             is UiState.Error -> Text("Error: ${s.message}")
         }
 
+        Button(onClick = onBack) {
+            Text(text = "Back to Identification")
+        }
     }
 }

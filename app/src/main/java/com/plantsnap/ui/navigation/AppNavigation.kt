@@ -36,9 +36,9 @@ import com.plantsnap.ui.screens.home.HomeScreen
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.screens.profile.AuthenticationScreen
 import com.plantsnap.ui.screens.profile.ProfileScreen
-import com.plantsnap.ui.screens.identify.CameraScreen
-import com.plantsnap.ui.screens.identify.IdentificationScreen
-import com.plantsnap.ui.screens.identify.PlantDetailScreen
+import com.plantsnap.ui.screens.identify.camera.CameraScreen
+import com.plantsnap.ui.screens.identify.identify.IdentificationScreen
+import com.plantsnap.ui.screens.identify.detail.PlantDetailScreen
 
 enum class BottomNavItem(
     val route: String,
