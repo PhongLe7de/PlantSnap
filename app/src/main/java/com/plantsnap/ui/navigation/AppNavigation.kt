@@ -1,6 +1,8 @@
 package com.plantsnap.ui.navigation
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -36,9 +38,9 @@ import com.plantsnap.ui.screens.home.HomeScreen
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.screens.profile.AuthenticationScreen
 import com.plantsnap.ui.screens.profile.ProfileScreen
-import com.plantsnap.ui.screens.identify.CameraScreen
-import com.plantsnap.ui.screens.identify.IdentificationScreen
-import com.plantsnap.ui.screens.identify.PlantDetailScreen
+import com.plantsnap.ui.screens.identify.camera.CameraScreen
+import com.plantsnap.ui.screens.identify.identify.IdentificationScreen
+import com.plantsnap.ui.screens.identify.detail.PlantDetailScreen
 
 enum class BottomNavItem(
     val route: String,
@@ -147,30 +149,33 @@ fun AppNavigation() {
             composable(BottomNavItem.PROFILE.route) {
                 val viewModel: AuthViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsState()
-
-                when {
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+                Column(
+                    modifier = Modifier.testTag("screen_profile")
+                ) {
+                    when {
+                        uiState.isLoading -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
-                    }
-                    uiState.isLoggedIn -> {
-                        ProfileScreen(
-                            userEmail = uiState.userEmail,
-                            displayName = uiState.displayName,
-                            onSignOut = viewModel::signOut
-                        )
-                    }
-                    else -> {
-                        AuthenticationScreen(
-                            supabaseClient = viewModel.supabaseClient,
-                            isLoading = false,
-                            errorMessage = uiState.errorMessage,
-                            onClearError = viewModel::clearError
-                        )
+                        uiState.isLoggedIn -> {
+                            ProfileScreen(
+                                userEmail = uiState.userEmail,
+                                displayName = uiState.displayName,
+                                onSignOut = viewModel::signOut
+                            )
+                        }
+                        else -> {
+                            AuthenticationScreen(
+                                supabaseClient = viewModel.supabaseClient,
+                                isLoading = false,
+                                errorMessage = uiState.errorMessage,
+                                onClearError = viewModel::clearError
+                            )
+                        }
                     }
                 }
             }
