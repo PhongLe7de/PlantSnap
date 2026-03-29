@@ -44,7 +44,7 @@ class PlantService @Inject constructor(
     }
 
     fun getPlantsFromLocal(): List<Candidate> {
-        // TODO: Implement local storage retrieval and proper error handling
-        throw UnsupportedOperationException("getPlantsFromLocal is not yet implemented")
+        // TODO: Implement local storage retrieval
+        return emptyList()
     }
 }
