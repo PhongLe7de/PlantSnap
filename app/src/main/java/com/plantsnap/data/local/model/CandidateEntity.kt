@@ -19,7 +19,7 @@ import com.plantsnap.domain.models.Candidate
 )
 data class CandidateEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val scanEntityId: String, // ScanEntity id
+    val scanId: String,
     val scientificName: String,
     val commonNames: String,    // comma-joined, e.g. "Rose,Dog rose"
     val family: String,
@@ -28,7 +28,7 @@ data class CandidateEntity(
 )
 
 fun Candidate.toEntity(scanId: String) = CandidateEntity(
-    scanEntityId = scanId,
+    scanId = scanId,
     scientificName = scientificName,
     commonNames = commonNames.joinToString(","),
     family = family,

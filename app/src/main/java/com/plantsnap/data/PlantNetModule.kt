@@ -1,6 +1,9 @@
 package com.plantsnap.data
 
 import com.plantsnap.data.plantnet.PlantNetApi
+import com.plantsnap.data.repository.PlantNetRepositoryImpl
+import com.plantsnap.domain.repository.PlantNetRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,36 +19,43 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object PlantNetModule {
+abstract class PlantNetModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideJson(): Json = Json { ignoreUnknownKeys = true }
+    abstract fun bindPlantNetRepository(impl: PlantNetRepositoryImpl): PlantNetRepository
 
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .build()
-    }
+    companion object {
 
-    @Provides
-    @Singleton
-    @Named("plantnet")
-    fun providePlantNetRetrofit(client: OkHttpClient, json: Json): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://my-api.plantnet.org/")
-            .client(client)
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-            .build()
-    }
+        @Provides
+        @Singleton
+        fun provideJson(): Json = Json { ignoreUnknownKeys = true }
 
-    @Provides
-    @Singleton
-    fun providePlantNetApi(@Named("plantnet") retrofit: Retrofit): PlantNetApi {
-        return retrofit.create(PlantNetApi::class.java)
+        @Provides
+        @Singleton
+        fun provideOkHttpClient(): OkHttpClient {
+            return OkHttpClient.Builder()
+                .addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                })
+                .build()
+        }
+
+        @Provides
+        @Singleton
+        @Named("plantnet")
+        fun providePlantNetRetrofit(client: OkHttpClient, json: Json): Retrofit {
+            return Retrofit.Builder()
+                .baseUrl("https://my-api.plantnet.org/")
+                .client(client)
+                .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+                .build()
+        }
+
+        @Provides
+        @Singleton
+        fun providePlantNetApi(@Named("plantnet") retrofit: Retrofit): PlantNetApi {
+            return retrofit.create(PlantNetApi::class.java)
+        }
     }
 }

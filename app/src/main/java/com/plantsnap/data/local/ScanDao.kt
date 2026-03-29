@@ -20,11 +20,12 @@ interface ScanDao {
 
     @Transaction
     @Query("SELECT * FROM scans WHERE id = :scanId")
-    suspend fun getScanById(scanId: String): ScanWithCandidates?
+    fun observeScanById(scanId: String): Flow<ScanWithCandidates?>
 
     // Scans not synced to Supabase
+    @Transaction
     @Query("SELECT * FROM scans WHERE synced = 0")
-    suspend fun getUnsyncedScans(): List<ScanEntity>
+    suspend fun getUnsyncedScans(): List<ScanWithCandidates>
 
     // Writes
     @Insert(onConflict = OnConflictStrategy.REPLACE)
