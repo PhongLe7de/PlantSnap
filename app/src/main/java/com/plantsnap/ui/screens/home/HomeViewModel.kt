@@ -2,7 +2,7 @@ package com.plantsnap.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,14 +17,15 @@ class HomeViewModel @Inject constructor(
     private val plantService: PlantService
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<UiState<List<Candidate>>>(UiState.Idle)
-    val uiState: StateFlow<UiState<List<Candidate>>> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<UiState<List<ScanResult>>>(UiState.Idle)
+    val uiState: StateFlow<UiState<List<ScanResult>>> = _uiState.asStateFlow()
 
     fun loadData() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
-            val plants = plantService.getPlantsFromLocal()
-            _uiState.value = UiState.Success(plants)
+            plantService.getPlantsFromLocal().collect { scans ->
+                _uiState.value = UiState.Success(scans)
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.repository.PlantNetRepository
 import com.plantsnap.domain.repository.ScanRepository
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 import javax.inject.Inject
 
@@ -43,4 +44,5 @@ class PlantService @Inject constructor(
 //        scanRepo.updateAiInfo(scanId, aiInfo)
     }
 
+    fun getPlantsFromLocal(): Flow<List<ScanResult>> = scanRepo.getAll()
 }
