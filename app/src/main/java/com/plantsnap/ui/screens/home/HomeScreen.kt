@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -202,16 +206,16 @@ private fun RecentScansSection(colors: AppColors) {
         ) {
             ScanCard(
                 modifier = Modifier.fillMaxWidth(),
-                plantName = "Plant 1 name",
-                commonName = "Plant 1 common name",
-                timeLabel = stringResource(R.string.scan_time),
+                plantName = "Plant 1 name", // Placeholder text
+                commonName = "Plant 1 common name", // Placeholder text
+                timeLabel = stringResource(R.string.scan_time), // Placeholder text
                 colors = colors,
             )
             ScanCard(
                 modifier = Modifier.fillMaxWidth(),
-                plantName = "Plant 2 name",
-                commonName = "Plant 2 common name",
-                timeLabel = stringResource(R.string.scan_time),
+                plantName = "Plant 2 name", // Placeholder text
+                commonName = "Plant 2 common name", // Placeholder text
+                timeLabel = stringResource(R.string.scan_time), // Placeholder text
                 colors = colors,
             )
         }
@@ -232,6 +236,7 @@ private fun ScanCard(
         colors = CardDefaults.cardColors(containerColor = colors.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
+        // Image placeholder
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -265,15 +270,172 @@ private fun ScanCard(
 
 @Composable
 private fun PlantOfTheDaySection(colors: AppColors) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.plant_of_the_day),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.primary,
+        )
+        Spacer(Modifier.height(12.dp))
 
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = colors.secondaryContainer),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        ) {
+            // Image placeholder
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .background(colors.secondary.copy(alpha = 0.28f)),
+            )
+
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = "Cool Plant", // Placeholder text
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = colors.primary,
+                    letterSpacing = (-0.3).sp,
+                )
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Cool plant description blah blah blah blah blah blah blah blah blah",
+                    fontSize = 14.sp,
+                    color = colors.onSurface.copy(alpha = 0.75f),
+                    lineHeight = 20.sp,
+                )
+                Spacer(Modifier.height(16.dp))
+
+                Button(
+                    onClick = { /* TODO: navigate to plant detail */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.learn_more),
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
 private fun DailyCareSection(colors: AppColors) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.daily_care_tasks),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.primary,
+        )
+        Spacer(Modifier.height(12.dp))
 
+        CareTaskItem(
+            title = stringResource(R.string.care_watering_title),
+            subtitle = stringResource(R.string.care_watering_desc),
+            accentColor = colors.primary,
+            colors = colors,
+        )
+        Spacer(Modifier.height(8.dp))
+        CareTaskItem(
+            title = stringResource(R.string.care_rotate_title),
+            subtitle = stringResource(R.string.care_rotate_desc),
+            accentColor = colors.primary,
+            colors = colors,
+        )
+    }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun CareTaskItem(
+    title: String,
+    subtitle: String,
+    accentColor: Color,
+    colors: AppColors,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(72.dp)
+                    .background(accentColor),
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // Icon placeholder
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(accentColor.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .background(accentColor.copy(alpha = 0.55f), CircleShape)
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.onSurface,
+                    )
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        color = colors.onSurfaceVariant,
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = { /* TODO: mark task done */ },
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accentColor),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.done),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Default view")
+@Preview(showBackground = true, heightDp = 1800, name = "Full height")
 @Composable
 fun HomeScreenPreview() {
     HomeScreen()
