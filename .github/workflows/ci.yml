@@ -1,11 +1,10 @@
 name: PlantSnap CI
 
-# Run on every push to main and on every pull request targeting main.
 on:
   push:
-    branches: [ main, testing ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, testing ]
+    branches: [ main ]
 
 jobs:
   ui-tests:
@@ -13,13 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # ── 2. Java ──────────────────────────────────────────────────────────────
-      # The project uses compileOptions VERSION_11, so JDK 17 is a safe choice —
-      # it supports Java 11 bytecode and is the current Android Gradle default.
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -27,9 +25,7 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # ── 3. Gradle cache ──────────────────────────────────────────────────────
-      # Cache key covers all Gradle files and the version catalog so the cache
-      # is invalidated automatically when any dependency changes.
+
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -40,15 +36,6 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # ── 4. Secrets → local.properties ────────────────────────────────────────
-      # API keys live in GitHub repository secrets and are injected here at
-      # build time. They are read by BuildConfig fields in build.gradle.kts.
-      #
-      # Add these under: GitHub repo → Settings → Secrets → Actions
-      #   PLANTNET_API_KEY
-      #   SUPABASE_URL
-      #   SUPABASE_ANON_KEY
-      #   LLM_API_KEY
       - name: Write local.properties from secrets
         run: |
           cat >> local.properties << EOF
@@ -57,42 +44,22 @@ jobs:
           SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
           LLM_API_KEY=${{ secrets.LLM_API_KEY }}
           EOF
-
-      # ── 5. Gradle permissions ─────────────────────────────────────────────────
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Run Android Lint
+        run: ./gradlew lintDebug --stacktrace
 
-      # ── 6. Build debug + test APKs ────────────────────────────────────────────
-      # Assembling first surfaces compile errors with a clean message rather than
-      # letting the emulator step fail mid-run with a cryptic Gradle error.
       - name: Build debug APK
         run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
 
-      # ── 7. Enable KVM acceleration ────────────────────────────────────────────
-      # GitHub's ubuntu-latest runners support KVM, which makes the emulator
-      # ~10x faster than software-only rendering. Without this the udev rule
-      # exists but the kvm group lacks write permission.
       - name: Enable KVM group permissions
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
-      # ── 8. Run UI tests on emulator ───────────────────────────────────────────
-      #
-      # api-level: 35  (not 36)
-      # ─────────────────────────────────────────────────────────────────────────
-      # The project compiles against SDK 36 (Android 16 preview), but the
-      # reactivecircus/android-emulator-runner action requires a stable AOSP
-      # system image. API 36 images are not yet available as stable releases on
-      # GitHub-hosted runners. API 35 (Android 15) is the highest stable image
-      # and is fully compatible with minSdk 26 — the emulator can run any app
-      # whose minSdk is ≤ 35.
-      #
-      # Update api-level to 36 here once a stable AOSP image ships.
-      # ─────────────────────────────────────────────────────────────────────────
-      - name: Run UI tests on emulator
+          
+      - name: Run UI tests with coverage on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -102,17 +69,78 @@ jobs:
           avd-name: plantsnap_ci_avd
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest --stacktrace
+          script: ./gradlew connectedDebugAndroidTest jacocoTestReport --stacktrace
 
-      # ── 9. Upload test results ─────────────────────────────────────────────────
-      # Uploaded regardless of pass/fail so the HTML report is always available
-      # in the Actions → Artifacts tab for inspection.
-      - name: Upload test results
+      - name: Upload reports artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-test-results
+          name: reports
           path: |
             app/build/reports/androidTests/connected/
             app/build/outputs/androidTest-results/connected/
+            app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+            app/build/reports/lint-results-debug.xml
           retention-days: 14
+
+
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: ui-tests
+    if: false
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: sonar-${{ runner.os }}
+          restore-keys: sonar-${{ runner.os }}
+
+      - name: Download reports artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: reports
+          path: app/build/reports
+
+      - name: Write local.properties from secrets
+        run: |
+          cat >> local.properties << EOF
+          PLANTNET_API_KEY=${{ secrets.PLANTNET_API_KEY }}
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          LLM_API_KEY=${{ secrets.LLM_API_KEY }}
+          EOF
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew sonar --info --stacktrace

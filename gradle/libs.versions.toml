@@ -22,6 +22,7 @@ navigationRuntimeKtx = "2.9.7"
 navigationCompose = "2.9.7"
 credentials = "1.5.0-rc01"
 googleid = "1.1.1"
+sonarqube = "5.1.0.4882"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -90,3 +91,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
