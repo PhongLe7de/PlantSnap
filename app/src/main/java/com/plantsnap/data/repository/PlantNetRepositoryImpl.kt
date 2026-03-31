@@ -2,6 +2,7 @@ package com.plantsnap.data.repository
 
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.PlantNetApi
+import com.plantsnap.domain.repository.PlantNetRepository
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -11,11 +12,11 @@ import javax.inject.Singleton
 
 
 @Singleton
-class PlantNetRepository @Inject constructor(
+class PlantNetRepositoryImpl @Inject constructor(
     private val api: PlantNetApi
-) {
+) : PlantNetRepository {
     // 1 image file. This might be redundant
-    suspend fun identifyPlant(imageFile: File, organ: String?): IdentifyPlantResponse {
+    override suspend fun identifyPlant(imageFile: File, organ: String?): IdentifyPlantResponse {
         val body = imageFile.asRequestBody("image/jpeg".toMediaType())
         val imagePart = MultipartBody.Part.createFormData("images", imageFile.name, body)
         val organPart = MultipartBody.Part.createFormData("organs", organ ?: "auto")
@@ -23,7 +24,10 @@ class PlantNetRepository @Inject constructor(
     }
 
     // Multiple files
-    suspend fun identifyPlantFromMultipleImages(imageFiles: List<File>, organs: List<String>?): IdentifyPlantResponse {
+    override suspend fun identifyPlantFromMultipleImages(
+        imageFiles: List<File>,
+        organs: List<String>?
+    ): IdentifyPlantResponse {
         val imageParts = imageFiles.map { file ->
             val body = file.asRequestBody("image/jpeg".toMediaType())
             MultipartBody.Part.createFormData("images", file.name, body)
