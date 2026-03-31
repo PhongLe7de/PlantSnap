@@ -18,4 +18,6 @@
     <string name="care_watering_desc">Check soil moisture today</string>
     <string name="care_rotate_title">Rotate: Succulents</string>
     <string name="care_rotate_desc">Ensure even sun exposure</string>
+    <string name="no_plants_found">No plants found</string>
+    <string name="error_loading_plants">Error: %s</string>
 </resources>
