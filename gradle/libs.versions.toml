@@ -23,8 +23,10 @@ navigationCompose = "2.9.7"
 credentials = "1.5.0-rc01"
 googleid = "1.1.1"
 sonarqube = "5.1.0.4882"
+uiTextGoogleFonts = "<version>"
 
 [libraries]
+androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
