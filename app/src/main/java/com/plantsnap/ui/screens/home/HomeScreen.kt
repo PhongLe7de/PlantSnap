@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.plantsnap.R
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
 import com.plantsnap.ui.state.UiState
 
@@ -95,7 +96,7 @@ fun HomeScreen(
 
 @Composable
 fun HomeScreenContent(
-    state: UiState<List<Candidate>>,
+    state: UiState<List<ScanResult>>,
 ) {
     val colors = rememberAppColors()
 
@@ -155,8 +156,8 @@ fun HomeScreenContent(
                         items(state.data) { plant ->
                             ScanCard(
                                 modifier = Modifier.fillMaxWidth(),
-                                plantName = plant.scientificName,
-                                commonName = plant.family,
+                                plantName = plant.bestMatch,
+                                commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull() ?: "",
                                 timeLabel = stringResource(R.string.scan_time), // TODO: replace with real scan timestamp
                                 colors = colors,
                             )
@@ -496,19 +497,35 @@ private fun HomeScreenPreviewSuccess() {
     HomeScreenContent(
         state = UiState.Success(
             listOf(
-                Candidate(
-                    scientificName = "Monstera Deliciosa",
-                    commonNames = listOf("Swiss Cheese Plant"),
-                    family = "Araceae",
-                    score = 0.97f,
-                    iucnCategory = null,
+                ScanResult(
+                    imagePath = "",
+                    organ = "leaf",
+                    bestMatch = "Monstera deliciosa",
+                    candidates = listOf(
+                        Candidate(
+                            scientificName = "Monstera deliciosa",
+                            commonNames = listOf("Swiss Cheese Plant"),
+                            family = "Araceae",
+                            score = 0.97f,
+                            iucnCategory = null,
+                        )
+                    ),
+                    aiInfo = null,
                 ),
-                Candidate(
-                    scientificName = "Dracaena Trifasciata",
-                    commonNames = listOf("Snake Plant", "Mother-in-law's Tongue"),
-                    family = "Asparagaceae",
-                    score = 0.91f,
-                    iucnCategory = "LC",
+                ScanResult(
+                    imagePath = "",
+                    organ = "leaf",
+                    bestMatch = "Dracaena trifasciata",
+                    candidates = listOf(
+                        Candidate(
+                            scientificName = "Dracaena trifasciata",
+                            commonNames = listOf("Snake Plant", "Mother-in-law's Tongue"),
+                            family = "Asparagaceae",
+                            score = 0.91f,
+                            iucnCategory = "LC",
+                        )
+                    ),
+                    aiInfo = null,
                 ),
             )
         )
