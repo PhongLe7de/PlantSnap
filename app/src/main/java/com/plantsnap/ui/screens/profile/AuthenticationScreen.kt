@@ -25,15 +25,16 @@ fun AuthenticationScreen(
     supabaseClient: SupabaseClient,
     isLoading: Boolean,
     errorMessage: String?,
-    onClearError: () -> Unit
+    onClearError: () -> Unit,
+    onError: (String) -> Unit
 ) {
     val signInAction = supabaseClient.composeAuth.rememberSignInWithGoogle(
         onResult = { result ->
             when (result) {
-                NativeSignInResult.Success -> { }
+                NativeSignInResult.Success -> onClearError()
                 NativeSignInResult.ClosedByUser -> { }
-                is NativeSignInResult.Error -> { }
-                is NativeSignInResult.NetworkError -> { }
+                is NativeSignInResult.Error -> onError(result.message)
+                is NativeSignInResult.NetworkError -> onError("Network error. Please check your connection and try again.")
             }
         },
         fallback = { }
