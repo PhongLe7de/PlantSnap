@@ -160,6 +160,7 @@ private fun WelcomeSection() {
             text = stringResource(R.string.home_greeting),
             fontSize = 34.sp,
             fontWeight = FontWeight.ExtraBold,
+            lineHeight = 40.sp,
             color = scheme.primary,
             letterSpacing = (-0.5).sp,
         )
@@ -180,7 +181,6 @@ private fun IdentifySection() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(
                 Brush.verticalGradient(
@@ -211,17 +211,12 @@ private fun IdentifySection() {
             Button(
                 onClick = {}, // TODO: Open camera
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = scheme.primary,
-                    contentColor = scheme.onSurface,
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                 shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
             ) {
                 Text(
                     text = stringResource(R.string.identify_button),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
                     color = scheme.onPrimary,
                 )
             }
