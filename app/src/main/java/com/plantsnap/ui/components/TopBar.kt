@@ -11,31 +11,30 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plantsnap.R
+import com.plantsnap.ui.theme.PlantSnapTheme
 
 @Composable
 fun TopBar (
     modifier: Modifier = Modifier,
 ) {
-    val primary = colorResource(R.color.primary)
-    val surface = colorResource(R.color.surface)
+    val scheme = MaterialTheme.colorScheme
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = surface.copy(alpha = 0.92f),
+        color = scheme.surface.copy(alpha = 0.92f),
         shadowElevation = 0.dp,
     ) {
         Row(
@@ -50,7 +49,7 @@ fun TopBar (
                     onClick = {}, // TODO: Open sidebar
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color.LightGray),
+                        .background(scheme.surfaceContainerHigh),
                 ) {
                     // TODO: Add hamburger button icon
                 }
@@ -61,7 +60,7 @@ fun TopBar (
                     text = stringResource(R.string.app_name),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = primary,
+                    color = scheme.primary,
                     letterSpacing = (-0.5).sp,
                 )
             }
@@ -71,7 +70,7 @@ fun TopBar (
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.LightGray),
+                    .background(scheme.surfaceContainerHigh),
             )
         }
     }
@@ -80,5 +79,7 @@ fun TopBar (
 @Preview(showBackground = true)
 @Composable
 fun TopBarPreview() {
-    TopBar()
+    PlantSnapTheme {
+        TopBar()
+    }
 }
