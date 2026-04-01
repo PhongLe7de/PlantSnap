@@ -138,8 +138,30 @@ class NavigationTest {
     }
 
     /**
-     * CTA button TO-DO
+     * CTA button
      */
+
+    /**
+     * Identify Plant on Home navigates to Camera
+     */
+    @Test
+    fun identify_plant_cta_navigates_to_camera() {
+        composeRule.onNodeWithTag("screen_home").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("btn_identify_plant_cta").performClick()
+
+        composeRule.onNodeWithTag("screen_camera").assertIsDisplayed()
+    }
+
+    @Test
+    fun identify_plant_cta_back_returns_to_home() {
+        composeRule.onNodeWithTag("btn_identify_plant_cta").performClick()
+        composeRule.onNodeWithTag("screen_camera").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("btn_back").performClick()
+
+        composeRule.onNodeWithTag("screen_home").assertIsDisplayed()
+    }
 
     /**
      * Placeholder screens

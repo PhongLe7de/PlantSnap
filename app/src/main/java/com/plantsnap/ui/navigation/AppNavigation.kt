@@ -113,7 +113,13 @@ fun AppNavigation() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavItem.HOME.route) {
-                HomeScreen()
+                HomeScreen(
+                    onIdentifyPlantSelected = {
+                        navController.navigate(IdentifyNavItem.CAMERA.route){
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
 
             navigation(
@@ -122,6 +128,7 @@ fun AppNavigation() {
             ) {
                 composable(IdentifyNavItem.CAMERA.route) {
                     CameraScreen(
+                        onBack = { navController.popBackStack() },
                         onPhotoCaptured = {
                             navController.navigate(IdentifyNavItem.IDENTIFICATION.route)
                         }
@@ -160,6 +167,7 @@ fun AppNavigation() {
                                 CircularProgressIndicator()
                             }
                         }
+
                         uiState.isLoggedIn -> {
                             ProfileScreen(
                                 userEmail = uiState.userEmail,
@@ -167,6 +175,7 @@ fun AppNavigation() {
                                 onSignOut = viewModel::signOut
                             )
                         }
+
                         else -> {
                             AuthenticationScreen(
                                 supabaseClient = viewModel.supabaseClient,
