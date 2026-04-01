@@ -41,6 +41,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,6 +57,7 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreenContent(
+    flashEnabled: Boolean,
     isLoading: Boolean,
     onFlashToggle: () -> Unit,
     onCapture: () -> Unit,
@@ -62,7 +67,6 @@ fun CameraScreenContent(
     cameraPreview: @Composable BoxScope.() -> Unit = {}
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
-    var flashEnabled by remember { mutableStateOf(false) }
 
     if (hasCameraPermission) {
         BottomSheetScaffold(scaffoldState = scaffoldState, sheetPeekHeight = 40.dp, sheetContent = {
@@ -70,14 +74,24 @@ fun CameraScreenContent(
                 text = "Gallery",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier
-                    .padding(bottom = 6.dp)
                     .align(Alignment.CenterHorizontally)
             )
+            HorizontalDivider(
+                modifier = Modifier
+                    .width(30.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 6.dp)
+            )
+            Text("Nothing")
         }) { _ ->
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .testTag("screen_camera")) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("screen_camera")
+            ) {
+
                 cameraPreview()
+
                 // Flash button
                 IconButton(
                     onClick = onFlashToggle,
@@ -119,6 +133,8 @@ fun CameraScreenContent(
             }
         }
     } else {
+        // TODO: Edge cases
+        // Denied state
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier.align(Alignment.Center),
@@ -128,6 +144,7 @@ fun CameraScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = onGrantPermission) { Text("Grant permission") }
             }
+            // Error
             errorMessage?.let {
                 Text(
                     text = "Error: $it",
@@ -161,10 +178,12 @@ fun CameraScreen(
         ActivityResultContracts.RequestPermission()
     ) { granted -> hasCameraPermission = granted }
 
+    // Request permission on first composition if not granted
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
+    // Camera controller, bound to this composable's lifecycle
     val cameraController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
@@ -174,6 +193,7 @@ fun CameraScreen(
     var flashEnabled by remember { mutableStateOf(false) }
 
     CameraScreenContent(
+        flashEnabled = flashEnabled,
         isLoading = state is UiState.Loading,
         onFlashToggle = {
             flashEnabled = !flashEnabled
@@ -195,15 +215,18 @@ fun CameraScreen(
 private fun CameraScreenGrantedPreview() {
     PlantSnapTheme {
         CameraScreenContent(
+            flashEnabled = false,
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
             onGrantPermission = {},
             hasCameraPermission = true,
             cameraPreview = {
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.DarkGray))
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.DarkGray)
+                )
             }
         )
     }
@@ -214,6 +237,7 @@ private fun CameraScreenGrantedPreview() {
 private fun CameraScreenDeniedPreview() {
     PlantSnapTheme {
         CameraScreenContent(
+            flashEnabled = false,
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
