@@ -38,7 +38,7 @@ fun CameraScreen(
 
                     Button(
                         onClick = onBack,
-                        modifier = Modifier.testTag("btn_identify")
+                        modifier = Modifier.testTag("btn_back")
                     ) {
                         Text(text = "Back to Home")
                     }

@@ -114,7 +114,11 @@ fun AppNavigation() {
         ) {
             composable(BottomNavItem.HOME.route) {
                 HomeScreen(
-                    onIdentifyPlantSelected = { navController.navigate(IdentifyNavItem.CAMERA.route) }
+                    onIdentifyPlantSelected = {
+                        navController.navigate(IdentifyNavItem.CAMERA.route){
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 

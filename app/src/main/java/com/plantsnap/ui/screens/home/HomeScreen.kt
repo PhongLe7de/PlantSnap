@@ -131,22 +131,7 @@ fun HomeScreenContent(
             }
 
             when (state) {
-                is UiState.Idle -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.no_plants_found),
-                                    color = colors.onSurfaceVariant,
-                                    fontSize = 14.sp,
-                                )
-                            }
-                        }
-                }
+                is UiState.Idle,
                 is UiState.Loading -> item {
                     Box(
                         modifier = Modifier
@@ -263,8 +248,12 @@ private fun IdentifySection(
             )
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = { onIdentifyPlantSelected() }, // TODO: Open camera
-                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    onIdentifyPlantSelected()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("btn_identify_plant_cta"),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.primary,
                     contentColor = Color.White,
