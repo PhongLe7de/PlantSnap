@@ -14,6 +14,7 @@ import com.plantsnap.ui.state.UiState
 
 @Composable
 fun CameraScreen(
+    onBack: () -> Unit,
     onPhotoCaptured: () -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
@@ -27,13 +28,24 @@ fun CameraScreen(
 
         when (val s = state) {
             is UiState.Idle -> {
-                Button(
-                    onClick = onPhotoCaptured,
-                    modifier = Modifier.testTag("btn_identify")
-                ) {
-                    Text(text = "Capture Photo")
+                Column() {
+                    Button(
+                        onClick = onPhotoCaptured,
+                        modifier = Modifier.testTag("btn_identify")
+                    ) {
+                        Text(text = "Capture Photo")
+                    }
+
+                    Button(
+                        onClick = onBack,
+                        modifier = Modifier.testTag("btn_identify")
+                    ) {
+                        Text(text = "Back to Home")
+                    }
                 }
+
             }
+
             is UiState.Loading -> CircularProgressIndicator()
             is UiState.Success -> Text("Photo captured: ${s.data}")
             is UiState.Error -> Text("Error: ${s.message}")

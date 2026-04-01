@@ -66,21 +66,22 @@ private data class AppColors(
 
 @Composable
 private fun rememberAppColors() = AppColors(
-    primary              = colorResource(R.color.primary),
-    primaryContainer     = colorResource(R.color.primary_container),
-    secondary            = colorResource(R.color.secondary),
-    secondaryContainer   = colorResource(R.color.secondary_container),
+    primary = colorResource(R.color.primary),
+    primaryContainer = colorResource(R.color.primary_container),
+    secondary = colorResource(R.color.secondary),
+    secondaryContainer = colorResource(R.color.secondary_container),
     onSecondaryContainer = colorResource(R.color.on_secondary_container),
-    tertiary             = colorResource(R.color.tertiary),
-    surface              = colorResource(R.color.surface),
-    surfaceContainerLow  = colorResource(R.color.surface_container_low),
-    onSurface            = colorResource(R.color.on_surface),
-    onSurfaceVariant     = colorResource(R.color.on_surface_variant),
-    outline              = colorResource(R.color.outline),
+    tertiary = colorResource(R.color.tertiary),
+    surface = colorResource(R.color.surface),
+    surfaceContainerLow = colorResource(R.color.surface_container_low),
+    onSurface = colorResource(R.color.on_surface),
+    onSurfaceVariant = colorResource(R.color.on_surface_variant),
+    outline = colorResource(R.color.outline),
 )
 
 @Composable
 fun HomeScreen(
+    onIdentifyPlantSelected: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -90,12 +91,14 @@ fun HomeScreen(
     }
 
     HomeScreenContent(
+        onIdentifyPlantSelected = onIdentifyPlantSelected,
         state = state,
     )
 }
 
 @Composable
 fun HomeScreenContent(
+    onIdentifyPlantSelected: () -> Unit,
     state: UiState<List<ScanResult>>,
 ) {
     val colors = rememberAppColors()
@@ -114,7 +117,12 @@ fun HomeScreenContent(
         ) {
             item { WelcomeSection(colors) }
             item { Spacer(Modifier.height(20.dp)) }
-            item { IdentifySection(colors) }
+            item {
+                IdentifySection(
+                    colors,
+                    onIdentifyPlantSelected = onIdentifyPlantSelected,
+                )
+            }
             item { Spacer(Modifier.height(20.dp)) }
 
             item {
@@ -123,7 +131,22 @@ fun HomeScreenContent(
             }
 
             when (state) {
-                is UiState.Idle -> { }
+                is UiState.Idle -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.no_plants_found),
+                                    color = colors.onSurfaceVariant,
+                                    fontSize = 14.sp,
+                                )
+                            }
+                        }
+                }
                 is UiState.Loading -> item {
                     Box(
                         modifier = Modifier
@@ -134,6 +157,7 @@ fun HomeScreenContent(
                         CircularProgressIndicator(color = colors.primary)
                     }
                 }
+
                 is UiState.Error -> item {
                     Text(
                         text = stringResource(R.string.error_loading_plants, state.message),
@@ -142,6 +166,7 @@ fun HomeScreenContent(
                         modifier = Modifier.padding(vertical = 16.dp),
                     )
                 }
+
                 is UiState.Success -> {
                     if (state.data.isEmpty()) {
                         item {
@@ -157,7 +182,8 @@ fun HomeScreenContent(
                             ScanCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 plantName = plant.bestMatch,
-                                commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull() ?: "",
+                                commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull()
+                                    ?: "",
                                 timeLabel = stringResource(R.string.scan_time), // TODO: replace with real scan timestamp
                                 colors = colors,
                             )
@@ -201,7 +227,10 @@ private fun WelcomeSection(colors: AppColors) {
 }
 
 @Composable
-private fun IdentifySection(colors: AppColors) {
+private fun IdentifySection(
+    colors: AppColors,
+    onIdentifyPlantSelected: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,7 +263,7 @@ private fun IdentifySection(colors: AppColors) {
             )
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = {}, // TODO: Open camera
+                onClick = { onIdentifyPlantSelected() }, // TODO: Open camera
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.primary,
@@ -528,24 +557,27 @@ private fun HomeScreenPreviewSuccess() {
                     aiInfo = null,
                 ),
             )
-        )
+        ),
+        onIdentifyPlantSelected = {}
     )
 }
 
 @Preview(showBackground = true, showSystemUi = true, name = "Loading")
 @Composable
 private fun HomeScreenPreviewLoading() {
-    HomeScreenContent(state = UiState.Loading)
+    HomeScreenContent(state = UiState.Loading, onIdentifyPlantSelected = {})
 }
 
 @Preview(showBackground = true, showSystemUi = true, name = "Empty")
 @Composable
 private fun HomeScreenPreviewEmpty() {
-    HomeScreenContent(state = UiState.Success(emptyList()))
+    HomeScreenContent(state = UiState.Success(emptyList()), onIdentifyPlantSelected = {})
 }
 
 @Preview(showBackground = true, showSystemUi = true, name = "Error")
 @Composable
 private fun HomeScreenPreviewError() {
-    HomeScreenContent(state = UiState.Error("Couldn't fetch results"))
+    HomeScreenContent(
+        state = UiState.Error("Couldn't fetch results"),
+        onIdentifyPlantSelected = {})
 }
