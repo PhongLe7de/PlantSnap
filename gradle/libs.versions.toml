@@ -12,6 +12,7 @@ ksp = "2.3.6"
 hilt = "2.59.2"
 hiltNavigationCompose = "1.2.0"
 camerax = "1.4.1"
+materialIconsExtended = "1.7.8"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 room = "2.8.4"
@@ -26,6 +27,7 @@ sonarqube = "5.1.0.4882"
 uiTextGoogleFonts = "<version>"
 
 [libraries]
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
