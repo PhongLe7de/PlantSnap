@@ -145,7 +145,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons)
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.compose.material3)
-
+    implementation(libs.androidx.compose.material.icons.extended)
     // CameraX
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
@@ -161,6 +161,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.3.0")
     implementation(libs.okhttp.logging)
 
+    //Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
