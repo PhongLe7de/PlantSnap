@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.ImageCapture
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.layout.Box
@@ -40,17 +39,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
@@ -96,8 +92,8 @@ fun CameraScreenContent(
                 IconButton(
                     onClick = onFlashToggle,
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 58.dp, end = 16.dp)
                         .size(48.dp),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Black.copy(alpha = 0.4f),
@@ -129,11 +125,18 @@ fun CameraScreenContent(
                         contentDescription = "Take picture",
                         modifier = Modifier.fillMaxSize(0.8f)
                     )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.fillMaxSize(0.8f)
+                        )
+                    }
                 }
             }
         }
     } else {
-        // TODO: Edge cases
+        // TODO: Edge cases?
         // Denied state
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -165,7 +168,8 @@ fun CameraScreen(
     onPhotoCaptured: () -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val cameraScreenState by viewModel.screenState.collectAsState()
     val context = LocalContext.current
 
     var hasCameraPermission by remember {
@@ -190,20 +194,15 @@ fun CameraScreen(
         }
     }
 
-    var flashEnabled by remember { mutableStateOf(false) }
 
     CameraScreenContent(
-        flashEnabled = flashEnabled,
-        isLoading = state is UiState.Loading,
-        onFlashToggle = {
-            flashEnabled = !flashEnabled
-            cameraController.imageCaptureFlashMode =
-                if (flashEnabled) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
-        },
-        onCapture = { /*viewModel.capturePhoto(cameraController)*/ },
+        flashEnabled = cameraScreenState.flashEnabled,
+        isLoading = uiState is UiState.Loading,
+        onFlashToggle = { viewModel.toggleFlash(cameraController) },
+        onCapture = { viewModel.capturePhoto(cameraController) },
         onGrantPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
         hasCameraPermission = hasCameraPermission,
-        errorMessage = (state as? UiState.Error)?.message,
+        errorMessage = (uiState as? UiState.Error)?.message,
         cameraPreview = {
             CameraPreview(controller = cameraController, modifier = Modifier.fillMaxSize())
         }
