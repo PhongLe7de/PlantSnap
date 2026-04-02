@@ -160,6 +160,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.3.0")
     implementation(libs.okhttp.logging)
 
+    //Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

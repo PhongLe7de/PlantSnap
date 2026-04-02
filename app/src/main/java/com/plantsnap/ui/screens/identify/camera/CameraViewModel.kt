@@ -20,18 +20,31 @@ import javax.inject.Inject
 
 data class CameraScreenUiState(
     val flashEnabled: Boolean = false,
-    val picturesTaken: Int = 0 // Max 5
+    val picturesTaken: Int = 0,
+    val capturedPhotos: List<Uri> = emptyList(),  // Max 5
+    val selectedOrgans: List<String> = emptyList()
 )
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _screenState = MutableStateFlow(CameraScreenUiState())
     val screenState: StateFlow<CameraScreenUiState> = _screenState.asStateFlow()
 
-    private val _uiState = MutableStateFlow<UiState<Uri>>(UiState.Idle)
-    val uiState: StateFlow<UiState<Uri>> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<UiState<List<Uri>>>(UiState.Idle)
+    val uiState: StateFlow<UiState<List<Uri>>> = _uiState.asStateFlow()
+
+
+    fun toggleFlash(controller: LifecycleCameraController) {
+        val newFlash = !_screenState.value.flashEnabled
+
+        Log.i("CameraViewModel", "toggleFlash: $newFlash")
+        _screenState.value = _screenState.value.copy(flashEnabled = newFlash)
+        // Apply to camera
+        controller.imageCaptureFlashMode =
+            if (newFlash) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+    }
 
     fun capturePhoto(controller: LifecycleCameraController) {
         _uiState.value = UiState.Loading
@@ -48,27 +61,27 @@ class CameraViewModel @Inject constructor(
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val uri = output.savedUri ?: Uri.fromFile(photoFile)
-                    _uiState.value = UiState.Success(uri)
+                    _screenState.value = _screenState.value.copy(
+                        picturesTaken = _screenState.value.picturesTaken + 1,
+                        capturedPhotos = _screenState.value.capturedPhotos + uri,
+                       //TODO: selectedOrgans = _screenState.value.selectedOrgans + organ
+                    )
+                    _uiState.value = UiState.Idle
                 }
+
                 override fun onError(exception: ImageCaptureException) {
                     _uiState.value = UiState.Error(exception.message ?: "Capture failed")
                 }
             }
         )
+        val photos = _screenState.value.capturedPhotos
+        Log.d("CameraViewModel", "capturePhoto: $photos")
     }
 
-    fun toggleFlash(controller: LifecycleCameraController) {
-        val newFlash = !_screenState.value.flashEnabled
-
-        Log.i("CameraViewModel", "toggleFlash: $newFlash")
-        _screenState.value = _screenState.value.copy(flashEnabled = newFlash)
-        // Apply to camera
-        controller.imageCaptureFlashMode =
-            if (newFlash) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
-    }
-
-
-    fun setImageUri(uri: Uri) {
-        _uiState.value = UiState.Success(uri)
+    // List of max 5 photos sent to the API - taken photos wiped from local storage after successful identification
+    fun submitForIdentification() {
+        val photos = _screenState.value.capturedPhotos
+        if (photos.isEmpty()) return
+        _uiState.value = UiState.Success(photos)
     }
 }

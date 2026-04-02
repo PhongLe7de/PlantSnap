@@ -2,6 +2,7 @@ package com.plantsnap.ui.screens.identify.camera
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.CameraController
@@ -39,9 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,6 +54,8 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 @Composable
 fun CameraScreenContent(
     flashEnabled: Boolean,
+    capturedPhotos: List<Uri>,
+    photoCount: Int,
     isLoading: Boolean,
     onFlashToggle: () -> Unit,
     onCapture: () -> Unit,
@@ -66,19 +68,7 @@ fun CameraScreenContent(
 
     if (hasCameraPermission) {
         BottomSheetScaffold(scaffoldState = scaffoldState, sheetPeekHeight = 40.dp, sheetContent = {
-            Text(
-                text = "Gallery",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-            )
-            HorizontalDivider(
-                modifier = Modifier
-                    .width(30.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .padding(bottom = 6.dp)
-            )
-            Text("Nothing")
+            BottomSheetContent(modifier = Modifier, capturedPhotos = capturedPhotos)
         }) { _ ->
             Box(
                 modifier = Modifier
@@ -109,7 +99,7 @@ fun CameraScreenContent(
                 // Shutter button
                 IconButton(
                     onClick = onCapture,
-                    enabled = !isLoading,
+                    enabled = !isLoading && photoCount < 5,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 58.dp)
@@ -133,6 +123,17 @@ fun CameraScreenContent(
                         )
                     }
                 }
+                // Image counter
+                Text(
+                    text = "$photoCount/5",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(bottom = 68.dp, start = 16.dp)
+                        .background(Color.Black.copy(alpha = 0.4f), shape = RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
             }
         }
     } else {
@@ -165,7 +166,7 @@ fun CameraScreenContent(
 @Composable
 fun CameraScreen(
     onBack: () -> Unit,
-    onPhotoCaptured: () -> Unit,
+    onSubmitPhotos: () -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -194,9 +195,10 @@ fun CameraScreen(
         }
     }
 
-
     CameraScreenContent(
         flashEnabled = cameraScreenState.flashEnabled,
+        capturedPhotos = cameraScreenState.capturedPhotos,
+        photoCount = cameraScreenState.picturesTaken,
         isLoading = uiState is UiState.Loading,
         onFlashToggle = { viewModel.toggleFlash(cameraController) },
         onCapture = { viewModel.capturePhoto(cameraController) },
@@ -215,6 +217,8 @@ private fun CameraScreenGrantedPreview() {
     PlantSnapTheme {
         CameraScreenContent(
             flashEnabled = false,
+            capturedPhotos = emptyList(),
+            photoCount = 0,
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
@@ -237,6 +241,8 @@ private fun CameraScreenDeniedPreview() {
     PlantSnapTheme {
         CameraScreenContent(
             flashEnabled = false,
+            capturedPhotos = emptyList(),
+            photoCount = 0,
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},

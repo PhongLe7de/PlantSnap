@@ -129,7 +129,7 @@ fun AppNavigation() {
                 composable(IdentifyNavItem.CAMERA.route) {
                     CameraScreen(
                         onBack = { navController.popBackStack() },
-                        onPhotoCaptured = {
+                        onSubmitPhotos = {
                             navController.navigate(IdentifyNavItem.IDENTIFICATION.route)
                         }
                     )
