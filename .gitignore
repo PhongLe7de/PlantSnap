@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+androidTestResultsUserPreferences.xml
+deploymentTargetSelector.xml
