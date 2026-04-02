@@ -3,6 +3,7 @@ package com.plantsnap.ui.screens.identify.camera
 import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -21,11 +22,11 @@ import coil3.compose.AsyncImage
 //TODO: Ability to select and remove images from the list
 @Composable
 fun BottomSheetContent(modifier: Modifier = Modifier, capturedPhotos: List<Uri>) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = "Captured Images",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp)
         )
         HorizontalDivider(
             modifier = Modifier

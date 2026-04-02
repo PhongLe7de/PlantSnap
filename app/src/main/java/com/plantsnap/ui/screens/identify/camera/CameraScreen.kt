@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material3.BottomSheetScaffold
@@ -41,7 +40,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -65,6 +63,7 @@ fun CameraScreenContent(
     cameraPreview: @Composable BoxScope.() -> Unit = {}
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
+    var shutterTriggered by remember { mutableStateOf(false) }
 
     if (hasCameraPermission) {
         BottomSheetScaffold(scaffoldState = scaffoldState, sheetPeekHeight = 40.dp, sheetContent = {
@@ -97,32 +96,22 @@ fun CameraScreenContent(
                 }
 
                 // Shutter button
-                IconButton(
-                    onClick = onCapture,
+                CaptureButton(
+                    onClick = { shutterTriggered = true },
                     enabled = !isLoading && photoCount < 5,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 58.dp)
-                        .size(85.dp)
-                        .testTag("btn_identify"),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Color.White.copy(alpha = 0.4f),
-                        contentColor = Color.Black
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Camera,
-                        contentDescription = "Take picture",
-                        modifier = Modifier.fillMaxSize(0.8f)
-                    )
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.fillMaxSize(0.8f)
-                        )
+                        .testTag("btn_identify")
+                )
+
+                ShutterFlash(
+                    triggered = shutterTriggered,
+                    onAnimationEnd = {
+                        shutterTriggered = false
+                        onCapture()
                     }
-                }
+                )
                 // Image counter
                 Text(
                     text = "$photoCount/5",
