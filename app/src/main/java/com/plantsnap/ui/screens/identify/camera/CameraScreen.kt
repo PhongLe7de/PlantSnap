@@ -63,6 +63,7 @@ fun CameraScreen(
             }
             else -> Unit
         }
+        Button(onClick = onBack, modifier = Modifier.testTag("btn_back")) {Text("Back") }
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
