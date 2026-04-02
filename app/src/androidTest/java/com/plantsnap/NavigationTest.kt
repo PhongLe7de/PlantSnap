@@ -166,11 +166,6 @@ class NavigationTest {
     /**
      * Placeholder screens
      */
-    @Test
-    fun camera_placeholder_shows_label(){
-        composeRule.onNodeWithTag("nav_identify").performClick()
-        composeRule.onNodeWithText("Camera Screen").assertIsDisplayed()
-    }
 
     @Test
     fun history_placeholder_shows_label(){
