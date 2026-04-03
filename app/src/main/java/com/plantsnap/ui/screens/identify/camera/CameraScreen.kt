@@ -98,7 +98,7 @@ fun CameraScreenContent(
                 // Shutter button
                 CaptureButton(
                     onClick = { shutterTriggered = true },
-                    enabled = !isLoading && photoCount < 5,
+                    enabled = !isLoading && !shutterTriggered && photoCount < 5,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 58.dp)
@@ -109,7 +109,7 @@ fun CameraScreenContent(
                     triggered = shutterTriggered,
                     onAnimationEnd = {
                         shutterTriggered = false
-                        onCapture()
+                        if (!isLoading) onCapture()
                     }
                 )
                 // Image counter

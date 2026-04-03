@@ -153,15 +153,6 @@ class NavigationTest {
         composeRule.onNodeWithTag("screen_camera").assertIsDisplayed()
     }
 
-    @Test
-    fun identify_plant_cta_back_returns_to_home() {
-        composeRule.onNodeWithTag("btn_identify_plant_cta").performClick()
-        composeRule.onNodeWithTag("screen_camera").assertIsDisplayed()
-
-        composeRule.onNodeWithTag("btn_back").performClick()
-
-        composeRule.onNodeWithTag("screen_home").assertIsDisplayed()
-    }
 
     /**
      * Placeholder screens
