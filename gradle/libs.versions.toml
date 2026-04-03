@@ -28,6 +28,7 @@ sonarqube = "5.1.0.4882"
 uiTextGoogleFonts = "<version>"
 
 [libraries]
+androidx-test-rules = { group = "androidx.test", name = "rules", version = "1.6.1" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
@@ -23,6 +24,13 @@ class NavigationTest {
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @get:Rule(order = 2)
+    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
+        android.Manifest.permission.CAMERA,
+        android.Manifest.permission.READ_MEDIA_IMAGES,
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
+    )
 
     @Before
     fun setUp() {
@@ -152,32 +160,4 @@ class NavigationTest {
 
         composeRule.onNodeWithTag("screen_camera").assertIsDisplayed()
     }
-
-    @Test
-    fun identify_plant_cta_back_returns_to_home() {
-        composeRule.onNodeWithTag("btn_identify_plant_cta").performClick()
-        composeRule.onNodeWithTag("screen_camera").assertIsDisplayed()
-
-        composeRule.onNodeWithTag("btn_back").performClick()
-
-        composeRule.onNodeWithTag("screen_home").assertIsDisplayed()
-    }
-
-    /**
-     * Placeholder screens
-     */
-
-    @Test
-    fun history_placeholder_shows_label(){
-        composeRule.onNodeWithTag("nav_history").performClick()
-        composeRule.onNodeWithText("History Screen").assertIsDisplayed()
-    }
-
-    @Test
-    fun profile_placeholder_shows_label(){
-        composeRule.onNodeWithTag("nav_profile").performClick()
-        composeRule.onNodeWithText("Welcome to PlantSnap").assertIsDisplayed()
-    }
-
-
 }

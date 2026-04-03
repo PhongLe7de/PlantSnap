@@ -13,6 +13,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.test.rule.GrantPermissionRule
+import org.junit.After
+
 
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
@@ -24,11 +27,27 @@ class CameraScreenTest {
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
+    @get:Rule(order = 2)
+    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
+        android.Manifest.permission.CAMERA,
+        android.Manifest.permission.READ_MEDIA_IMAGES,
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
+    )
+
     @Before
     fun setUp(){
         hiltRule.inject()
-
+        composeRule.onNodeWithTag("nav_home").performClick()
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("nav_identify").performClick()
+        composeRule.waitForIdle()
+    }
+
+    @After
+    fun tearDown() {
+        composeRule.mainClock.autoAdvance = true
+        composeRule.onNodeWithTag("nav_home").performClick()
+        composeRule.waitForIdle()
     }
 
     @Test
@@ -41,14 +60,14 @@ class CameraScreenTest {
     @Test
     fun capture_button_is_displayed_and_enabled() {
         composeRule
-            .onNodeWithTag("capture_button")
+            .onNodeWithTag("btn_identify")
             .assertIsDisplayed()
             .assertIsEnabled()
     }
 
-    // gallery_button_is_displayed TO-DO
+    //TODO gallery_button_is_displayed
 
-    // help_button_is_displayed TO-DO
+    //TODO help_button_is_displayed
 
     @Test
     fun shutter_flash_not_visible_on_load(){
@@ -59,21 +78,35 @@ class CameraScreenTest {
 
     @Test
     fun capture_button_disabled_during_flash(){
-        composeRule.onNodeWithTag("capture_button").performClick()
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onNodeWithTag("btn_identify").performClick()
+        composeRule.mainClock.advanceTimeBy(50L)
 
         composeRule
-            .onNodeWithTag("capture_button")
+            .onNodeWithTag("btn_identify")
             .assertIsNotEnabled()
+
+        composeRule.mainClock.autoAdvance = true
     }
 
     @Test
     fun capture_button_re_enables_after_flash() {
-        composeRule.onNodeWithTag("capture_button").performClick()
+        composeRule.onNodeWithTag("btn_identify").performClick()
 
-        composeRule.mainClock.advanceTimeBy(400L)
+        composeRule.waitUntil(timeoutMillis = 3000L) {
+            composeRule
+                .onNodeWithTag("btn_identify")
+                .fetchSemanticsNode()
+                .config
+                .contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled)
+                .not()
+        }
 
         composeRule
-            .onNodeWithTag("capture_button")
+            .onNodeWithTag("btn_identify")
             .assertIsEnabled()
     }
+
+
 }
