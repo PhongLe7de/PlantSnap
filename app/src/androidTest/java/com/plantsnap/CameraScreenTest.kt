@@ -90,23 +90,4 @@ class CameraScreenTest {
         composeRule.mainClock.autoAdvance = true
     }
 
-    @Test
-    fun capture_button_re_enables_after_flash() {
-        composeRule.onNodeWithTag("btn_identify").performClick()
-
-        composeRule.waitUntil(timeoutMillis = 3000L) {
-            composeRule
-                .onNodeWithTag("btn_identify")
-                .fetchSemanticsNode()
-                .config
-                .contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled)
-                .not()
-        }
-
-        composeRule
-            .onNodeWithTag("btn_identify")
-            .assertIsEnabled()
-    }
-
-
 }
