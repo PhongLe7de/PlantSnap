@@ -1,5 +1,6 @@
 package com.plantsnap.ui.screens.identify.identify
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,6 +22,12 @@ fun IdentificationScreen(
 ) {
 
     val state by viewModel.uiState.collectAsState()
+    val photos by viewModel.photos.collectAsState()
+    val organByPhoto by viewModel.organByPhoto.collectAsState()
+
+    photos.forEachIndexed { index, uri ->
+        Log.d("IdentificationScreen", "Photo[$index]: $uri → organ: ${organByPhoto[uri] ?: "none"}")
+    }
 
     Column(
         modifier = Modifier

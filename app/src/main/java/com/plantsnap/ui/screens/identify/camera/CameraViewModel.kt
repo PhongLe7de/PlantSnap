@@ -19,8 +19,7 @@ import java.io.File
 import javax.inject.Inject
 
 data class CameraScreenUiState(
-    val flashEnabled: Boolean = false,
-    val selectedOrgans: List<String> = emptyList()
+    val flashEnabled: Boolean = false
 )
 
 @HiltViewModel

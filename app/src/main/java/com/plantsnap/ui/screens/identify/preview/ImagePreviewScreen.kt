@@ -298,7 +298,7 @@ private fun PreviewActionButtons(
             )
         ) {
             Text(
-                text = "Use Photo",
+                text = "Use Photos",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold
             )
