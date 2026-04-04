@@ -19,15 +19,13 @@ import java.io.File
 import javax.inject.Inject
 
 data class CameraScreenUiState(
-    val flashEnabled: Boolean = false,
-    val picturesTaken: Int = 0,
-    val capturedPhotos: List<Uri> = emptyList(),  // Max 5
-    val selectedOrgans: List<String> = emptyList()
+    val flashEnabled: Boolean = false
 )
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    val photosHolder: CapturedPhotosHolder
 ) : ViewModel() {
     private val _screenState = MutableStateFlow(CameraScreenUiState())
     val screenState: StateFlow<CameraScreenUiState> = _screenState.asStateFlow()
@@ -61,11 +59,7 @@ class CameraViewModel @Inject constructor(
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val uri = output.savedUri ?: Uri.fromFile(photoFile)
-                    _screenState.value = _screenState.value.copy(
-                        picturesTaken = _screenState.value.picturesTaken + 1,
-                        capturedPhotos = _screenState.value.capturedPhotos + uri,
-                       //TODO: selectedOrgans = _screenState.value.selectedOrgans + organ
-                    )
+                    photosHolder.addPhoto(uri)
                     _uiState.value = UiState.Idle
                 }
 
@@ -74,13 +68,12 @@ class CameraViewModel @Inject constructor(
                 }
             }
         )
-        val photos = _screenState.value.capturedPhotos
-        Log.d("CameraViewModel", "capturePhoto: $photos")
+        Log.d("CameraViewModel", "capturePhoto: ${photosHolder.photos.value}")
     }
 
     // List of max 5 photos sent to the API - taken photos wiped from local storage after successful identification
     fun submitForIdentification() {
-        val photos = _screenState.value.capturedPhotos
+        val photos = photosHolder.photos.value
         if (photos.isEmpty()) return
         _uiState.value = UiState.Success(photos)
     }

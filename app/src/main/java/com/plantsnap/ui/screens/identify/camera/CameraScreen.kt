@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,6 +59,9 @@ fun CameraScreenContent(
     isLoading: Boolean,
     onFlashToggle: () -> Unit,
     onCapture: () -> Unit,
+    onBack: () -> Unit,
+    onReviewPhotos: () -> Unit,
+    onNavigateToPreview: (page: Int) -> Unit,
     onGrantPermission: () -> Unit,
     hasCameraPermission: Boolean,
     errorMessage: String? = null,
@@ -67,7 +72,11 @@ fun CameraScreenContent(
 
     if (hasCameraPermission) {
         BottomSheetScaffold(scaffoldState = scaffoldState, sheetPeekHeight = 40.dp, sheetContent = {
-            BottomSheetContent(modifier = Modifier, capturedPhotos = capturedPhotos)
+            BottomSheetContent(
+                modifier = Modifier,
+                capturedPhotos = capturedPhotos,
+                onPhotoSelected = { index -> onNavigateToPreview(index) }
+            )
         }) { _ ->
             Box(
                 modifier = Modifier
@@ -76,6 +85,24 @@ fun CameraScreenContent(
             ) {
 
                 cameraPreview()
+
+                // Back button
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 16.dp, start = 8.dp)
+                        .size(48.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Black.copy(alpha = 0.4f),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to home"
+                    )
+                }
 
                 // Flash button
                 IconButton(
@@ -123,6 +150,27 @@ fun CameraScreenContent(
                         .background(Color.Black.copy(alpha = 0.4f), shape = RoundedCornerShape(4.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
+
+                // Review button
+                if (photoCount > 0) {
+                    Button(
+                        onClick = onReviewPhotos,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 16.dp, end = 16.dp)
+                            .testTag("btn_review"),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(50)
+                    ) {
+                        Text(
+                            text = "Review",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
             }
         }
     } else {
@@ -155,11 +203,13 @@ fun CameraScreenContent(
 @Composable
 fun CameraScreen(
     onBack: () -> Unit,
-    onSubmitPhotos: () -> Unit,
+    onReviewPhotos: () -> Unit,
+    onNavigateToPreview: (page: Int) -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val cameraScreenState by viewModel.screenState.collectAsState()
+    val capturedPhotos by viewModel.photosHolder.photos.collectAsState()
     val context = LocalContext.current
 
     var hasCameraPermission by remember {
@@ -186,11 +236,14 @@ fun CameraScreen(
 
     CameraScreenContent(
         flashEnabled = cameraScreenState.flashEnabled,
-        capturedPhotos = cameraScreenState.capturedPhotos,
-        photoCount = cameraScreenState.picturesTaken,
+        capturedPhotos = capturedPhotos,
+        photoCount = capturedPhotos.size,
         isLoading = uiState is UiState.Loading,
         onFlashToggle = { viewModel.toggleFlash(cameraController) },
         onCapture = { viewModel.capturePhoto(cameraController) },
+        onBack = onBack,
+        onReviewPhotos = onReviewPhotos,
+        onNavigateToPreview = onNavigateToPreview,
         onGrantPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
         hasCameraPermission = hasCameraPermission,
         errorMessage = (uiState as? UiState.Error)?.message,
@@ -211,6 +264,9 @@ private fun CameraScreenGrantedPreview() {
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
+            onBack = {},
+            onReviewPhotos = {},
+            onNavigateToPreview = {},
             onGrantPermission = {},
             hasCameraPermission = true,
             cameraPreview = {
@@ -235,6 +291,9 @@ private fun CameraScreenDeniedPreview() {
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
+            onBack = {},
+            onReviewPhotos = {},
+            onNavigateToPreview = {},
             onGrantPermission = {},
             hasCameraPermission = false
         )

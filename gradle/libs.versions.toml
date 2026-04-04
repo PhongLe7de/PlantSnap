@@ -26,6 +26,7 @@ credentials = "1.5.0-rc01"
 googleid = "1.1.1"
 sonarqube = "5.1.0.4882"
 uiTextGoogleFonts = "<version>"
+rules = "1.7.0"
 
 [libraries]
 androidx-test-rules = { group = "androidx.test", name = "rules", version = "1.6.1" }
@@ -92,6 +93,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 google-googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
