@@ -1,6 +1,7 @@
 package com.plantsnap.ui.screens.identify.camera
 
 import android.content.Context
+import android.hardware.camera2.CameraAccessException
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
@@ -64,7 +65,7 @@ class CameraViewModel @Inject constructor(
                 }
 
                 override fun onError(exception: ImageCaptureException) {
-                    _uiState.value = UiState.Error(exception.message ?: "Capture failed")
+                    _uiState.value = UiState.Error(exception.toUserMessage())
                 }
             }
         )
@@ -76,5 +77,29 @@ class CameraViewModel @Inject constructor(
         val photos = photosHolder.photos.value
         if (photos.isEmpty()) return
         _uiState.value = UiState.Success(photos)
+    }
+
+    private fun ImageCaptureException.toUserMessage(): String {
+        // Camera2 errors
+        (cause as? CameraAccessException)?.let {
+            return when (it.reason) {
+                CameraAccessException.CAMERA_IN_USE -> "Camera is in use by another app"
+                CameraAccessException.CAMERA_DISABLED -> "Camera has been disabled"
+                CameraAccessException.CAMERA_DISCONNECTED -> "Camera disconnected"
+                else -> "Camera hardware error"
+            }
+        }
+        // CameraX errors
+        return when (imageCaptureError) {
+            ImageCapture.ERROR_CAMERA_CLOSED -> "Camera closed unexpectedly"
+            ImageCapture.ERROR_FILE_IO -> "Failed to save — check storage"
+            ImageCapture.ERROR_CAPTURE_FAILED -> "Capture failed, try again"
+            else -> message ?: "Capture failed"
+        }
+    }
+
+    // For closing the error dialog
+    fun clearError() {
+        _uiState.value = UiState.Idle
     }
 }

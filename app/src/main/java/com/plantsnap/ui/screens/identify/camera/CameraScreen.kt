@@ -3,6 +3,7 @@ package com.plantsnap.ui.screens.identify.camera
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.CameraController
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +44,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,6 +67,7 @@ fun CameraScreenContent(
     onReviewPhotos: () -> Unit,
     onNavigateToPreview: (page: Int) -> Unit,
     onGrantPermission: () -> Unit,
+    onDismissError: () -> Unit = {},
     hasCameraPermission: Boolean,
     errorMessage: String? = null,
     cameraPreview: @Composable BoxScope.() -> Unit = {}
@@ -147,10 +152,12 @@ fun CameraScreenContent(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(bottom = 68.dp, start = 16.dp)
-                        .background(Color.Black.copy(alpha = 0.4f), shape = RoundedCornerShape(4.dp))
+                        .background(
+                            Color.Black.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
-
                 // Review button
                 if (photoCount > 0) {
                     Button(
@@ -171,10 +178,28 @@ fun CameraScreenContent(
                         )
                     }
                 }
+
+                // Errors
+                errorMessage?.let {
+                    AlertDialog(
+                        onDismissRequest = onDismissError,
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        title = { Text("Camera Error") },
+                        text = { Text(it) },
+                        confirmButton = {
+                            TextButton(onClick = onDismissError) { Text("Dismiss") }
+                        }
+                    )
+                }
             }
         }
     } else {
-        // TODO: Edge cases?
         // Denied state
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -184,16 +209,6 @@ fun CameraScreenContent(
                 Text("Camera permission required")
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = onGrantPermission) { Text("Grant permission") }
-            }
-            // Error
-            errorMessage?.let {
-                Text(
-                    text = "Error: $it",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(16.dp)
-                )
             }
         }
     }
@@ -233,7 +248,6 @@ fun CameraScreen(
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
         }
     }
-
     CameraScreenContent(
         flashEnabled = cameraScreenState.flashEnabled,
         capturedPhotos = capturedPhotos,
@@ -245,6 +259,7 @@ fun CameraScreen(
         onReviewPhotos = onReviewPhotos,
         onNavigateToPreview = onNavigateToPreview,
         onGrantPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+        onDismissError = { viewModel.clearError() },
         hasCameraPermission = hasCameraPermission,
         errorMessage = (uiState as? UiState.Error)?.message,
         cameraPreview = {
@@ -276,6 +291,31 @@ private fun CameraScreenGrantedPreview() {
                         .background(Color.DarkGray)
                 )
             }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Camera — error dialog")
+@Composable
+private fun CameraScreenErrorPreview() {
+    PlantSnapTheme {
+        CameraScreenContent(
+            flashEnabled = false,
+            capturedPhotos = emptyList(),
+            photoCount = 0,
+            isLoading = false,
+            onFlashToggle = {},
+            onCapture = {},
+            onGrantPermission = {},
+            hasCameraPermission = true,
+            errorMessage = "Camera closed unexpectedly",
+            cameraPreview = {
+                Box(modifier = Modifier.fillMaxSize().background(Color.DarkGray))
+            },
+            onBack = {},
+            onReviewPhotos = {},
+            onNavigateToPreview = {},
+            onDismissError = {}
         )
     }
 }
