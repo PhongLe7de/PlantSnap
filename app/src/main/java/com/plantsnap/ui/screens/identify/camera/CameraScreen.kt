@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material3.BottomSheetScaffold
@@ -58,6 +59,7 @@ fun CameraScreenContent(
     isLoading: Boolean,
     onFlashToggle: () -> Unit,
     onCapture: () -> Unit,
+    onBack: () -> Unit,
     onReviewPhotos: () -> Unit,
     onNavigateToPreview: (page: Int) -> Unit,
     onGrantPermission: () -> Unit,
@@ -83,6 +85,24 @@ fun CameraScreenContent(
             ) {
 
                 cameraPreview()
+
+                // Back button
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 16.dp, start = 8.dp)
+                        .size(48.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Black.copy(alpha = 0.4f),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to home"
+                    )
+                }
 
                 // Flash button
                 IconButton(
@@ -221,6 +241,7 @@ fun CameraScreen(
         isLoading = uiState is UiState.Loading,
         onFlashToggle = { viewModel.toggleFlash(cameraController) },
         onCapture = { viewModel.capturePhoto(cameraController) },
+        onBack = onBack,
         onReviewPhotos = onReviewPhotos,
         onNavigateToPreview = onNavigateToPreview,
         onGrantPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
@@ -243,6 +264,7 @@ private fun CameraScreenGrantedPreview() {
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
+            onBack = {},
             onReviewPhotos = {},
             onNavigateToPreview = {},
             onGrantPermission = {},
@@ -269,6 +291,7 @@ private fun CameraScreenDeniedPreview() {
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
+            onBack = {},
             onReviewPhotos = {},
             onNavigateToPreview = {},
             onGrantPermission = {},

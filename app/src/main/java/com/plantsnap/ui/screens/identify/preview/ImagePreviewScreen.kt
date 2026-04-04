@@ -58,8 +58,10 @@ fun ImagePreviewScreen(
 
     // Keep a stable snapshot so the screen doesn't flash blank during exit animation
     val displayPhotos = remember { mutableStateOf(currentPhotos) }
-    if (currentPhotos.isNotEmpty()) {
-        displayPhotos.value = currentPhotos
+    LaunchedEffect(currentPhotos) {
+        if (currentPhotos.isNotEmpty()) {
+            displayPhotos.value = currentPhotos
+        }
     }
 
     if (displayPhotos.value.isEmpty()) return

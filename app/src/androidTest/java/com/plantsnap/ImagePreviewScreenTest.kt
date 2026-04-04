@@ -3,7 +3,9 @@ package com.plantsnap
 import android.net.Uri
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -110,8 +112,10 @@ class ImagePreviewScreenTest {
         var backClicked = false
         setPreviewContent(onBack = { backClicked = true })
 
-        composeRule.onNodeWithTag("screen_preview").assertIsDisplayed()
-        assertTrue(!backClicked)
+        composeRule.onNodeWithContentDescription("Back to camera").performClick()
+        composeRule.waitForIdle()
+
+        assertTrue(backClicked)
     }
 
     // ── Initial page ──
@@ -137,7 +141,10 @@ class ImagePreviewScreenTest {
         var removedIndex = -1
         setPreviewContent(onRemovePhoto = { index -> removedIndex = index })
 
-        composeRule.onNodeWithTag("screen_preview").assertIsDisplayed()
+        composeRule.onAllNodes(hasContentDescription("Remove photo"))[0].performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(0, removedIndex)
     }
 
     @Test
@@ -145,5 +152,6 @@ class ImagePreviewScreenTest {
         setPreviewContent(photos = listOf(fakePhotos.first()))
 
         composeRule.onNodeWithTag("screen_preview").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Remove photo").assertDoesNotExist()
     }
 }
