@@ -158,24 +158,6 @@ fun CameraScreenContent(
                         )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
-
-                // Errors
-                errorMessage?.let {
-                    AlertDialog(
-                        onDismissRequest = onDismissError,
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        title = { Text("Camera Error") },
-                        text = { Text(it) },
-                        confirmButton = {
-                            TextButton(onClick = onDismissError) { Text("Dismiss") }
-                        }
-                    )
                 // Review button
                 if (photoCount > 0) {
                     Button(
@@ -195,6 +177,25 @@ fun CameraScreenContent(
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
+                }
+
+                // Errors
+                errorMessage?.let {
+                    AlertDialog(
+                        onDismissRequest = onDismissError,
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        title = { Text("Camera Error") },
+                        text = { Text(it) },
+                        confirmButton = {
+                            TextButton(onClick = onDismissError) { Text("Dismiss") }
+                        }
+                    )
                 }
             }
         }
@@ -310,7 +311,11 @@ private fun CameraScreenErrorPreview() {
             errorMessage = "Camera closed unexpectedly",
             cameraPreview = {
                 Box(modifier = Modifier.fillMaxSize().background(Color.DarkGray))
-            }
+            },
+            onBack = {},
+            onReviewPhotos = {},
+            onNavigateToPreview = {},
+            onDismissError = {}
         )
     }
 }
