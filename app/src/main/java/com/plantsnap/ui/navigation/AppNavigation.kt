@@ -38,8 +38,10 @@ import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.screens.profile.AuthenticationScreen
 import com.plantsnap.ui.screens.profile.ProfileScreen
 import com.plantsnap.ui.screens.identify.camera.CameraScreen
+import com.plantsnap.ui.screens.identify.camera.CameraViewModel
 import com.plantsnap.ui.screens.identify.identify.IdentificationScreen
 import com.plantsnap.ui.screens.identify.detail.PlantDetailScreen
+import com.plantsnap.ui.screens.identify.preview.ImagePreviewScreen
 
 enum class BottomNavItem(
     val route: String,
@@ -56,6 +58,7 @@ enum class IdentifyNavItem(
     val route: String,
 ) {
     CAMERA("camera"),
+    PREVIEW("preview"),
     IDENTIFICATION("identification"),
     PLANT_DETAILS("plant_details")
 }
@@ -115,7 +118,7 @@ fun AppNavigation() {
             composable(BottomNavItem.HOME.route) {
                 HomeScreen(
                     onIdentifyPlantSelected = {
-                        navController.navigate(IdentifyNavItem.CAMERA.route){
+                        navController.navigate(BottomNavItem.IDENTIFY.route){
                             launchSingleTop = true
                         }
                     }
@@ -129,9 +132,24 @@ fun AppNavigation() {
                 composable(IdentifyNavItem.CAMERA.route) {
                     CameraScreen(
                         onBack = { navController.popBackStack() },
-                        onSubmitPhotos = {
-                            navController.navigate(IdentifyNavItem.IDENTIFICATION.route)
+                        onReviewPhotos = {
+                            navController.navigate("${IdentifyNavItem.PREVIEW.route}?page=0")
+                        },
+                        onNavigateToPreview = { page ->
+                            navController.navigate("${IdentifyNavItem.PREVIEW.route}?page=$page")
                         }
+                    )
+                }
+                composable("${IdentifyNavItem.PREVIEW.route}?page={page}") { backStackEntry ->
+                    val initialPage = backStackEntry.arguments?.getString("page")?.toIntOrNull() ?: 0
+                    val cameraViewModel: CameraViewModel = hiltViewModel()
+                    ImagePreviewScreen(
+                        initialPage = initialPage,
+                        onRetake = { navController.popBackStack() },
+                        onUsePhotos = {
+                            navController.navigate(IdentifyNavItem.IDENTIFICATION.route)
+                        },
+                        photosHolder = cameraViewModel.photosHolder
                     )
                 }
                 composable(IdentifyNavItem.IDENTIFICATION.route) {
