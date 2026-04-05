@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
@@ -52,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.plantsnap.ui.state.UiState
+import com.plantsnap.utils.MAX_PHOTOS
 import com.plantsnap.ui.theme.PlantSnapTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +66,7 @@ fun CameraScreenContent(
     isLoading: Boolean,
     onFlashToggle: () -> Unit,
     onCapture: () -> Unit,
+    onGalleryClick: () -> Unit,
     onBack: () -> Unit,
     onReviewPhotos: () -> Unit,
     onNavigateToPreview: (page: Int) -> Unit,
@@ -113,8 +117,8 @@ fun CameraScreenContent(
                 IconButton(
                     onClick = onFlashToggle,
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 58.dp, end = 16.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(top = 16.dp, end = if (photoCount > 0) 96.dp else 16.dp)
                         .size(48.dp),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Black.copy(alpha = 0.4f),
@@ -130,7 +134,7 @@ fun CameraScreenContent(
                 // Shutter button
                 CaptureButton(
                     onClick = { shutterTriggered = true },
-                    enabled = !isLoading && !shutterTriggered && photoCount < 5,
+                    enabled = !isLoading && !shutterTriggered && photoCount < MAX_PHOTOS,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 58.dp)
@@ -144,20 +148,44 @@ fun CameraScreenContent(
                         if (!isLoading) onCapture()
                     }
                 )
-                // Image counter
-                Text(
-                    text = "$photoCount/5",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White,
+                // Gallery button with photo count badge
+                Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(bottom = 68.dp, start = 16.dp)
-                        .background(
-                            Color.Black.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(4.dp)
+                        .padding(bottom = 58.dp, start = 32.dp)
+                ) {
+                    IconButton(
+                        onClick = onGalleryClick,
+                        enabled = photoCount < MAX_PHOTOS,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .testTag("btn_gallery"),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.Black.copy(alpha = 0.4f),
+                            contentColor = Color.White
                         )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = "Pick from gallery",
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    if (photoCount > 0) {
+                        Text(
+                            text = "$photoCount",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(50)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
                 // Review button
                 if (photoCount > 0) {
                     Button(
@@ -200,7 +228,7 @@ fun CameraScreenContent(
             }
         }
     } else {
-        // Denied state
+        // Denied state — gallery is still accessible
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier.align(Alignment.Center),
@@ -209,6 +237,30 @@ fun CameraScreenContent(
                 Text("Camera permission required")
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = onGrantPermission) { Text("Grant permission") }
+            }
+            // Gallery button available without camera permission
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 58.dp, start = 32.dp)
+            ) {
+                IconButton(
+                    onClick = onGalleryClick,
+                    enabled = photoCount < MAX_PHOTOS,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .testTag("btn_gallery"),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Black.copy(alpha = 0.4f),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoLibrary,
+                        contentDescription = "Pick from gallery",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
         }
     }
@@ -237,6 +289,14 @@ fun CameraScreen(
         ActivityResultContracts.RequestPermission()
     ) { granted -> hasCameraPermission = granted }
 
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS)
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            viewModel.addPhotosFromGallery(uris)
+        }
+    }
+
     // Request permission on first composition if not granted
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -255,6 +315,11 @@ fun CameraScreen(
         isLoading = uiState is UiState.Loading,
         onFlashToggle = { viewModel.toggleFlash(cameraController) },
         onCapture = { viewModel.capturePhoto(cameraController) },
+        onGalleryClick = {
+            galleryLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        },
         onBack = onBack,
         onReviewPhotos = onReviewPhotos,
         onNavigateToPreview = onNavigateToPreview,
@@ -279,6 +344,7 @@ private fun CameraScreenGrantedPreview() {
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
+            onGalleryClick = {},
             onBack = {},
             onReviewPhotos = {},
             onNavigateToPreview = {},
@@ -306,6 +372,7 @@ private fun CameraScreenErrorPreview() {
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
+            onGalleryClick = {},
             onGrantPermission = {},
             hasCameraPermission = true,
             errorMessage = "Camera closed unexpectedly",
@@ -331,6 +398,7 @@ private fun CameraScreenDeniedPreview() {
             isLoading = false,
             onFlashToggle = {},
             onCapture = {},
+            onGalleryClick = {},
             onBack = {},
             onReviewPhotos = {},
             onNavigateToPreview = {},

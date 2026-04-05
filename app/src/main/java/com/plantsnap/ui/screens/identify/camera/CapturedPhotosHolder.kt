@@ -4,6 +4,7 @@ import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.plantsnap.utils.MAX_PHOTOS
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +20,7 @@ class CapturedPhotosHolder @Inject constructor() {
     val count: Int get() = _photos.value.size
 
     fun addPhoto(uri: Uri, organ: String = "auto") {
-        if (_photos.value.size < 5) {
+        if (_photos.value.size < MAX_PHOTOS) {
             _photos.value = _photos.value + uri
             _organByPhoto.value = _organByPhoto.value + (uri to organ)
         }
