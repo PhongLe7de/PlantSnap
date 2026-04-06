@@ -77,17 +77,19 @@ class CameraViewModel @Inject constructor(
     }
 
     fun addPhotosFromGallery(uris: List<Uri>) {
-        if (uris.isEmpty()) return
+        val remaining = MAX_PHOTOS - photosHolder.count
+        if (uris.isEmpty() || remaining <= 0) return
         _uiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val remaining = MAX_PHOTOS - photosHolder.count
                 uris.take(remaining).forEachIndexed { index, uri ->
                     val destFile = File(
                         context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                         "gallery_${System.currentTimeMillis()}_$index.jpg"
                     )
-                    context.contentResolver.openInputStream(uri)?.use { input ->
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                        ?: throw IllegalStateException("Unable to open selected gallery photo")
+                    inputStream.use { input ->
                         destFile.outputStream().use { output -> input.copyTo(output) }
                     }
                     photosHolder.addPhoto(Uri.fromFile(destFile))
@@ -99,7 +101,7 @@ class CameraViewModel @Inject constructor(
         }
     }
 
-    // List of max 5 photos sent to the API - taken photos wiped from local storage after successful identification
+    // List of up to MAX_PHOTOS photos sent to the API - taken photos wiped from local storage after successful identification
     fun submitForIdentification() {
         val photos = photosHolder.photos.value
         if (photos.isEmpty()) return
