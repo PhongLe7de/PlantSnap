@@ -11,4 +11,8 @@ interface ScanRepository {
     suspend fun getUnsynced(): List<ScanResult>
     suspend fun markSynced(id: String)
     suspend fun updateAiInfo(id: String, aiInfo: String)
+
+    // Aggregate stats
+    fun observeTotalScanCount(): Flow<Int>
+    fun observeFirstScanTimestamp(): Flow<Long?>
 }
