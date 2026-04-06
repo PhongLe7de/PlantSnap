@@ -20,4 +20,12 @@
     <string name="care_rotate_desc">Ensure even sun exposure</string>
     <string name="no_plants_found">No plants found</string>
     <string name="error_loading_plants">Error: %s</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_default_name">User</string>
+    <string name="profile_member_since">Member since %s</string>
+    <string name="profile_scans_to_next">%d more scans to %s</string>
+    <string name="profile_max_rank">Highest rank achieved!</string>
+    <string name="profile_stat_scanned">Plants Scanned</string>
+    <string name="profile_sign_out">Sign Out</string>
 </resources>
