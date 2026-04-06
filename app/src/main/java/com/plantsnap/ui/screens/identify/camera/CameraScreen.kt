@@ -57,6 +57,51 @@ import com.plantsnap.ui.state.UiState
 import com.plantsnap.utils.MAX_PHOTOS
 import com.plantsnap.ui.theme.PlantSnapTheme
 
+@Composable
+private fun BoxScope.GalleryButton(
+    photoCount: Int,
+    onClick: () -> Unit,
+    showBadge: Boolean = false
+) {
+    Box(
+        modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(bottom = 58.dp, start = 32.dp)
+    ) {
+        IconButton(
+            onClick = onClick,
+            enabled = photoCount < MAX_PHOTOS,
+            modifier = Modifier
+                .size(56.dp)
+                .testTag("btn_gallery"),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = Color.Black.copy(alpha = 0.4f),
+                contentColor = Color.White
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.PhotoLibrary,
+                contentDescription = "Pick from gallery",
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        if (showBadge && photoCount > 0) {
+            Text(
+                text = "$photoCount",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(50)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreenContent(
@@ -148,44 +193,11 @@ fun CameraScreenContent(
                         if (!isLoading) onCapture()
                     }
                 )
-                // Gallery button with photo count badge
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(bottom = 58.dp, start = 32.dp)
-                ) {
-                    IconButton(
-                        onClick = onGalleryClick,
-                        enabled = photoCount < MAX_PHOTOS,
-                        modifier = Modifier
-                            .size(56.dp)
-                            .testTag("btn_gallery"),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = Color.Black.copy(alpha = 0.4f),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PhotoLibrary,
-                            contentDescription = "Pick from gallery",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                    if (photoCount > 0) {
-                        Text(
-                            text = "$photoCount",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(
-                                    MaterialTheme.colorScheme.primary,
-                                    shape = RoundedCornerShape(50)
-                                )
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
+                GalleryButton(
+                    photoCount = photoCount,
+                    onClick = onGalleryClick,
+                    showBadge = true
+                )
                 // Review button
                 if (photoCount > 0) {
                     Button(
@@ -238,30 +250,10 @@ fun CameraScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = onGrantPermission) { Text("Grant permission") }
             }
-            // Gallery button available without camera permission
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(bottom = 58.dp, start = 32.dp)
-            ) {
-                IconButton(
-                    onClick = onGalleryClick,
-                    enabled = photoCount < MAX_PHOTOS,
-                    modifier = Modifier
-                        .size(56.dp)
-                        .testTag("btn_gallery"),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Color.Black.copy(alpha = 0.4f),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoLibrary,
-                        contentDescription = "Pick from gallery",
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            GalleryButton(
+                photoCount = photoCount,
+                onClick = onGalleryClick
+            )
         }
     }
 }
