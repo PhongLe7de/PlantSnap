@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,6 +38,7 @@ import com.plantsnap.ui.screens.home.HomeScreen
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.screens.profile.AuthenticationScreen
 import com.plantsnap.ui.screens.profile.ProfileScreen
+import com.plantsnap.ui.screens.profile.ProfileViewModel
 import com.plantsnap.ui.screens.identify.camera.CameraScreen
 import com.plantsnap.ui.screens.identify.camera.CameraViewModel
 import com.plantsnap.ui.screens.identify.identify.IdentificationScreen
@@ -49,7 +51,7 @@ enum class BottomNavItem(
     val icon: ImageVector
 ) {
     HOME("home", "Home", Icons.Filled.Home),
-    IDENTIFY("identify", "Identify", Icons.Filled.Home),
+    IDENTIFY("identify", "Identify", Icons.Filled.CameraAlt),
     HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
@@ -68,6 +70,9 @@ fun AppNavigation() {
     val navController: NavHostController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val authState by authViewModel.uiState.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -121,7 +126,8 @@ fun AppNavigation() {
                         navController.navigate(BottomNavItem.IDENTIFY.route){
                             launchSingleTop = true
                         }
-                    }
+                    },
+                    profilePhotoUrl = authState.profilePhotoUrl,
                 )
             }
 
@@ -171,13 +177,14 @@ fun AppNavigation() {
             }
 
             composable(BottomNavItem.PROFILE.route) {
-                val viewModel: AuthViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val profileViewModel: ProfileViewModel = hiltViewModel()
+                val statsState by profileViewModel.statsState.collectAsState()
+
                 Column(
                     modifier = Modifier.testTag("screen_profile")
                 ) {
                     when {
-                        uiState.isLoading -> {
+                        authState.isLoading -> {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
@@ -186,21 +193,21 @@ fun AppNavigation() {
                             }
                         }
 
-                        uiState.isLoggedIn -> {
+                        authState.isLoggedIn -> {
                             ProfileScreen(
-                                userEmail = uiState.userEmail,
-                                displayName = uiState.displayName,
-                                onSignOut = viewModel::signOut
+                                authState = authState,
+                                statsState = statsState,
+                                onSignOut = authViewModel::signOut,
                             )
                         }
 
                         else -> {
                             AuthenticationScreen(
-                                supabaseClient = viewModel.supabaseClient,
+                                supabaseClient = authViewModel.supabaseClient,
                                 isLoading = false,
-                                errorMessage = uiState.errorMessage,
-                                onClearError = viewModel::clearError,
-                                onError = viewModel::setError
+                                errorMessage = authState.errorMessage,
+                                onClearError = authViewModel::clearError,
+                                onError = authViewModel::setError
                             )
                         }
                     }
