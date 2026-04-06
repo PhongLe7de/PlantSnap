@@ -18,6 +18,7 @@ data class AuthUiState(
     val isLoggedIn: Boolean = false,
     val userEmail: String? = null,
     val displayName: String? = null,
+    val profilePhotoUrl: String? = null,
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
@@ -41,6 +42,8 @@ class AuthViewModel @Inject constructor(
                             userEmail = user?.email,
                             displayName = user?.userMetadata?.get("full_name")?.jsonPrimitive?.contentOrNull
                                 ?: user?.userMetadata?.get("name")?.jsonPrimitive?.contentOrNull,
+                            profilePhotoUrl = user?.userMetadata?.get("avatar_url")?.jsonPrimitive?.contentOrNull
+                                ?: user?.userMetadata?.get("picture")?.jsonPrimitive?.contentOrNull,
                             isLoading = false
                         )
                     }

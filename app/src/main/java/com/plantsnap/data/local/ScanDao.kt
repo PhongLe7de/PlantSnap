@@ -42,4 +42,11 @@ interface ScanDao {
 
     @Query("DELETE FROM scans WHERE id = :scanId")
     suspend fun deleteScan(scanId: String)
+
+    // Aggregate stats for profile
+    @Query("SELECT COUNT(*) FROM scans")
+    fun observeTotalScanCount(): Flow<Int>
+
+@Query("SELECT MIN(timestamp) FROM scans")
+    fun observeFirstScanTimestamp(): Flow<Long?>
 }

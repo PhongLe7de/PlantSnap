@@ -38,4 +38,7 @@ class ScanRepositoryImpl @Inject constructor(
 
     override suspend fun updateAiInfo(id: String, aiInfo: String) =
         dao.updateAiInfo(id, aiInfo)
+
+    override fun observeTotalScanCount(): Flow<Int> = dao.observeTotalScanCount()
+    override fun observeFirstScanTimestamp(): Flow<Long?> = dao.observeFirstScanTimestamp()
 }
