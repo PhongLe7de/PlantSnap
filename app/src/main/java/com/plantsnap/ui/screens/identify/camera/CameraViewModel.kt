@@ -6,11 +6,15 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import androidx.camera.core.ImageCapture
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.view.LifecycleCameraController
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import com.plantsnap.ui.state.UiState
+import com.plantsnap.utils.MAX_PHOTOS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,7 +76,32 @@ class CameraViewModel @Inject constructor(
         Log.d("CameraViewModel", "capturePhoto: ${photosHolder.photos.value}")
     }
 
-    // List of max 5 photos sent to the API - taken photos wiped from local storage after successful identification
+    fun addPhotosFromGallery(uris: List<Uri>) {
+        val remaining = MAX_PHOTOS - photosHolder.count
+        if (uris.isEmpty() || remaining <= 0) return
+        _uiState.value = UiState.Loading
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                uris.take(remaining).forEachIndexed { index, uri ->
+                    val destFile = File(
+                        context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                        "gallery_${System.currentTimeMillis()}_$index.jpg"
+                    )
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                        ?: throw IllegalStateException("Unable to open selected gallery photo")
+                    inputStream.use { input ->
+                        destFile.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    photosHolder.addPhoto(Uri.fromFile(destFile))
+                }
+                _uiState.value = UiState.Idle
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error("Failed to import gallery photo")
+            }
+        }
+    }
+
+    // List of up to MAX_PHOTOS photos sent to the API - taken photos wiped from local storage after successful identification
     fun submitForIdentification() {
         val photos = photosHolder.photos.value
         if (photos.isEmpty()) return

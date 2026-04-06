@@ -4,6 +4,8 @@ import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import com.plantsnap.utils.MAX_PHOTOS
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,29 +21,31 @@ class CapturedPhotosHolder @Inject constructor() {
     val count: Int get() = _photos.value.size
 
     fun addPhoto(uri: Uri, organ: String = "auto") {
-        if (_photos.value.size < 5) {
-            _photos.value = _photos.value + uri
-            _organByPhoto.value = _organByPhoto.value + (uri to organ)
+        _photos.update { current ->
+            if (current.size < MAX_PHOTOS) current + uri else current
         }
+        _organByPhoto.update { it + (uri to organ) }
     }
 
     fun removePhoto(index: Int) {
-        val current = _photos.value
-        if (index in current.indices) {
-            val removed = current[index]
-            _photos.value = current.toMutableList().apply { removeAt(index) }
-            _organByPhoto.value = _organByPhoto.value - removed
+        var removed: Uri? = null
+        _photos.update { current ->
+            if (index in current.indices) {
+                removed = current[index]
+                current.toMutableList().apply { removeAt(index) }
+            } else current
         }
+        removed?.let { uri -> _organByPhoto.update { it - uri } }
     }
 
     fun setOrganForPhoto(uri: Uri, organ: String) {
-        if (uri in _organByPhoto.value) {
-            _organByPhoto.value = _organByPhoto.value + (uri to organ)
+        _organByPhoto.update { current ->
+            if (uri in current) current + (uri to organ) else current
         }
     }
 
     fun clear() {
-        _photos.value = emptyList()
-        _organByPhoto.value = emptyMap()
+        _photos.update { emptyList() }
+        _organByPhoto.update { emptyMap() }
     }
 }

@@ -65,7 +65,13 @@ class CameraScreenTest {
             .assertIsEnabled()
     }
 
-    //TODO gallery_button_is_displayed
+    @Test
+    fun gallery_button_is_displayed_and_enabled() {
+        composeRule
+            .onNodeWithTag("btn_gallery")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+    }
 
     //TODO help_button_is_displayed
 
