@@ -54,6 +54,7 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 @Composable
 fun HomeScreen(
     onIdentifyPlantSelected: () -> Unit,
+    profilePhotoUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -64,6 +65,7 @@ fun HomeScreen(
 
     HomeScreenContent(
         onIdentifyPlantSelected = onIdentifyPlantSelected,
+        profilePhotoUrl = profilePhotoUrl,
         state = state,
     )
 }
@@ -71,6 +73,7 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     onIdentifyPlantSelected: () -> Unit,
+    profilePhotoUrl: String? = null,
     state: UiState<List<ScanResult>>,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -78,7 +81,7 @@ fun HomeScreenContent(
     Scaffold(
         modifier = Modifier.testTag("screen_home"),
         containerColor = scheme.surface,
-        topBar = { TopBar() },
+        topBar = { TopBar(profilePhotoUrl = profilePhotoUrl) },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

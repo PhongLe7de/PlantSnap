@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,17 +21,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.plantsnap.R
 import com.plantsnap.ui.theme.PlantSnapTheme
 
 @Composable
-fun TopBar (
+fun TopBar(
     modifier: Modifier = Modifier,
+    profilePhotoUrl: String? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -40,22 +47,19 @@ fun TopBar (
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(
-                    onClick = {}, // TODO: Open sidebar
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = R.mipmap.plantsnap_logo_foreground,
+                    contentDescription = "PlantSnap logo",
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(scheme.surfaceContainerHigh),
-                ) {
-                    // TODO: Add hamburger button icon
-                }
-
-                Spacer(Modifier.width(8.dp))
-
+                        .size(64.dp))
                 Text(
                     text = stringResource(R.string.app_name),
                     fontSize = 22.sp,
@@ -65,13 +69,31 @@ fun TopBar (
                 )
             }
 
-            // Avatar placeholder
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(scheme.surfaceContainerHigh),
-            )
+            if (profilePhotoUrl != null) {
+                AsyncImage(
+                    model = profilePhotoUrl,
+                    contentDescription = "Profile photo",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(scheme.surfaceContainerHigh),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Filled.Person,
+                        contentDescription = "Profile",
+                        modifier = Modifier.size(24.dp),
+                        tint = scheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
     }
 }
