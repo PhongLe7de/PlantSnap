@@ -9,6 +9,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.HdrAuto
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.Texture
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -23,14 +29,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.plantsnap.ui.theme.PlantSnapTheme
 
-// Icon is null as a placeholder for now
 enum class Organ(val label: String, val icon: ImageVector? = null) {
-    AUTO("Auto"),
-    LEAF("Leaf"),
-    FLOWER("Flower"),
-    FRUIT("Fruit"),
-    BARK("Bark"),
-    BRANCH("Branch"),
+    AUTO("Auto", Icons.Filled.HdrAuto),
+    LEAF("Leaf", Icons.Filled.Eco),
+    FLOWER("Flower", Icons.Filled.LocalFlorist),
+    BARK("Bark", Icons.Filled.Texture),
+    BRANCH("Branch", Icons.Filled.Park),
 }
 
 @Composable
