@@ -4,7 +4,6 @@ import android.content.Context
 import android.hardware.camera2.CameraAccessException
 import android.net.Uri
 import android.os.Environment
-import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -42,8 +41,7 @@ class CameraViewModel @Inject constructor(
     fun toggleFlash(controller: LifecycleCameraController) {
         val newFlash = !_screenState.value.flashEnabled
 
-        Log.i("CameraViewModel", "toggleFlash: $newFlash")
-        _screenState.value = _screenState.value.copy(flashEnabled = newFlash)
+_screenState.value = _screenState.value.copy(flashEnabled = newFlash)
         // Apply to camera
         controller.imageCaptureFlashMode =
             if (newFlash) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
@@ -73,7 +71,6 @@ class CameraViewModel @Inject constructor(
                 }
             }
         )
-        Log.d("CameraViewModel", "capturePhoto: ${photosHolder.photos.value}")
     }
 
     fun addPhotosFromGallery(uris: List<Uri>) {
