@@ -37,6 +37,12 @@ class CameraViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState<List<Uri>>>(UiState.Idle)
     val uiState: StateFlow<UiState<List<Uri>>> = _uiState.asStateFlow()
 
+    private val _selectedOrgan = MutableStateFlow(Organ.AUTO)
+    val selectedOrgan: StateFlow<Organ> = _selectedOrgan.asStateFlow()
+
+    fun selectOrgan(organ: Organ) {
+        _selectedOrgan.value = organ
+    }
 
     fun toggleFlash(controller: LifecycleCameraController) {
         val newFlash = !_screenState.value.flashEnabled
@@ -49,6 +55,7 @@ _screenState.value = _screenState.value.copy(flashEnabled = newFlash)
 
     fun capturePhoto(controller: LifecycleCameraController) {
         _uiState.value = UiState.Loading
+        val organ = _selectedOrgan.value
 
         val photoFile = File(
             context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), // App private dir, no storage permissions required
@@ -62,7 +69,7 @@ _screenState.value = _screenState.value.copy(flashEnabled = newFlash)
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val uri = output.savedUri ?: Uri.fromFile(photoFile)
-                    photosHolder.addPhoto(uri)
+                    photosHolder.addPhoto(uri, organ.name.lowercase())
                     _uiState.value = UiState.Idle
                 }
 
