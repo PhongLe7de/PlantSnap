@@ -3,7 +3,6 @@ package com.plantsnap.ui.screens.identify.camera
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -109,6 +108,8 @@ fun CameraScreenContent(
     capturedPhotos: List<Uri>,
     photoCount: Int,
     isLoading: Boolean,
+    selectedOrgan: Organ,
+    onOrganSelected: (Organ) -> Unit,
     onFlashToggle: () -> Unit,
     onCapture: () -> Unit,
     onGalleryClick: () -> Unit,
@@ -175,6 +176,15 @@ fun CameraScreenContent(
                         contentDescription = if (flashEnabled) "Flash on" else "Flash off"
                     )
                 }
+
+                // Organ selector
+                OrganSelector(
+                    selected = selectedOrgan,
+                    onSelected = onOrganSelected,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 180.dp),
+                )
 
                 // Shutter button
                 CaptureButton(
@@ -269,6 +279,7 @@ fun CameraScreen(
     val uiState by viewModel.uiState.collectAsState()
     val cameraScreenState by viewModel.screenState.collectAsState()
     val capturedPhotos by viewModel.photosHolder.photos.collectAsState()
+    val selectedOrgan by viewModel.selectedOrgan.collectAsState()
     val context = LocalContext.current
 
     var hasCameraPermission by remember {
@@ -305,6 +316,8 @@ fun CameraScreen(
         capturedPhotos = capturedPhotos,
         photoCount = capturedPhotos.size,
         isLoading = uiState is UiState.Loading,
+        selectedOrgan = selectedOrgan,
+        onOrganSelected = { viewModel.selectOrgan(it) },
         onFlashToggle = { viewModel.toggleFlash(cameraController) },
         onCapture = { viewModel.capturePhoto(cameraController) },
         onGalleryClick = {
@@ -334,6 +347,8 @@ private fun CameraScreenGrantedPreview() {
             capturedPhotos = emptyList(),
             photoCount = 0,
             isLoading = false,
+            selectedOrgan = Organ.AUTO,
+            onOrganSelected = {},
             onFlashToggle = {},
             onCapture = {},
             onGalleryClick = {},
@@ -362,6 +377,8 @@ private fun CameraScreenErrorPreview() {
             capturedPhotos = emptyList(),
             photoCount = 0,
             isLoading = false,
+            selectedOrgan = Organ.AUTO,
+            onOrganSelected = {},
             onFlashToggle = {},
             onCapture = {},
             onGalleryClick = {},
@@ -388,6 +405,8 @@ private fun CameraScreenDeniedPreview() {
             capturedPhotos = emptyList(),
             photoCount = 0,
             isLoading = false,
+            selectedOrgan = Organ.AUTO,
+            onOrganSelected = {},
             onFlashToggle = {},
             onCapture = {},
             onGalleryClick = {},
