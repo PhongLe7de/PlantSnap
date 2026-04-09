@@ -1,6 +1,7 @@
 package com.plantsnap.ui.screens.identify.identify
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.plantsnap.domain.models.ScanResult
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.io.File
 
 @HiltViewModel
@@ -21,24 +23,61 @@ class IdentifyViewModel @Inject constructor(
     private val photosHolder: CapturedPhotosHolder
 ) : ViewModel() {
 
+    private companion object {
+        const val TAG = "IdentifyViewModel"
+    }
+
     val photos: StateFlow<List<Uri>> = photosHolder.photos
     val organByPhoto: StateFlow<Map<Uri, String>> = photosHolder.organByPhoto
 
     private val _uiState = MutableStateFlow<UiState<ScanResult>>(UiState.Idle)
     val uiState: StateFlow<UiState<ScanResult>> = _uiState.asStateFlow()
 
-    fun identifyPlant(imagePaths: List<File>, organs: List<String>) {
-        if (imagePaths.isEmpty()) {
+    fun startIdentification() {
+        val uris = photosHolder.photos.value
+        val organMap = photosHolder.organByPhoto.value
+
+        Log.d(TAG, "startIdentification: ${uris.size} photos")
+        uris.forEachIndexed { i, uri ->
+            Log.d(TAG, "  photo[$i]: $uri → organ: ${organMap[uri] ?: "auto"}")
+        }
+
+        if (uris.isEmpty()) {
+            Log.w(TAG, "No images provided, aborting identification")
             _uiState.value = UiState.Error("No images provided")
             return
         }
+
+        val files = uris.mapNotNull { uri -> uri.path?.let { File(it) } }
+        val organs = uris.map { uri -> organMap[uri] ?: "auto" }
+
+        Log.d(TAG, "Calling identifyPlant with ${files.size} files, organs=$organs")
+        identifyPlant(files, organs)
+    }
+
+    private fun identifyPlant(imagePaths: List<File>, organs: List<String>) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
+            Log.d(TAG, "identifyPlant: sending ${imagePaths.size} images to PlantNet API...")
             try {
                 val results = plantService.identifyPlantAndSaveToLocal(imagePaths, organs)
+                Log.d(TAG, "identifyPlant: SUCCESS — bestMatch=${results.bestMatch}, candidates=${results.candidates.size}")
+                results.candidates.forEachIndexed { i, c ->
+                    Log.d(TAG, "  candidate[$i]: ${c.scientificName} (${c.score * 100}%) family=${c.family}")
+                }
                 _uiState.value = UiState.Success(results)
+            } catch (e: HttpException) {
+                Log.e(TAG, "identifyPlant: HTTP ${e.code()}", e)
+                val message = when (e.code()) {
+                    404 -> "No plant species found. Try a clearer photo of a leaf or flower."
+                    401 -> "Invalid API key. Please check your PlantNet configuration."
+                    429 -> "Too many requests. Please try again later."
+                    else -> "Server error (${e.code()}). Please try again."
+                }
+                _uiState.value = UiState.Error(message, e)
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Failed to identify plant", e)
+                Log.e(TAG, "identifyPlant: FAILED", e)
+                _uiState.value = UiState.Error("Failed to identify plant. Check your connection.", e)
             }
         }
     }
