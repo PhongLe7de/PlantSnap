@@ -86,12 +86,17 @@ fun AppNavigation() {
                             it.route == item.route
                         } == true,
                         onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            // Skip current destination
+                            val alreadySelected = currentDestination?.hierarchy
+                                ?.any { it.route == item.route } ?: false
+                            if (!alreadySelected) {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         modifier = Modifier.testTag("nav_${item.route}"),
