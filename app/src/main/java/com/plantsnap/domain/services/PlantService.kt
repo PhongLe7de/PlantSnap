@@ -1,5 +1,6 @@
 package com.plantsnap.domain.services
 
+import android.util.Log
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.repository.PlantNetRepository
@@ -15,10 +16,22 @@ class PlantService @Inject constructor(
     private val scanRepo: ScanRepository
 ) {
 
-    // Request plant from image(s), map relevant info for the UI from the res, save to supabase and local DB
+    private companion object {
+        const val TAG = "PlantService"
+    }
+
     suspend fun identifyPlantAndSaveToLocal(imageFiles: List<File>, organs: List<String>): ScanResult {
+        require(imageFiles.isNotEmpty()) { "imageFiles must not be empty" }
+        require(imageFiles.size == organs.size) { "imageFiles and organs must have the same size" }
+
+        imageFiles.forEach { file ->
+            require(file.exists()) { "Image file does not exist: ${file.absolutePath}" }
+        }
+
+        Log.d(TAG, "Identifying plant from ${imageFiles.size} images...")
         val plants = plantNetRepo.identifyPlantFromMultipleImages(imageFiles, organs)
-        val scanResult = ScanResult( // TODO: no business logic in service, move this somewhere 🧑‍🦽‍➡️
+
+        val scanResult = ScanResult(
             imagePath = imageFiles.first().absolutePath,
             organ = plants.predictedOrgans.firstOrNull()?.organ ?: "auto",
             bestMatch = plants.bestMatch,
@@ -35,6 +48,8 @@ class PlantService @Inject constructor(
         )
 
         scanRepo.save(scanResult)
+        Log.d(TAG, "Saved scan ${scanResult.id} to local DB")
+
         return scanResult
     }
 

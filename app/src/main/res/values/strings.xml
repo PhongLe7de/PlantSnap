@@ -21,6 +21,21 @@
     <string name="no_plants_found">No plants found</string>
     <string name="error_loading_plants">Error: %s</string>
 
+    <!-- Identification Screen -->
+    <string name="id_safety_title">Safety Disclaimer</string>
+    <string name="id_safety_body">Always cross-reference with a physical guide before consuming any wild plant. AI identification is for educational purposes only.</string>
+    <string name="id_analysis_complete">AI Analysis Complete</string>
+    <string name="id_results_title">Identification Results</string>
+    <string name="id_results_subtitle">We found %d potential matches for your plant specimen.</string>
+    <string name="id_confidence_label">Confidence Score</string>
+    <string name="id_not_seeing_title">Not seeing your plant?</string>
+    <string name="id_not_seeing_body">Try taking another photo from a different angle with better lighting.</string>
+    <string name="id_retake_photo">Retake Photo</string>
+    <string name="id_analyzing">Analyzing your plant…</string>
+    <string name="id_error">Error: %s</string>
+    <string name="id_back">Back</string>
+    <string name="id_uploaded_photo">Uploaded plant photo</string>
+
     <!-- Profile Screen -->
     <string name="profile_default_name">User</string>
     <string name="profile_member_since">Member since %s</string>

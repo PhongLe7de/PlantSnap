@@ -16,30 +16,30 @@ import com.plantsnap.ui.state.UiState
 @Composable
 fun PlantDetailScreen(
     plantId: String,
+    candidateIndex: Int,
     onBack: () -> Unit,
     viewModel: PlantDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadPlantDetail(plantId)
+        viewModel.loadPlantDetail(plantId, candidateIndex)
     }
 
     Column(
         modifier = Modifier
             .testTag("screen_plantDetail")
     ) {
-        Text(text = "Plant ID: $plantId")
-
         when (val s = state) {
             is UiState.Idle -> Text("Idle")
             is UiState.Loading -> CircularProgressIndicator()
             is UiState.Success -> {
-                val result = s.data
-                Text("Best Match: ${result.bestMatch}")
-                result.candidates.forEach { candidate ->
-                    Text("${candidate.family} (${candidate.scientificName})")
-                }
+                val candidate = s.data
+                Text(candidate.scientificName)
+                Text("Common names: ${candidate.commonNames.joinToString()}")
+                Text("Family: ${candidate.family}")
+                Text("Confidence: ${(candidate.score * 100).toInt()}%")
+                candidate.iucnCategory?.let { Text("IUCN: $it") }
             }
             is UiState.Error -> Text("Error: ${s.message}")
         }
