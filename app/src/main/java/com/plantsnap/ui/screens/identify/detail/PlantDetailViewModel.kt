@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,20 +30,19 @@ class PlantDetailViewModel @Inject constructor(
         _uiState.value = UiState.Loading
         Log.d(TAG, "loadPlantDetail: scanId=$plantId, candidateIndex=$candidateIndex")
         viewModelScope.launch {
-            scanRepository.observeById(plantId).collect { scanResult ->
-                if (scanResult != null) {
-                    val candidate = scanResult.candidates.getOrNull(candidateIndex)
-                    if (candidate != null) {
-                        Log.d(TAG, "loadPlantDetail: ${candidate.scientificName} (${candidate.score * 100}%) commonNames=${candidate.commonNames} family=${candidate.family} iucn=${candidate.iucnCategory}")
-                        _uiState.value = UiState.Success(candidate)
-                    } else {
-                        Log.w(TAG, "loadPlantDetail: candidate index $candidateIndex out of bounds (${scanResult.candidates.size} candidates)")
-                        _uiState.value = UiState.Error("Candidate not found")
-                    }
+            val scanResult = scanRepository.observeById(plantId).firstOrNull()
+            if (scanResult != null) {
+                val candidate = scanResult.candidates.getOrNull(candidateIndex)
+                if (candidate != null) {
+                    Log.d(TAG, "loadPlantDetail: ${candidate.scientificName} (${candidate.score * 100}%) commonNames=${candidate.commonNames} family=${candidate.family} iucn=${candidate.iucnCategory}")
+                    _uiState.value = UiState.Success(candidate)
                 } else {
-                    Log.w(TAG, "loadPlantDetail: scan not found for id=$plantId")
-                    _uiState.value = UiState.Error("Plant details not found")
+                    Log.w(TAG, "loadPlantDetail: candidate index $candidateIndex out of bounds (${scanResult.candidates.size} candidates)")
+                    _uiState.value = UiState.Error("Candidate not found")
                 }
+            } else {
+                Log.w(TAG, "loadPlantDetail: scan not found for id=$plantId")
+                _uiState.value = UiState.Error("Plant details not found")
             }
         }
     }

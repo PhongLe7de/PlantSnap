@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
@@ -200,7 +201,7 @@ private fun IdentificationSuccessContent(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.id_back),
                         tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
@@ -265,7 +266,7 @@ private fun SafetyDisclaimerBanner(modifier: Modifier = Modifier) {
             )
             Column {
                 Text(
-                    text = stringResource(R.string.id_safety_title).uppercase(),
+                    text = stringResource(R.string.id_safety_title).uppercase(Locale.getDefault()),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -302,7 +303,7 @@ private fun AnalysisCompleteChip(modifier: Modifier = Modifier) {
             tint = scheme.onSecondaryContainer,
         )
         Text(
-            text = stringResource(R.string.id_analysis_complete).uppercase(),
+            text = stringResource(R.string.id_analysis_complete).uppercase(Locale.getDefault()),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 1.5.sp,
@@ -351,7 +352,7 @@ private fun UploadedImagePreview(
         ) {
             AsyncImage(
                 model = imageModel,
-                contentDescription = "Uploaded plant photo",
+                contentDescription = stringResource(R.string.id_uploaded_photo),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -382,7 +383,7 @@ private fun UploadedImagePreview(
             }
             Column {
                 Text(
-                    text = stringResource(R.string.id_confidence_label).uppercase(),
+                    text = stringResource(R.string.id_confidence_label).uppercase(Locale.getDefault()),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -497,7 +498,7 @@ private fun TagChip(text: String) {
     val scheme = MaterialTheme.colorScheme
 
     Text(
-        text = text.uppercase(),
+        text = text.uppercase(Locale.getDefault()),
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
         color = scheme.onSurface,
@@ -554,7 +555,7 @@ private fun RetakeCTASection(onBack: () -> Unit, modifier: Modifier = Modifier) 
                 shape = RoundedCornerShape(50),
             ) {
                 Text(
-                    text = stringResource(R.string.id_retake_photo).uppercase(),
+                    text = stringResource(R.string.id_retake_photo).uppercase(Locale.getDefault()),
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp,
                     fontSize = 12.sp,

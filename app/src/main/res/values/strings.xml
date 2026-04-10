@@ -33,6 +33,8 @@
     <string name="id_retake_photo">Retake Photo</string>
     <string name="id_analyzing">Analyzing your plant…</string>
     <string name="id_error">Error: %s</string>
+    <string name="id_back">Back</string>
+    <string name="id_uploaded_photo">Uploaded plant photo</string>
 
     <!-- Profile Screen -->
     <string name="profile_default_name">User</string>

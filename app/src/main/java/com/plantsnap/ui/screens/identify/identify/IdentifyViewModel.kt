@@ -9,7 +9,7 @@ import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.screens.identify.camera.CapturedPhotosHolder
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,8 +43,18 @@ class IdentifyViewModel @Inject constructor(
             return
         }
 
-        val files = uris.mapNotNull { uri -> uri.path?.let { File(it) } }
-        val organs = uris.map { uri -> organMap[uri] ?: "auto" }
+        val pairs = uris.mapNotNull { uri ->
+            uri.path?.let { path -> File(path) to (organMap[uri] ?: "auto") }
+        }
+
+        if (pairs.isEmpty()) {
+            Log.w(TAG, "No valid file paths from URIs, aborting")
+            _uiState.value = UiState.Error("No valid images found")
+            return
+        }
+
+        val files = pairs.map { it.first }
+        val organs = pairs.map { it.second }
 
         Log.d(TAG, "Calling identifyPlant with ${files.size} files, organs=$organs")
         identifyPlant(files, organs)

@@ -47,12 +47,8 @@ class PlantService @Inject constructor(
             aiInfo = null
         )
 
-        try {
-            scanRepo.save(scanResult)
-            Log.d(TAG, "Saved scan ${scanResult.id} to local DB")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to save scan to local DB", e)
-        }
+        scanRepo.save(scanResult)
+        Log.d(TAG, "Saved scan ${scanResult.id} to local DB")
 
         return scanResult
     }
