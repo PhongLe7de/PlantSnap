@@ -37,11 +37,6 @@ class IdentifyViewModel @Inject constructor(
         val uris = photosHolder.photos.value
         val organMap = photosHolder.organByPhoto.value
 
-        Log.d(TAG, "startIdentification: ${uris.size} photos")
-        uris.forEachIndexed { i, uri ->
-            Log.d(TAG, "  photo[$i]: $uri → organ: ${organMap[uri] ?: "auto"}")
-        }
-
         if (uris.isEmpty()) {
             Log.w(TAG, "No images provided, aborting identification")
             _uiState.value = UiState.Error("No images provided")

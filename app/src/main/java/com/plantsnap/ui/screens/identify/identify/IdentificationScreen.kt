@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -64,7 +64,7 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 fun IdentificationScreen(
     viewModel: IdentifyViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onPlantSelected: (String) -> Unit
+    onPlantSelected: (String, Int) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val photos by viewModel.photos.collectAsState()
@@ -88,7 +88,7 @@ private fun IdentificationScreenContent(
     state: UiState<ScanResult>,
     photos: List<Uri> = emptyList(),
     onBack: () -> Unit = {},
-    onPlantSelected: (String) -> Unit = {},
+    onPlantSelected: (String, Int) -> Unit = { _, _ -> },
 ) {
     Box(
         modifier = Modifier
@@ -114,8 +114,6 @@ private fun IdentificationScreenContent(
     }
 }
 
-// region Loading
-
 @Composable
 private fun IdentificationLoadingContent(modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
@@ -135,10 +133,6 @@ private fun IdentificationLoadingContent(modifier: Modifier = Modifier) {
         }
     }
 }
-
-// endregion
-
-// region Error
 
 @Composable
 private fun IdentificationErrorContent(
@@ -183,16 +177,12 @@ private fun IdentificationErrorContent(
     }
 }
 
-// endregion
-
-// region Success
-
 @Composable
 private fun IdentificationSuccessContent(
     scanResult: ScanResult,
     photos: List<Uri>,
     onBack: () -> Unit,
-    onPlantSelected: (String) -> Unit,
+    onPlantSelected: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -219,26 +209,24 @@ private fun IdentificationSuccessContent(
         item { SafetyDisclaimerBanner(modifier = Modifier.padding(horizontal = 20.dp)) }
         item { Spacer(Modifier.height(24.dp)) }
         item {
-            AnalysisChipAndHeader(
-                candidateCount = scanResult.candidates.size,
-                modifier = Modifier.padding(horizontal = 20.dp),
-            )
+            AnalysisCompleteChip(modifier = Modifier.padding(horizontal = 20.dp))
         }
-        item { Spacer(Modifier.height(24.dp)) }
+        item { Spacer(Modifier.height(16.dp)) }
         item {
             UploadedImagePreview(
                 photoUri = photos.firstOrNull(),
                 imagePath = scanResult.imagePath,
                 topScore = scanResult.candidates.firstOrNull()?.score ?: 0f,
+                candidateCount = scanResult.candidates.size,
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
         }
         item { Spacer(Modifier.height(32.dp)) }
 
-        items(scanResult.candidates) { candidate ->
+        itemsIndexed(scanResult.candidates) { index, candidate ->
             CandidateCard(
                 candidate = candidate,
-                onClick = { onPlantSelected(scanResult.id) },
+                onClick = { onPlantSelected(scanResult.id, index) },
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
             Spacer(Modifier.height(12.dp))
@@ -249,10 +237,6 @@ private fun IdentificationSuccessContent(
         item { Spacer(Modifier.height(24.dp)) }
     }
 }
-
-// endregion
-
-// region Safety Disclaimer
 
 @Composable
 private fun SafetyDisclaimerBanner(modifier: Modifier = Modifier) {
@@ -300,39 +284,45 @@ private fun SafetyDisclaimerBanner(modifier: Modifier = Modifier) {
     }
 }
 
-// endregion
-
-// region Header
-
 @Composable
-private fun AnalysisChipAndHeader(candidateCount: Int, modifier: Modifier = Modifier) {
+private fun AnalysisCompleteChip(modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
 
+    Row(
+        modifier = modifier
+            .background(scheme.secondaryContainer, RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            Icons.Filled.AutoAwesome,
+            contentDescription = null,
+            modifier = Modifier.size(14.dp),
+            tint = scheme.onSecondaryContainer,
+        )
+        Text(
+            text = stringResource(R.string.id_analysis_complete).uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.5.sp,
+            color = scheme.onSecondaryContainer,
+        )
+    }
+}
+
+@Composable
+private fun UploadedImagePreview(
+    photoUri: Uri?,
+    imagePath: String,
+    topScore: Float,
+    candidateCount: Int,
+    modifier: Modifier = Modifier,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val imageModel = photoUri ?: imagePath
+
     Column(modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .background(scheme.secondaryContainer, RoundedCornerShape(50))
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(
-                Icons.Filled.AutoAwesome,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = scheme.onSecondaryContainer,
-            )
-            Text(
-                text = stringResource(R.string.id_analysis_complete).uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.5.sp,
-                color = scheme.onSecondaryContainer,
-            )
-        }
-
-        Spacer(Modifier.height(12.dp))
-
         Text(
             text = stringResource(R.string.id_results_title),
             style = MaterialTheme.typography.headlineLarge,
@@ -348,24 +338,10 @@ private fun AnalysisChipAndHeader(candidateCount: Int, modifier: Modifier = Modi
             style = MaterialTheme.typography.bodyLarge,
             color = scheme.onSurfaceVariant,
         )
-    }
-}
 
-// endregion
+        Spacer(Modifier.height(20.dp))
 
-// region Image Preview
-
-@Composable
-private fun UploadedImagePreview(
-    photoUri: Uri?,
-    imagePath: String,
-    topScore: Float,
-    modifier: Modifier = Modifier,
-) {
-    val scheme = MaterialTheme.colorScheme
-    val imageModel = photoUri ?: imagePath
-
-    Box(modifier = modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth()) {
         Card(
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
@@ -425,11 +401,8 @@ private fun UploadedImagePreview(
 
     // Extra spacer to account for the overflowing badge
     Spacer(Modifier.height(24.dp))
+    }
 }
-
-// endregion
-
-// region Candidate Card
 
 @Composable
 private fun CandidateCard(
@@ -536,10 +509,6 @@ private fun TagChip(text: String) {
     )
 }
 
-// endregion
-
-// region Retake CTA
-
 @Composable
 private fun RetakeCTASection(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
@@ -594,10 +563,6 @@ private fun RetakeCTASection(onBack: () -> Unit, modifier: Modifier = Modifier) 
         }
     }
 }
-
-// endregion
-
-// region Previews
 
 private val previewScanResult = ScanResult(
     imagePath = "",
@@ -672,4 +637,3 @@ private fun IdentificationScreenPreviewError() {
     }
 }
 
-// endregion

@@ -1,5 +1,7 @@
 package com.plantsnap.data.repository
 
+import androidx.room.withTransaction
+import com.plantsnap.data.local.PlantSnapDatabase
 import com.plantsnap.data.local.ScanDao
 import com.plantsnap.data.local.model.toDomain
 import com.plantsnap.data.local.model.toEntity
@@ -12,12 +14,15 @@ import javax.inject.Singleton
 
 @Singleton
 class ScanRepositoryImpl @Inject constructor(
+    private val db: PlantSnapDatabase,
     private val dao: ScanDao
 ) : ScanRepository {
 
     override suspend fun save(scanResult: ScanResult) {
-        dao.insertScan(scanResult.toEntity())
-        dao.insertCandidates(scanResult.candidates.map { it.toEntity(scanResult.id) })
+        db.withTransaction {
+            dao.insertScan(scanResult.toEntity())
+            dao.insertCandidates(scanResult.candidates.map { it.toEntity(scanResult.id) })
+        }
     }
 
     override fun getAll(): Flow<List<ScanResult>> =

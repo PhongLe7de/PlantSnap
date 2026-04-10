@@ -161,12 +161,15 @@ fun AppNavigation() {
                 composable(IdentifyNavItem.IDENTIFICATION.route) {
                     IdentificationScreen(
                         onBack = { navController.popBackStack() },
-                        onPlantSelected = { plantId -> navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/${plantId}") }
+                        onPlantSelected = { plantId, candidateIndex ->
+                            navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
+                        }
                     )
                 }
-                composable("${IdentifyNavItem.PLANT_DETAILS.route}/{plantId}") { backStackEntry ->
+                composable("${IdentifyNavItem.PLANT_DETAILS.route}/{plantId}/{candidateIndex}") { backStackEntry ->
                     PlantDetailScreen(
                         plantId = backStackEntry.arguments?.getString("plantId") ?: "",
+                        candidateIndex = backStackEntry.arguments?.getString("candidateIndex")?.toIntOrNull() ?: 0,
                         onBack = { navController.popBackStack() }
                     )
                 }
