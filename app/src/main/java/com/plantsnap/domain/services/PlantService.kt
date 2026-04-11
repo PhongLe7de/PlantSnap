@@ -3,16 +3,18 @@ package com.plantsnap.domain.services
 import android.util.Log
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
+import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.PlantNetRepository
 import com.plantsnap.domain.repository.ScanRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.io.File
 import javax.inject.Inject
 
 
 class PlantService @Inject constructor(
     private val plantNetRepo: PlantNetRepository,
-//    private val llmRepo: LlmRepository,
+    private val geminiRepo: GeminiRepository,
     private val scanRepo: ScanRepository
 ) {
 
@@ -54,9 +56,9 @@ class PlantService @Inject constructor(
     }
 
     suspend fun requestAdditionalInfo(scanId: String) {
-//        val scan = scanRepo.getById(scanId) ?: return
-//        val aiInfo = llmRepo.getPlantInfo(scan.bestMatch)
-//        scanRepo.updateAiInfo(scanId, aiInfo)
+        val scan = scanRepo.observeById(scanId).first() ?: return
+        val aiInfo = geminiRepo.getPlantInfo(scan.bestMatch)
+        scanRepo.updateAiInfo(scanId, aiInfo)
     }
 
     fun getPlantsFromLocal(): Flow<List<ScanResult>> = scanRepo.getAll()
