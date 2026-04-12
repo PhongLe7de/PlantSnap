@@ -35,6 +35,6 @@ class PlantNetRepositoryImpl @Inject constructor(
         val organParts = imageFiles.mapIndexed { index, _ ->
             MultipartBody.Part.createFormData("organs", organs?.getOrNull(index) ?: "auto")
         }
-        return api.identify(images = imageParts, organs = organParts)
+        return api.identify(images = imageParts, organs = organParts, includeRelatedImages = true)
     }
 }

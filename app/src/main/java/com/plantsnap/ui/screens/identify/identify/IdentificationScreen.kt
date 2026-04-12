@@ -434,12 +434,21 @@ private fun CandidateCard(
                     .background(scheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    Icons.Filled.AutoAwesome,
-                    contentDescription = null,
-                    tint = scheme.outline.copy(alpha = 0.4f),
-                    modifier = Modifier.size(32.dp),
-                )
+                if (candidate.imageUrl != null) {
+                    AsyncImage(
+                        model = candidate.imageUrl,
+                        contentDescription = candidate.scientificName,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.AutoAwesome,
+                        contentDescription = null,
+                        tint = scheme.outline.copy(alpha = 0.4f),
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
             }
 
             // Info
