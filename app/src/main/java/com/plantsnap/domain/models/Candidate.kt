@@ -10,5 +10,6 @@ data class Candidate(
     /** Confidence score 0–1 (result.score). */
     val score: Float,
     /** IUCN Red List category e.g. "LC", "EN", "CR". Null if not on Red List. */
-    val iucnCategory: String?
+    val iucnCategory: String?,
+    val imageUrl: String? = null
 )

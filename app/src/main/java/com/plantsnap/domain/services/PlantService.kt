@@ -43,7 +43,8 @@ class PlantService @Inject constructor(
                     commonNames = result.species.commonNames,
                     family = result.species.family.name,
                     score = result.score.toFloat(),
-                    iucnCategory = result.iucn?.category
+                    iucnCategory = result.iucn?.category,
+                    imageUrl = result.images?.firstOrNull()?.url?.m
                 )
             },
             aiInfo = null
