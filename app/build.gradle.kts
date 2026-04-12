@@ -33,6 +33,7 @@ android {
         buildConfigField("String", "SUPABASE_KEY", "\"${localProperties.getProperty("SUPABASE_KEY") ?: ""}\"")
         buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"${localProperties.getProperty("GOOGLE_SERVER_CLIENT_ID") ?: ""}\"")
         buildConfigField("String", "PLANTNET_API_KEY", "\"${localProperties.getProperty("PLANTNET_API_KEY") ?: ""}\"")
+        buildConfigField("String", "GOOGLE_API_KEY", "\"${localProperties.getProperty("GOOGLE_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -51,6 +52,11 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{INDEX.LIST,DEPENDENCIES,LICENSE,LICENSE.txt,NOTICE,NOTICE.txt}"
+        }
     }
 }
 
@@ -189,6 +195,9 @@ dependencies {
 
     // Kotlinx Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // Google GenAI SDK
+    implementation("com.google.genai:google-genai:1.47.0")
 
     // Credentials (for Google Sign-In)
     implementation(libs.androidx.credentials)
