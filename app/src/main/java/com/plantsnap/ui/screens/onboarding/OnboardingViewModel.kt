@@ -12,20 +12,20 @@ import javax.inject.Inject
 class OnboardingViewModel @Inject constructor() : ViewModel() {
 
     data class State(
-        val isOnboardingComplete: Boolean = false, // TODO: reduntant when user data persistence is implemented
-        val selectedPets: String? = null,
-        val selectedInterests: Set<String> = emptySet(),
-        val selectedExperience: String? = null
+        val isOnboardingComplete: Boolean = false, // TODO: redundant when user data persistence is implemented
+        val selectedPets: PetType? = null,
+        val selectedInterests: Set<PlantInterest> = emptySet(),
+        val selectedExperience: ExperienceLevel? = null
     )
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
 
-    fun selectPets(option: String) {
+    fun selectPets(option: PetType) {
         _state.update { it.copy(selectedPets = if (it.selectedPets == option) null else option) }
     }
 
-    fun toggleInterest(interest: String) {
+    fun toggleInterest(interest: PlantInterest) {
         _state.update {
             val updated = if (interest in it.selectedInterests) {
                 it.selectedInterests - interest
@@ -36,12 +36,12 @@ class OnboardingViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun selectExperience(level: String) {
+    fun selectExperience(level: ExperienceLevel) {
         _state.update { it.copy(selectedExperience = if (it.selectedExperience == level) null else level) }
     }
 
     fun completeOnboarding() {
-        // supabase repo will be called here
+        // TODO: supabase repo will be called here once user data persistence is implemented
         _state.update { it.copy(isOnboardingComplete = true) }
     }
 }

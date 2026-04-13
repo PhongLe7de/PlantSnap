@@ -34,22 +34,24 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.annotation.StringRes
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plantsnap.R
 
-private enum class PetType(val label: String, val icon: ImageVector) {
-    DOG("Dog", Icons.Filled.Pets),
-    CAT("Cat", Icons.Filled.Pets),
-    BOTH("Both", Icons.Filled.Pets),
-    NONE("No pets", Icons.Filled.Check)
+enum class PetType(@param:StringRes val labelRes: Int, val icon: ImageVector) {
+    DOG(R.string.onboarding_pets_option_dog, Icons.Filled.Pets),
+    CAT(R.string.onboarding_pets_option_cat, Icons.Filled.Pets),
+    BOTH(R.string.onboarding_pets_option_both, Icons.Filled.Pets),
+    NONE(R.string.onboarding_pets_option_none, Icons.Filled.Check)
 }
 @Composable
 fun PetSafetyPage(
-    selectedPets: String?,
-    onSelectPets: (String) -> Unit,
+    selectedPets: PetType?,
+    onSelectPets: (PetType) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -94,7 +96,7 @@ fun PetSafetyPage(
                     .padding(horizontal = 24.dp, vertical = 8.dp),
             ) {
                 Text(
-                    text = "Do you have pets?",
+                    text = stringResource(R.string.onboarding_pets_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface,
@@ -106,7 +108,7 @@ fun PetSafetyPage(
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "We'll warn you about plants that are toxic to your companions.",
+                text = stringResource(R.string.onboarding_pets_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = scheme.onSurfaceVariant,
                 lineHeight = 24.sp,
@@ -122,10 +124,10 @@ fun PetSafetyPage(
                     ) {
                         row.forEach { option ->
                             PetOptionButton(
-                                label = option.label,
+                                labelRes = option.labelRes,
                                 icon = option.icon,
-                                selected = selectedPets == option.name,
-                                onClick = { onSelectPets(option.name) },
+                                selected = selectedPets == option,
+                                onClick = { onSelectPets(option) },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -138,7 +140,7 @@ fun PetSafetyPage(
 
 @Composable
 private fun PetOptionButton(
-    label: String,
+    @StringRes labelRes: Int,
     icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
@@ -169,7 +171,7 @@ private fun PetOptionButton(
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = label,
+                text = stringResource(labelRes),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = contentColor,
@@ -178,29 +180,3 @@ private fun PetOptionButton(
     }
 }
 
-@Composable
-internal fun OnboardingChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
-    val bgColor = if (selected) scheme.primary else scheme.secondaryContainer
-    val textColor = if (selected) scheme.onPrimary else scheme.onSecondaryContainer
-
-    Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(bgColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = textColor,
-        )
-    }
-}

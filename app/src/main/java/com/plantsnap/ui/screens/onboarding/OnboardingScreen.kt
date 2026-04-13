@@ -67,9 +67,9 @@ fun OnboardingScreen(
 @Composable
 fun OnboardingScreenContent(
     state: OnboardingViewModel.State,
-    onSelectPets: (String) -> Unit,
-    onToggleInterest: (String) -> Unit,
-    onSelectExperience: (String) -> Unit,
+    onSelectPets: (PetType) -> Unit,
+    onToggleInterest: (PlantInterest) -> Unit,
+    onSelectExperience: (ExperienceLevel) -> Unit,
     onFinished: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -129,6 +129,14 @@ fun OnboardingScreenContent(
                 0 -> PetSafetyPage(
                     selectedPets = state.selectedPets,
                     onSelectPets = onSelectPets,
+                )
+                1 -> PlantInterestsPage(
+                    selectedInterests = state.selectedInterests,
+                    onToggleInterest = onToggleInterest,
+                )
+                2 -> ExperienceLevelPage(
+                    selectedExperience = state.selectedExperience,
+                    onSelectExperience = onSelectExperience,
                 )
             }
         }
