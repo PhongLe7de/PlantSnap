@@ -2,6 +2,7 @@ package com.plantsnap.ui.screens.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,17 +16,23 @@ import javax.inject.Inject
 class HistoryViewModel @Inject constructor(
     private val plantService: PlantService
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
-    val uiState: StateFlow<UiState<Unit>> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<UiState<List<ScanResult>>>(UiState.Loading)
+    val uiState: StateFlow<UiState<List<ScanResult>>> = _uiState.asStateFlow()
 
-    fun getHistory() {
+    init {
+        loadHistory()
+    }
+
+    private fun loadHistory() {
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
             try {
-                // TODO: Implement actual history retrieval logic here, e.g. plantService.getHistory()
+                plantService.getPlantsFromLocal().collect { scans ->
+                    _uiState.value = UiState.Success(scans)
+                }
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Failed to load history", e)
             }
         }
     }
+
 }

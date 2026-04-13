@@ -181,7 +181,11 @@ fun AppNavigation() {
             }
 
             composable(BottomNavItem.HISTORY.route) {
-                HistoryScreen()
+                HistoryScreen(
+                    onScanSelected = { plantId, candidateIndex ->
+                        navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
+                    }
+                )
             }
 
             composable(BottomNavItem.PROFILE.route) {
