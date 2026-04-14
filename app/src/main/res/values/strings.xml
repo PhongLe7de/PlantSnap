@@ -58,5 +58,10 @@
     <string name="detail_soil">Soil &amp; Potting</string>
 
     <!-- History Screen -->
+    <string name="history_title">Your Plants</string>
+    <string name="history_match">%d %% match</string>
+    <string name="history_empty_title">No scans yet</string>
+    <string name="history_empty_desc">Your identified plants will appear here</string>
+    <string name="history_error">Failed to load history: %s</string>
 
 </resources>
