@@ -1,6 +1,7 @@
 package com.plantsnap.ui.screens.onboarding
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,7 +32,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,49 +63,69 @@ fun ExperienceLevelPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
     ) {
+        // Hero image with gradient + overlapping title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(scheme.tertiaryContainer.copy(alpha = 0.4f)),
-            contentAlignment = Alignment.Center,
+                .height(310.dp)
+                .offset(y = (-16).dp),
         ) {
-            Icon(
-                imageVector = Icons.Filled.Spa,
+            Image(
+                painter = painterResource(R.drawable.potted_plant),
                 contentDescription = null,
-                tint = scheme.tertiary.copy(alpha = 0.4f),
-                modifier = Modifier.height(72.dp),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp)
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .align(Alignment.TopCenter),
             )
+
+            // Gradient fade from transparent → surface at the bottom
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, scheme.surface),
+                        )
+                    ),
+            )
+
+            // Title overlapping on top of the gradient
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.onboarding_experience_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSurface,
+                )
+            }
         }
 
-        Spacer(Modifier.height(32.dp))
-
-        Text(
-            text = stringResource(R.string.onboarding_experience_title),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = scheme.onSurface,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.onboarding_experience_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
-            color = scheme.onSurfaceVariant,
-            lineHeight = 24.sp,
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ExperienceLevel.entries.forEach { level ->
-                ExperienceCard(
-                    level = level,
-                    selected = selectedExperience == level,
-                    onClick = { onSelectExperience(level) },
-                )
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            Text(
+                text = stringResource(R.string.onboarding_experience_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                color = scheme.onSurfaceVariant,
+                lineHeight = 24.sp,
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                ExperienceLevel.entries.forEach { level ->
+                    ExperienceCard(
+                        level = level,
+                        selected = selectedExperience == level,
+                        onClick = { onSelectExperience(level) },
+                    )
+                }
             }
         }
     }

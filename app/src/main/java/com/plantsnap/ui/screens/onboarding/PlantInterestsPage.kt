@@ -1,6 +1,7 @@
 package com.plantsnap.ui.screens.onboarding
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,7 +31,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,34 +63,54 @@ fun PlantInterestsPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
     ) {
-        // Hero image placeholder
+        // Hero image with gradient + overlapping title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(scheme.primaryContainer.copy(alpha = 0.5f)),
-            contentAlignment = Alignment.Center,
+                .height(310.dp)
+                .offset(y = (-16).dp),
         ) {
-            Icon(
-                imageVector = Icons.Filled.LocalFlorist,
+            Image(
+                painter = painterResource(R.drawable.plants),
                 contentDescription = null,
-                tint = scheme.primary.copy(alpha = 0.4f),
-                modifier = Modifier.height(72.dp),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp)
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .align(Alignment.TopCenter),
             )
+
+            // Gradient fade from transparent → surface at the bottom
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, scheme.surface),
+                        )
+                    ),
+            )
+
+            // Title overlapping on top of the gradient
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.onboarding_interests_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSurface,
+                )
+            }
         }
-
-        Spacer(Modifier.height(32.dp))
-
-        Text(
-            text = stringResource(R.string.onboarding_interests_title),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = scheme.onSurface,
-        )
-        Spacer(Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
         Text(
             text = stringResource(R.string.onboarding_interests_subtitle),
             style = MaterialTheme.typography.bodyLarge,
@@ -114,6 +140,6 @@ fun PlantInterestsPage(
                     },
                 )
             }
-        }
+        }}
     }
 }
