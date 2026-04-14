@@ -1,27 +1,18 @@
 package com.plantsnap.ui.screens.onboarding
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.FilterVintage
-import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -31,11 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plantsnap.R
+import com.plantsnap.ui.components.OnBoardingHeroSection
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -58,57 +46,13 @@ fun OnboardingCompletePage(
         selectedPets != null || selectedInterests.isNotEmpty() || selectedExperience != null
 
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Hero image with gradient + overlapping title
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(310.dp)
-                .offset(y = (-16).dp),
-        ) {
-            Image(
-                painter = painterResource(R.drawable.onboarding_done),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(260.dp)
-                    .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .align(Alignment.TopCenter),
-            )
-
-            // Gradient fade from transparent → surface at the bottom
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, scheme.surface),
-                        )
-                    ),
-            )
-
-            // Title overlapping on top of the gradient
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.onboarding_complete_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = scheme.onSurface,
-                )
-            }
-        }
-
+        OnBoardingHeroSection(
+            imageRes = R.drawable.onboarding_done,
+            titleRes = R.string.onboarding_complete_title,
+        )
 
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Text(

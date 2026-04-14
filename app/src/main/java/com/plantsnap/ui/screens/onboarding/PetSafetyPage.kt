@@ -1,22 +1,17 @@
 package com.plantsnap.ui.screens.onboarding
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -29,31 +24,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.offset
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
-import androidx.annotation.StringRes
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plantsnap.R
+import com.plantsnap.ui.components.OnBoardingHeroSection
 
 enum class PetType(
     @param:StringRes val labelRes: Int,
     @param:DrawableRes val drawableRes: Int? = null,
-    val imageVector: ImageVector? = null
+    val imageVector: ImageVector? = null,
 ) {
     DOG(R.string.onboarding_pets_option_dog, drawableRes = R.drawable.dog_icon),
     CAT(R.string.onboarding_pets_option_cat, drawableRes = R.drawable.cat_icon),
     BOTH(R.string.onboarding_pets_option_both, imageVector = Icons.Filled.Pets),
-    NONE(R.string.onboarding_pets_option_none, imageVector = Icons.Filled.Check)
+    NONE(R.string.onboarding_pets_option_none, imageVector = Icons.Filled.Check),
 }
+
 @Composable
 fun PetSafetyPage(
     selectedPets: PetType?,
@@ -62,53 +53,10 @@ fun PetSafetyPage(
     val scheme = MaterialTheme.colorScheme
 
     Column(modifier = Modifier.fillMaxSize()) {
-
-        // Hero image with gradient + overlapping title
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(310.dp)
-                .offset(y = (-16).dp),
-        ) {
-            Image(
-                painter = painterResource(R.drawable.funny_looking_kitten),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(260.dp)
-                    .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .align(Alignment.TopCenter),
-            )
-
-            // Gradient fade from transparent → surface at the bottom
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, scheme.surface),
-                        )
-                    ),
-            )
-
-            // Title overlapping on top of the gradient
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.onboarding_pets_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = scheme.onSurface,
-                )
-            }
-        }
+        OnBoardingHeroSection(
+            imageRes = R.drawable.funny_looking_kitten,
+            titleRes = R.string.onboarding_pets_title,
+        )
 
         // Subtitle + chips
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
@@ -129,7 +77,6 @@ fun PetSafetyPage(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         row.forEach { option ->
-
                             PetOptionButton(
                                 labelRes = option.labelRes,
                                 drawableRes = option.drawableRes,
@@ -190,4 +137,3 @@ private fun PetOptionButton(
         }
     }
 }
-
