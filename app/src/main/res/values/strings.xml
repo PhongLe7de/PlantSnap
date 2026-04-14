@@ -3,23 +3,22 @@
 
     <!-- Home Screen -->
     <string name="home_greeting">Good morning, Gardener</string> <!-- Replace with username variable? -->
-    <string name="home_subtitle">Your digital herbarium has 12 new updates today.</string> <!-- Placeholder -->
-    <string name="identify_title">Identify any plant</string>
-    <string name="identify_description">Point your camera at a leaf, flower, or tree for instant identification.</string>
-    <string name="identify_button">Identify Plant</string>
-    <string name="recent_scans">Recent Scans</string>
-    <string name="view_all">View All</string>
-    <string name="scan_time">Scanned yesterday</string> <!-- Placeholder -->
-    <string name="plant_of_the_day">Plant of the Day</string>
-    <string name="learn_more">Learn More</string>
-    <string name="daily_care_tasks">Daily Care Tasks</string>
-    <string name="done">Done</string>
-    <string name="care_watering_title">Watering: (Plant Name)</string> <!-- Placeholder -->
-    <string name="care_watering_desc">Check soil moisture today</string>
-    <string name="care_rotate_title">Rotate: Succulents</string>
-    <string name="care_rotate_desc">Ensure even sun exposure</string>
-    <string name="no_plants_found">No plants found</string>
-    <string name="error_loading_plants">Error: %s</string>
+    <string name="home_subtitle">Your digital herbarium has %d new updates today.</string>
+    <string name="home_identify_title">Identify any plant</string>
+    <string name="home_identify_desc">Point your camera at a leaf, flower, or tree for instant identification.</string>
+    <string name="home_identify_button">Identify Plant</string>
+    <string name="home_recent_scans">Recent Scans</string>
+    <string name="home_view_all">View All</string>
+    <string name="home_potd">Plant of the Day</string>
+    <string name="home_learn">Learn More</string>
+    <string name="home_daily_care">Daily Care Tasks</string>
+    <string name="home_done">Done</string>
+    <string name="home_watering_title">Watering: %s</string> <!-- Placeholder -->
+    <string name="home_watering_desc">Check soil moisture today</string>
+    <string name="home_rotate_title">Rotate: Succulents</string>
+    <string name="home_rotate_desc">Ensure even sun exposure</string>
+    <string name="home_no_plants">No plants found</string>
+    <string name="home_error">Error: %s</string>
 
     <!-- Identification Screen -->
     <string name="id_safety_title">Safety Disclaimer</string>
@@ -43,4 +42,21 @@
     <string name="profile_max_rank">Highest rank achieved!</string>
     <string name="profile_stat_scanned">Plants Scanned</string>
     <string name="profile_sign_out">Sign Out</string>
+
+    <!-- Plant Detail Screen -->
+    <string name="detail_topbar_title">Details</string>
+    <string name="detail_error">Error: %s</string>
+    <string name="detail_family">%s Family</string>
+    <string name="detail_match">%d %% match</string>
+    <string name="detail_toxicity_alert">Toxicity Alert</string>
+    <string name="detail_ai">AI Insights</string>
+    <string name="detail_iucn">IUCN Status: %s</string>
+    <string name="detail_habitat">Native Habitat</string>
+    <string name="detail_care">Care Routine</string>
+    <string name="detail_temperature">Temperature</string>
+    <string name="detail_humidity">Humidity</string>
+    <string name="detail_soil">Soil &amp; Potting</string>
+
+    <!-- History Screen -->
+
 </resources>

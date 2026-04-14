@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
+import com.plantsnap.R
 
 @Composable
 fun PlantDetailScreen(
@@ -96,7 +98,7 @@ fun PlantDetailScreenContent(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Details",
+                        text = stringResource(R.string.detail_topbar_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                     )
@@ -247,7 +249,7 @@ private fun HeroSection(candidate: Candidate) {
                 color = scheme.secondaryContainer,
             ) {
                 Text(
-                    text = "${candidate.family} Family".uppercase(),
+                    text = stringResource(R.string.detail_family, candidate.family).uppercase(),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -277,7 +279,7 @@ private fun HeroSection(candidate: Candidate) {
 
             // Confidence score
             Text(
-                text = "${(candidate.score * 100).toInt()}% match",
+                text = stringResource(R.string.detail_match, (candidate.score * 100).toInt()),
                 style = MaterialTheme.typography.labelMedium,
                 color = Color.White.copy(alpha = 0.65f),
                 modifier = Modifier.padding(top = 6.dp),
@@ -303,16 +305,16 @@ private fun CareBentoSection() {
                 icon = Icons.Default.WbSunny,
                 iconTint = scheme.primary,
                 iconBackground = scheme.primaryContainer.copy(alpha = 0.3f),
-                title = "Light",
-                body = "Bright, indirect sunlight",
+                title = "Light", // Placeholder
+                body = "Bright, indirect sunlight", // Placeholder
             )
             CareCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.WaterDrop,
                 iconTint = scheme.primary,
                 iconBackground = scheme.primaryContainer.copy(alpha = 0.3f),
-                title = "Water",
-                body = "Every 1–2 weeks",
+                title = "Water", // Placeholder
+                body = "Every 1–2 weeks", // Placeholder
             )
         }
 
@@ -411,13 +413,13 @@ private fun ToxicityCard() {
 
             Column {
                 Text(
-                    text = "Toxicity Alert",
+                    text = stringResource(R.string.detail_toxicity_alert),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface,
                 )
                 Text(
-                    text = "Toxic to cats and dogs if ingested. Contains calcium oxalate crystals.",
+                    text = "Toxic to cats and dogs if ingested. Contains calcium oxalate crystals.", // Placeholder
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
@@ -443,7 +445,7 @@ private fun AiInsightsSection(candidate: Candidate) {
                 )
 
             Text(
-                text = "AI Insights",
+                text = stringResource(R.string.detail_ai),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
@@ -473,7 +475,7 @@ private fun AiInsightsSection(candidate: Candidate) {
                         color = scheme.secondaryContainer,
                     ) {
                         Text(
-                            text = "IUCN Status: $iucn",
+                            text = stringResource(R.string.detail_iucn, iucn),
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
@@ -490,7 +492,7 @@ private fun AiInsightsSection(candidate: Candidate) {
 private fun NativeHabitatSection() {
     Column {
         Text(
-            text = "Native Habitat",
+            text = stringResource(R.string.detail_habitat),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp),
@@ -561,14 +563,22 @@ private data class CareItem(
 @Composable
 private fun CareRoutineSection() {
     val items = listOf(
-        CareItem(Icons.Outlined.Thermostat, "Temperature", "Keep between 65°F–85°F (18°C–30°C). Avoid cold drafts."),
-        CareItem(Icons.Default.WaterDrop, "Humidity", "Prefers high humidity (60%+). Mist leaves or use a humidifier."),
-        CareItem(Icons.Outlined.Grass, "Soil & Potting", "Well-draining, peat-based potting soil. Provide a moss pole for climbing."),
+        CareItem(
+            Icons.Outlined.Thermostat,
+            stringResource(R.string.detail_temperature),
+            "Keep between 65°F–85°F (18°C–30°C). Avoid cold drafts."),
+        CareItem(
+            Icons.Default.WaterDrop,
+            stringResource(R.string.detail_humidity),
+            "Prefers high humidity (60%+). Mist leaves or use a humidifier."),
+        CareItem(Icons.Outlined.Grass,
+            stringResource(R.string.detail_soil),
+            "Well-draining, peat-based potting soil. Provide a moss pole for climbing."),
     )
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Care Routine",
+            text = stringResource(R.string.detail_care),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp),
