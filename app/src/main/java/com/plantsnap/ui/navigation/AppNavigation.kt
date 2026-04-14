@@ -78,7 +78,7 @@ fun AppNavigation() {
     val authState by authViewModel.uiState.collectAsState()
 
     // TODO: replace with supabase repository check once user data persistence is implemented
-    val hasCompletedOnboarding = false
+    val hasCompletedOnboarding = true
     val startDestination = if (hasCompletedOnboarding) BottomNavItem.HOME.route else ROUTE_ONBOARDING
 
     val showBottomBar = currentDestination?.route != ROUTE_ONBOARDING
