@@ -1,5 +1,6 @@
 package com.plantsnap.ui.screens.onboarding
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.painterResource
@@ -42,11 +44,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plantsnap.R
 
-enum class PetType(@param:StringRes val labelRes: Int, val icon: ImageVector) {
-    DOG(R.string.onboarding_pets_option_dog, Icons.Filled.Pets),
-    CAT(R.string.onboarding_pets_option_cat, Icons.Filled.Pets),
-    BOTH(R.string.onboarding_pets_option_both, Icons.Filled.Pets),
-    NONE(R.string.onboarding_pets_option_none, Icons.Filled.Check)
+enum class PetType(
+    @param:StringRes val labelRes: Int,
+    @param:DrawableRes val drawableRes: Int? = null,
+    val imageVector: ImageVector? = null
+) {
+    DOG(R.string.onboarding_pets_option_dog, drawableRes = R.drawable.dog_icon),
+    CAT(R.string.onboarding_pets_option_cat, drawableRes = R.drawable.cat_icon),
+    BOTH(R.string.onboarding_pets_option_both, imageVector = Icons.Filled.Pets),
+    NONE(R.string.onboarding_pets_option_none, imageVector = Icons.Filled.Check)
 }
 @Composable
 fun PetSafetyPage(
@@ -123,9 +129,11 @@ fun PetSafetyPage(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         row.forEach { option ->
+
                             PetOptionButton(
                                 labelRes = option.labelRes,
-                                icon = option.icon,
+                                drawableRes = option.drawableRes,
+                                imageVector = option.imageVector,
                                 selected = selectedPets == option,
                                 onClick = { onSelectPets(option) },
                                 modifier = Modifier.weight(1f),
@@ -141,7 +149,8 @@ fun PetSafetyPage(
 @Composable
 private fun PetOptionButton(
     @StringRes labelRes: Int,
-    icon: ImageVector,
+    @DrawableRes drawableRes: Int? = null,
+    imageVector: ImageVector? = null,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -149,6 +158,8 @@ private fun PetOptionButton(
     val scheme = MaterialTheme.colorScheme
     val containerColor = if (selected) scheme.primary else scheme.surfaceContainerLow
     val contentColor = if (selected) scheme.onPrimary else scheme.onSurfaceVariant
+    val painter = imageVector?.let { rememberVectorPainter(it) }
+        ?: painterResource(drawableRes!!)
 
     Card(
         modifier = modifier
@@ -164,7 +175,7 @@ private fun PetOptionButton(
             verticalArrangement = Arrangement.Center,
         ) {
             Icon(
-                imageVector = icon,
+                painter = painter,
                 contentDescription = null,
                 tint = contentColor,
                 modifier = Modifier.size(36.dp),

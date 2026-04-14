@@ -130,13 +130,22 @@ fun OnboardingScreenContent(
                     selectedPets = state.selectedPets,
                     onSelectPets = onSelectPets,
                 )
+
                 1 -> PlantInterestsPage(
                     selectedInterests = state.selectedInterests,
                     onToggleInterest = onToggleInterest,
                 )
+
                 2 -> ExperienceLevelPage(
                     selectedExperience = state.selectedExperience,
                     onSelectExperience = onSelectExperience,
+                )
+
+                3 -> OnboardingCompletePage(
+                    selectedPets = state.selectedPets,
+                    selectedInterests = state.selectedInterests,
+                    selectedExperience = state.selectedExperience,
+                    onStartExploring = onFinished,
                 )
             }
         }
