@@ -44,6 +44,12 @@ android {
                 "proguard-rules.pro"
             )
         }
+        buildTypes {
+            debug {
+                enableAndroidTestCoverage = true
+                enableUnitTestCoverage = true
+            }
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -62,7 +68,7 @@ android {
 
 afterEvaluate {
     tasks.register<JacocoReport>("jacocoTestReport") {
-        dependsOn("connectedDebugAndroidTest")
+        dependsOn("connectedDebugAndroidTest", "testDebugUnitTest")
 
         reports {
             xml.required.set(true)
@@ -90,32 +96,23 @@ afterEvaluate {
 
 
         classDirectories.setFrom(
-            fileTree(layout.buildDirectory.dir(
-                "intermediates/javac/debug/compileDebugJavaWithJavac/classes"
-            )) {
+            fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
                 exclude(
-                    // Android generated
                     "**/R.class",
                     "**/R$*.class",
                     "**/BuildConfig.*",
-                    "**/Manifest*.*",
-                    // Hilt generated
                     "**/*_MembersInjector.class",
                     "**/*_Factory.class",
                     "**/*Module_*Factory.class",
                     "**/Hilt_*.class",
                     "**/*HiltModules*.class",
                     "**/*_HiltComponents*.class",
-                    // DI modules and application class
                     "**/di/**",
                     "**/*Application.class",
-                    // Pure data / model classes
                     "**/model/**",
                     "**/*Entity.class",
                     "**/*Dto.class",
-                    // Navigation constants
                     "**/*NavRoutes*",
-                    // Theme
                     "**/ui/theme/**"
                 )
             },
@@ -132,7 +129,8 @@ afterEvaluate {
         executionData.setFrom(
             fileTree(layout.buildDirectory) {
                 include(
-                    "outputs/code_coverage/**/*.ec",
+                    "outputs/code_coverage/**/*.ec",  // instrumented test coverage
+                    "jacoco/**/*.exec",               // unit test coverage
                     "jacoco/**/*.ec"
                 )
             }
