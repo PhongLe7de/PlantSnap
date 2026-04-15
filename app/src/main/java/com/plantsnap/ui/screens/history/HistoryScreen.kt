@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,6 +49,7 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.plantsnap.R
 
 @Composable
 fun HistoryScreen(
@@ -83,7 +85,7 @@ fun HistoryScreenContent(
 
             is UiState.Error -> {
                 Text(
-                    text = "Failed to load history: ${state.message}",
+                    text = stringResource(R.string.history_error, state.message),
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(32.dp),
@@ -118,7 +120,7 @@ fun HistoryList(
     ) {
         item {
             Text(
-                text = "Your Plants",
+                text = stringResource(R.string.history_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary,
@@ -234,7 +236,7 @@ fun HistoryScanCard(
                             style = MaterialTheme.typography.labelSmall,
                         )
                         Text(
-                            text = "${(candidate.score * 100).toInt()}% match",
+                            text = stringResource(R.string.history_match, (candidate.score * 100).toInt()),
                             style = MaterialTheme.typography.labelSmall,
                             color = scheme.onSurfaceVariant.copy(alpha = 0.7f),
                         )
@@ -267,7 +269,7 @@ fun HistoryEmptyState(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "No scans yet",
+            text = stringResource(R.string.history_empty_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -275,7 +277,7 @@ fun HistoryEmptyState(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Your identified plants will appear here",
+            text = stringResource(R.string.history_empty_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

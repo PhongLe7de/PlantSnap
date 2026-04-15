@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +51,9 @@ import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -92,7 +96,7 @@ fun HomeScreenContent(
         ) {
             item { WelcomeSection() }
             item { Spacer(Modifier.height(20.dp)) }
-            item { IdentifySection(onIdentifyPlantSelected = onIdentifyPlantSelected,) }
+            item { IdentifySection(onIdentifyPlantSelected = onIdentifyPlantSelected) }
             item { Spacer(Modifier.height(20.dp)) }
 
             item {
@@ -115,7 +119,7 @@ fun HomeScreenContent(
 
                 is UiState.Error -> item {
                     Text(
-                        text = stringResource(R.string.error_loading_plants, state.message),
+                        text = stringResource(R.string.home_error, state.message),
                         color = scheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(vertical = 16.dp),
@@ -126,7 +130,7 @@ fun HomeScreenContent(
                     if (state.data.isEmpty()) {
                         item {
                             Text(
-                                text = stringResource(R.string.no_plants_found),
+                                text = stringResource(R.string.home_no_plants),
                                 color = scheme.onSurfaceVariant,
                                 fontSize = 14.sp,
                                 modifier = Modifier.padding(vertical = 16.dp),
@@ -134,11 +138,15 @@ fun HomeScreenContent(
                         }
                     } else {
                         items(state.data) { plant ->
+                            val formattedDate = remember(plant.timestamp) {
+                                SimpleDateFormat("d MMM yyyy", Locale.getDefault())
+                                    .format(Date(plant.timestamp))
+                            }
                             ScanCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 plantName = plant.bestMatch,
                                 commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull() ?: "",
-                                timeLabel = stringResource(R.string.scan_time), // TODO: replace with real scan timestamp
+                                timeLabel = formattedDate,
                             )
                             Spacer(Modifier.height(12.dp))
                         }
@@ -174,7 +182,7 @@ private fun WelcomeSection() {
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.home_subtitle),
+            text = stringResource(R.string.home_subtitle, 12), // Int placeholder
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             color = scheme.onSurfaceVariant,
@@ -183,7 +191,7 @@ private fun WelcomeSection() {
 }
 
 @Composable
-private fun IdentifySection(onIdentifyPlantSelected: () -> Unit,) {
+private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
 
     Box(
@@ -193,7 +201,7 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit,) {
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        scheme.primaryContainer.copy(alpha = 0.75f),
+                        scheme.primary.copy(alpha = 0.4f),
                         scheme.primary
                     )
                 )
@@ -203,14 +211,14 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit,) {
     ) {
         Column {
             Text(
-                text = stringResource(R.string.identify_title),
+                text = stringResource(R.string.home_identify_title),
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onPrimary,
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = stringResource(R.string.identify_description),
+                text = stringResource(R.string.home_identify_desc),
                 fontSize = 14.sp,
                 color = scheme.onPrimary.copy(alpha = 0.80f),
                 modifier = Modifier.fillMaxWidth(0.72f),
@@ -225,7 +233,7 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit,) {
                 shape = RoundedCornerShape(12.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.identify_button),
+                    text = stringResource(R.string.home_identify_button),
                     fontWeight = FontWeight.Bold,
                     color = scheme.onPrimary,
                 )
@@ -244,14 +252,14 @@ private fun RecentScansHeader() {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(R.string.recent_scans),
+            text = stringResource(R.string.home_recent_scans),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
         )
         TextButton(onClick = { /* TODO: Navigate to scans */ }) {
             Text(
-                text = stringResource(R.string.view_all),
+                text = stringResource(R.string.home_view_all),
                 color = scheme.primary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
@@ -315,7 +323,7 @@ private fun PlantOfTheDaySection() {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.plant_of_the_day),
+            text = stringResource(R.string.home_potd),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
@@ -361,7 +369,7 @@ private fun PlantOfTheDaySection() {
                     shape = RoundedCornerShape(12.dp),
                 ) {
                     Text(
-                        text = stringResource(R.string.learn_more),
+                        text = stringResource(R.string.home_learn),
                         fontWeight = FontWeight.Bold,
                         color = scheme.onPrimary,
                         modifier = Modifier.padding(vertical = 4.dp),
@@ -378,7 +386,7 @@ private fun DailyCareSection() {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.daily_care_tasks),
+            text = stringResource(R.string.home_daily_care),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
@@ -386,14 +394,14 @@ private fun DailyCareSection() {
         Spacer(Modifier.height(12.dp))
 
         CareTaskItem(
-            title = stringResource(R.string.care_watering_title),
-            subtitle = stringResource(R.string.care_watering_desc),
+            title = stringResource(R.string.home_watering_title, "Plant Name"),
+            subtitle = stringResource(R.string.home_watering_desc),
             accentColor = scheme.primary,
         )
         Spacer(Modifier.height(8.dp))
         CareTaskItem(
-            title = stringResource(R.string.care_rotate_title),
-            subtitle = stringResource(R.string.care_rotate_desc),
+            title = stringResource(R.string.home_rotate_title),
+            subtitle = stringResource(R.string.home_rotate_desc),
             accentColor = scheme.primary,
         )
     }
@@ -468,7 +476,7 @@ private fun CareTaskItem(
                     modifier = Modifier.height(32.dp),
                 ) {
                     Text(
-                        text = stringResource(R.string.done),
+                        text = stringResource(R.string.home_done),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
