@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
 import com.plantsnap.ui.screens.home.HomeScreen
+import com.plantsnap.ui.screens.onboarding.OnboardingScreen
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.screens.profile.AuthenticationScreen
 import com.plantsnap.ui.screens.profile.ProfileScreen
@@ -65,6 +66,8 @@ enum class IdentifyNavItem(
     PLANT_DETAILS("plant_details")
 }
 
+private const val ROUTE_ONBOARDING = "onboarding"
+
 @Composable
 fun AppNavigation() {
     val navController: NavHostController = rememberNavController()
@@ -74,9 +77,15 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.uiState.collectAsState()
 
+    // TODO: replace with supabase repository check once user data persistence is implemented
+    val hasCompletedOnboarding = true
+    val startDestination = if (hasCompletedOnboarding) BottomNavItem.HOME.route else ROUTE_ONBOARDING
+
+    val showBottomBar = currentDestination?.route != ROUTE_ONBOARDING
+
     Scaffold(
         bottomBar = {
-            NavigationBar(
+            if (showBottomBar) NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface
             ) {
@@ -122,9 +131,19 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = BottomNavItem.HOME.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(ROUTE_ONBOARDING) {
+                OnboardingScreen(
+                    onFinished = {
+                        navController.navigate(BottomNavItem.HOME.route) {
+                            popUpTo(ROUTE_ONBOARDING) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             composable(BottomNavItem.HOME.route) {
                 HomeScreen(
                     onIdentifyPlantSelected = {
