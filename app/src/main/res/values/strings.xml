@@ -43,4 +43,37 @@
     <string name="profile_max_rank">Highest rank achieved!</string>
     <string name="profile_stat_scanned">Plants Scanned</string>
     <string name="profile_sign_out">Sign Out</string>
+    <!-- Onboarding: Pet Safety -->
+    <string name="onboarding_pets_title">Do you have pets?</string>
+    <string name="onboarding_pets_subtitle">We\'ll warn you about plants that are toxic to your companions.</string>
+    <string name="onboarding_pets_option_dog">Dog</string>
+    <string name="onboarding_pets_option_cat">Cat</string>
+    <string name="onboarding_pets_option_both">Both</string>
+    <string name="onboarding_pets_option_none">No pets</string>
+
+    <!-- Onboarding: Experience Level -->
+    <string name="onboarding_experience_title">How green is your thumb?</string>
+    <string name="onboarding_experience_subtitle">We\'ll adjust the detail level in plant guides to match your experience.</string>
+    <string name="onboarding_experience_option_beginner_label">Beginner</string>
+    <string name="onboarding_experience_option_beginner_desc">I\'m just starting out</string>
+    <string name="onboarding_experience_option_intermediate_label">Intermediate</string>
+    <string name="onboarding_experience_option_intermediate_desc">I know the basics</string>
+    <string name="onboarding_experience_option_expert_label">Expert</string>
+    <string name="onboarding_experience_option_expert_desc">I speak Latin binomials</string>
+
+    <!-- Onboarding: Complete -->
+    <string name="onboarding_complete_title">You\'re all set!</string>
+    <string name="onboarding_complete_subtitle">PlantSnap is ready to help you explore the plant world.</string>
+    <string name="onboarding_complete_cta">Start Exploring</string>
+
+    <!-- Onboarding: Plant Interests -->
+    <string name="onboarding_interests_title">What are you into?</string>
+    <string name="onboarding_interests_subtitle">Select all that apply — we\'ll tailor your experience.</string>
+    <string name="onboarding_interests_option_indoor">Indoor houseplants</string>
+    <string name="onboarding_interests_option_outdoor">Garden &amp; outdoor</string>
+    <string name="onboarding_interests_option_edible">Wild plants &amp; foraging</string>
+    <string name="onboarding_interests_option_air_purifiers">Air purifiers</string>
+    <string name="onboarding_interests_option_succulents">Succulents</string>
+    <string name="onboarding_interests_option_flowers">Flowers</string>
+    <string name="onboarding_interests_option_trees">Trees &amp; shrubs</string>
 </resources>
