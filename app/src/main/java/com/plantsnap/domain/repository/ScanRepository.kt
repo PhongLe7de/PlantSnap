@@ -10,7 +10,8 @@ interface ScanRepository {
     suspend fun delete(id: String)
     suspend fun getUnsynced(): List<ScanResult>
     suspend fun markSynced(id: String)
-    suspend fun updateAiInfo(id: String, aiInfo: String)
+    suspend fun updateCandidateAiInfo(scanId: String, scientificName: String, aiInfoJson: String)
+    suspend fun getAllScanIds(): List<String>
 
     // Aggregate stats
     fun observeTotalScanCount(): Flow<Int>

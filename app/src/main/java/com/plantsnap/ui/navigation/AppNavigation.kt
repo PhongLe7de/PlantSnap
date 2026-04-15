@@ -165,7 +165,12 @@ fun AppNavigation() {
                 }
                 composable(IdentifyNavItem.IDENTIFICATION.route) {
                     IdentificationScreen(
-                        onBack = { navController.popBackStack() },
+                        onBack = {
+                            navController.popBackStack(
+                                route = IdentifyNavItem.CAMERA.route,
+                                inclusive = false,
+                            )
+                        },
                         onPlantSelected = { plantId, candidateIndex ->
                             navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                         }

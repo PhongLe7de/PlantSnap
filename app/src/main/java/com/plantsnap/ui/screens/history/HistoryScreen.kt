@@ -165,6 +165,8 @@ fun HistoryScanCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            val thumbnailModel: Any? = scan.imagePath.takeIf { it.isNotBlank() }
+                ?: topCandidate?.imageUrl
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -172,9 +174,9 @@ fun HistoryScanCard(
                     .background(scheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center,
             ) {
-                if (scan.imagePath.isNotBlank()) {
+                if (thumbnailModel != null) {
                     AsyncImage(
-                        model = scan.imagePath,
+                        model = thumbnailModel,
                         contentDescription = scan.bestMatch,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
@@ -288,7 +290,6 @@ private val previewScans = listOf(
         candidates = listOf(
             Candidate("Monstera deliciosa", listOf("Swiss Cheese Plant"),"Araceae", 0.97f, null)
         ),
-        aiInfo = null,
         timestamp = System.currentTimeMillis() - 86_400_000,
     ),
     ScanResult(
@@ -298,7 +299,6 @@ private val previewScans = listOf(
         candidates = listOf(
             Candidate("Rosa canina", listOf("Dog Rose"),"Rosacae", 0.82f, "LC")
         ),
-        aiInfo = null,
         timestamp = System.currentTimeMillis() - 86_400_000,
     ),
     ScanResult(
@@ -308,7 +308,6 @@ private val previewScans = listOf(
         candidates = listOf(
             Candidate("Quercus robur", listOf("English Oak", "Pedunculate Oak"),"Fagaceae", 0.74f, "LC")
         ),
-        aiInfo = null,
         timestamp = System.currentTimeMillis() - 86_400_000,
     ),
 )

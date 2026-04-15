@@ -11,6 +11,7 @@ import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
 import javax.inject.Singleton
 
 @Module
@@ -35,6 +36,7 @@ object SupabaseModule {
             install(ComposeAuth) {
                 googleNativeLogin(serverClientId = BuildConfig.GOOGLE_SERVER_CLIENT_ID)
             }
+            install(Postgrest)
         }
     }
 }

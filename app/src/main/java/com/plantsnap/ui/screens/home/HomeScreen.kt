@@ -492,7 +492,6 @@ private val previewPlants = listOf(
                 iucnCategory = null,
             )
         ),
-        aiInfo = null,
     ),
     ScanResult(
         imagePath = "",
@@ -507,7 +506,6 @@ private val previewPlants = listOf(
                 iucnCategory = "LC",
             )
         ),
-        aiInfo = null,
     ),
 )
 

@@ -34,8 +34,11 @@ interface ScanDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCandidates(candidates: List<CandidateEntity>)
 
-    @Query("UPDATE scans SET aiInfo = :aiInfo WHERE id = :scanId")
-    suspend fun updateAiInfo(scanId: String, aiInfo: String)
+    @Query("UPDATE candidates SET aiInfo = :aiInfo WHERE scanId = :scanId AND scientificName = :scientificName")
+    suspend fun updateCandidateAiInfo(scanId: String, scientificName: String, aiInfo: String)
+
+    @Query("SELECT id FROM scans")
+    suspend fun getAllScanIds(): List<String>
 
     @Query("UPDATE scans SET synced = 1 WHERE id = :scanId")
     suspend fun markSynced(scanId: String)

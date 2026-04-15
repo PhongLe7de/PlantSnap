@@ -24,7 +24,9 @@ data class CandidateEntity(
     val commonNames: String,    // comma-joined, e.g. "Rose,Dog rose"
     val family: String,
     val score: Float,
-    val iucnCategory: String?
+    val iucnCategory: String?,
+    val imageUrl: String?,
+    val aiInfo: String?,
 )
 
 fun Candidate.toEntity(scanId: String) = CandidateEntity(
@@ -33,7 +35,9 @@ fun Candidate.toEntity(scanId: String) = CandidateEntity(
     commonNames = commonNames.joinToString(","),
     family = family,
     score = score,
-    iucnCategory = iucnCategory
+    iucnCategory = iucnCategory,
+    imageUrl = imageUrl,
+    aiInfo = aiInfo,
 )
 
 fun CandidateEntity.toDomain() = Candidate(
@@ -41,5 +45,7 @@ fun CandidateEntity.toDomain() = Candidate(
     commonNames = commonNames.split(",").filter { it.isNotEmpty() },
     family = family,
     score = score,
-    iucnCategory = iucnCategory
+    iucnCategory = iucnCategory,
+    imageUrl = imageUrl,
+    aiInfo = aiInfo,
 )

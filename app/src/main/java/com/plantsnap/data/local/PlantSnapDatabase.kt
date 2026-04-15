@@ -8,7 +8,7 @@ import com.plantsnap.data.local.model.ScanEntity
 
 @Database(
     entities = [ScanEntity::class, CandidateEntity::class],
-    version = 1,
+    version = 5,
 )
 abstract class PlantSnapDatabase : RoomDatabase() {
     abstract fun scanDao(): ScanDao
