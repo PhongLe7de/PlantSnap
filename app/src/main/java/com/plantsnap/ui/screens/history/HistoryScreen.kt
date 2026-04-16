@@ -415,6 +415,7 @@ fun HistoryScanCard(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(vertical = 10.dp)
                     ) {
                         Icon(
                             Icons.Filled.Verified,

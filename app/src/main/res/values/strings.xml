@@ -37,11 +37,29 @@
 
     <!-- Profile Screen -->
     <string name="profile_default_name">User</string>
-    <string name="profile_member_since">Member since %s</string>
+    <string name="profile_member_since">Member since </string>
     <string name="profile_scans_to_next">%d more scans to %s</string>
     <string name="profile_max_rank">Highest rank achieved!</string>
     <string name="profile_stat_scanned">Plants Scanned</string>
     <string name="profile_sign_out">Sign Out</string>
+    <string name="profile_synced">SYNCED</string>
+    <string name="profile_photo_desc">Profile photo</string>
+    <string name="profile_edit_desc">Edit profile</string>
+    <string name="profile_name_placeholder">Plant Explorer</string>
+    <string name="profile_email_placeholder">Botanical Enthusiast</string>
+    <string name="profile_plants_found">PLANTS FOUND</string>
+    <string name="profile_total_scans">TOTAL SCANS</string>
+    <string name="profile_rank">" RANK"</string>
+    <string name="profile_cloud_active">Cloud Sync Active</string>
+    <string name="profile_cloud_sync">Cloud Sync</string>
+    <string name="profile_up_to_date">Up to date</string>
+    <string name="profile_sync_your_scans">Tap to sync your scans</string>
+    <string name="profile_sync_now">Sync now</string>
+    <string name="profile_account_settings">ACCOUNT SETTINGS</string>
+    <string name="profile_personal_information">Personal Information</string>
+    <string name="profile_plant_care">Plant Care Reminders</string>
+    <string name="profile_privacy_security"><![CDATA[Privacy & Security]]></string>
+    <string name="profile_appearance">Appearance</string>
 
     <!-- Plant Detail Screen -->
     <string name="detail_topbar_title">Details</string>
@@ -104,5 +122,6 @@
     <string name="onboarding_interests_option_succulents">Succulents</string>
     <string name="onboarding_interests_option_flowers">Flowers</string>
     <string name="onboarding_interests_option_trees">Trees &amp; shrubs</string>
+
 
 </resources>
