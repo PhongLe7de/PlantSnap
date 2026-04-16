@@ -80,6 +80,8 @@
 
     <string name="detail_info_unavailable">Info unavailable</string>
     <string name="detail_retry">Retry</string>
+    <string name="detail_back">Back</string>
+    <string name="detail_favourite">Add to favourites</string>
 
     <!-- History Screen -->
     <string name="history_title">History</string>

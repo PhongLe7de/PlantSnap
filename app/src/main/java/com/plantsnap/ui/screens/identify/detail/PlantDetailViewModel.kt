@@ -45,6 +45,8 @@ class PlantDetailViewModel @Inject constructor(
     fun loadPlantDetail(plantId: String, candidateIndex: Int) {
         _candidateState.value = UiState.Loading
         _aiInfoState.value = UiState.Idle
+        aiRetryCount = 0
+        _canRetry.value = true
         Log.d(TAG, "loadPlantDetail: scanId=$plantId, candidateIndex=$candidateIndex")
         viewModelScope.launch {
             val scanResult = scanRepository.observeById(plantId).firstOrNull()

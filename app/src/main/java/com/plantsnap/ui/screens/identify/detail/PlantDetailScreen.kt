@@ -121,7 +121,7 @@ fun PlantDetailScreenContent(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.detail_back),
                     )
                 }
                 Text(
@@ -141,7 +141,7 @@ fun PlantDetailScreenContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.FavoriteBorder,
-                        contentDescription = "Add to favourites",
+                        contentDescription = stringResource(R.string.detail_favourite),
                     )
                 }
             }
@@ -303,8 +303,8 @@ private fun CareBentoSection(
     onRetryAi: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val aiInfo = (aiInfoState as? UiState.Success)?.data
-    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+    val aiInfo = aiInfoState.data
+    val isLoading = aiInfoState.isLoading
     val isError = aiInfoState is UiState.Error
 
     Column(
@@ -345,15 +345,7 @@ private fun CareBentoSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Button(onClick = onRetryAi) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(Modifier.size(8.dp))
-                    Text(stringResource(R.string.detail_retry))
-                }
+                RetryButton(onClick = onRetryAi)
             }
         }
     }
@@ -407,13 +399,7 @@ private fun CareCard(
                     color = scheme.onSurface,
                 )
                 if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = scheme.primary,
-                    )
+                    SmallLoadingIndicator()
                 } else {
                     Text(
                         text = body,
@@ -472,13 +458,7 @@ private fun ToxicityCard(
                     color = scheme.onSurface,
                 )
                 if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = scheme.primary,
-                    )
+                    SmallLoadingIndicator()
                 } else {
                     Text(
                         text = body,
@@ -502,8 +482,8 @@ private fun AiInsightsSection(
     onRetryAi: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val aiInfo = (aiInfoState as? UiState.Success)?.data
-    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+    val aiInfo = aiInfoState.data
+    val isLoading = aiInfoState.isLoading
     val isError = aiInfoState is UiState.Error
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -554,15 +534,7 @@ private fun AiInsightsSection(
                     )
                     if (canRetry) {
                         Spacer(Modifier.height(12.dp))
-                        Button(onClick = onRetryAi) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(Modifier.size(8.dp))
-                            Text(stringResource(R.string.detail_retry))
-                        }
+                        RetryButton(onClick = onRetryAi)
                     }
                 } else {
                     Text(
@@ -595,8 +567,8 @@ private fun AiInsightsSection(
 
 @Composable
 private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
-    val aiInfo = (aiInfoState as? UiState.Success)?.data
-    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+    val aiInfo = aiInfoState.data
+    val isLoading = aiInfoState.isLoading
 
     Column {
         Text(
@@ -658,19 +630,17 @@ private fun HabitatCard(
         )
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = title.ifEmpty { stringResource(R.string.detail_loading) },
+                text = when {
+                    isLoading -> stringResource(R.string.detail_loading)
+                    title.isEmpty() -> stringResource(R.string.detail_info_unavailable)
+                    else -> title
+                },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onSurface,
             )
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .size(16.dp),
-                    strokeWidth = 2.dp,
-                    color = scheme.primary,
-                )
+                SmallLoadingIndicator()
             } else {
                 Text(
                     text = body,
@@ -692,8 +662,8 @@ private data class CareItem(
 
 @Composable
 private fun CareRoutineSection(aiInfoState: UiState<PlantAiInfo>) {
-    val aiInfo = (aiInfoState as? UiState.Success)?.data
-    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+    val aiInfo = aiInfoState.data
+    val isLoading = aiInfoState.isLoading
 
     val items = listOf(
         CareItem(
@@ -772,13 +742,7 @@ private fun CareRoutineItem(item: CareItem) {
                 color = scheme.onSurface,
             )
             if (item.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(top = 6.dp)
-                        .size(14.dp),
-                    strokeWidth = 2.dp,
-                    color = scheme.primary,
-                )
+                SmallLoadingIndicator(size = 14.dp, topPadding = 6.dp)
             } else {
                 Text(
                     text = item.body,
@@ -788,6 +752,40 @@ private fun CareRoutineItem(item: CareItem) {
                 )
             }
         }
+    }
+}
+
+private val UiState<PlantAiInfo>.data: PlantAiInfo?
+    get() = (this as? UiState.Success)?.data
+
+private val UiState<PlantAiInfo>.isLoading: Boolean
+    get() = this is UiState.Idle || this is UiState.Loading
+
+@Composable
+private fun SmallLoadingIndicator(
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = 16.dp,
+    topPadding: androidx.compose.ui.unit.Dp = 8.dp,
+) {
+    CircularProgressIndicator(
+        modifier = modifier
+            .padding(top = topPadding)
+            .size(size),
+        strokeWidth = 2.dp,
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
+@Composable
+private fun RetryButton(onClick: () -> Unit) {
+    Button(onClick = onClick) {
+        Icon(
+            imageVector = Icons.Default.Refresh,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(stringResource(R.string.detail_retry))
     }
 }
 
