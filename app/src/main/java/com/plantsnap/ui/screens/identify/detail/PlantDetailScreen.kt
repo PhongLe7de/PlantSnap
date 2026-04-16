@@ -303,8 +303,8 @@ private fun CareBentoSection(
     onRetryAi: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val aiInfo = aiInfoState.data
-    val isLoading = aiInfoState.isLoading
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
     val isError = aiInfoState is UiState.Error
 
     Column(
@@ -482,8 +482,8 @@ private fun AiInsightsSection(
     onRetryAi: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val aiInfo = aiInfoState.data
-    val isLoading = aiInfoState.isLoading
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
     val isError = aiInfoState is UiState.Error
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -567,8 +567,8 @@ private fun AiInsightsSection(
 
 @Composable
 private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
-    val aiInfo = aiInfoState.data
-    val isLoading = aiInfoState.isLoading
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
 
     Column {
         Text(
@@ -662,8 +662,8 @@ private data class CareItem(
 
 @Composable
 private fun CareRoutineSection(aiInfoState: UiState<PlantAiInfo>) {
-    val aiInfo = aiInfoState.data
-    val isLoading = aiInfoState.isLoading
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
 
     val items = listOf(
         CareItem(
@@ -754,12 +754,6 @@ private fun CareRoutineItem(item: CareItem) {
         }
     }
 }
-
-private val UiState<PlantAiInfo>.data: PlantAiInfo?
-    get() = (this as? UiState.Success)?.data
-
-private val UiState<PlantAiInfo>.isLoading: Boolean
-    get() = this is UiState.Idle || this is UiState.Loading
 
 @Composable
 private fun SmallLoadingIndicator(
