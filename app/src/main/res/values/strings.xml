@@ -58,11 +58,18 @@
     <string name="detail_soil">Soil &amp; Potting</string>
 
     <!-- History Screen -->
-    <string name="history_title">Your Plants</string>
+    <string name="history_title">History</string>
     <string name="history_match">%d %% match</string>
     <string name="history_empty_title">No scans yet</string>
     <string name="history_empty_desc">Your identified plants will appear here</string>
     <string name="history_error">Failed to load history: %s</string>
+    <string name="history_subtitle">Your botanical journey documented</string>
+    <string name="history_search_bar">Search your garden...</string>
+    <string name="history_accuracy">%1$d%% Accuracy</string>
+    <string name="history_no_Results">No results found</string>
+    <string name="history_no_scans">No scans yet</string>
+    <string name="history_try_different_filter">Try a different search or filter</string>
+    <string name="history_your_scans_appear_here">Your identified plants will appear here</string>
 
     <!-- Onboarding: Pet Safety -->
     <string name="onboarding_pets_title">Do you have pets?</string>
@@ -97,4 +104,5 @@
     <string name="onboarding_interests_option_succulents">Succulents</string>
     <string name="onboarding_interests_option_flowers">Flowers</string>
     <string name="onboarding_interests_option_trees">Trees &amp; shrubs</string>
+
 </resources>
