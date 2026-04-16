@@ -57,7 +57,6 @@ class IdentifyViewModelTest {
         organ = "leaf",
         bestMatch = "Monstera deliciosa",
         candidates = listOf(testCandidate),
-        aiInfo = null
     )
 
     @Before

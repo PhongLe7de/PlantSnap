@@ -20,7 +20,9 @@ fun ScanWithCandidates.toDomain() = ScanResult(
     organ = scan.organ,
     bestMatch = scan.bestMatch,
     candidates = candidates.map { it.toDomain() },
-    aiInfo = scan.aiInfo,
     timestamp = scan.timestamp,
-    synced = scan.synced
+    synced = scan.synced,
+    rawResponseJson = scan.rawResponseJson,
+    plantGbifId = scan.plantGbifId,
+    identificationScore = scan.identificationScore,
 )

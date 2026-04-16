@@ -10,9 +10,11 @@ data class ScanEntity(
     val imagePath: String,
     val organ: String,
     val bestMatch: String,
-    val aiInfo: String?,
     val timestamp: Long,
-    val synced: Boolean
+    val synced: Boolean,
+    val rawResponseJson: String?,
+    val plantGbifId: String?,
+    val identificationScore: Double?,
 )
 
 fun ScanResult.toEntity() = ScanEntity(
@@ -20,7 +22,9 @@ fun ScanResult.toEntity() = ScanEntity(
     imagePath = imagePath,
     organ = organ,
     bestMatch = bestMatch,
-    aiInfo = aiInfo,
     timestamp = timestamp,
-    synced = synced
+    synced = synced,
+    rawResponseJson = rawResponseJson,
+    plantGbifId = plantGbifId,
+    identificationScore = identificationScore,
 )

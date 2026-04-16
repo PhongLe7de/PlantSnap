@@ -1,13 +1,16 @@
 package com.plantsnap.domain.services
 
 import android.util.Log
-import com.plantsnap.domain.models.Candidate
+import com.plantsnap.data.plantnet.IdentifyPlantResponse
+import com.plantsnap.data.plantnet.toCandidates
+import com.plantsnap.data.sync.ScanSyncManager
+import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.PlantNetRepository
 import com.plantsnap.domain.repository.ScanRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
 
@@ -15,7 +18,9 @@ import javax.inject.Inject
 class PlantService @Inject constructor(
     private val plantNetRepo: PlantNetRepository,
     private val geminiRepo: GeminiRepository,
-    private val scanRepo: ScanRepository
+    private val scanRepo: ScanRepository,
+    private val scanSyncManager: ScanSyncManager,
+    private val json: Json,
 ) {
 
     private companion object {
@@ -33,33 +38,35 @@ class PlantService @Inject constructor(
         Log.d(TAG, "Identifying plant from ${imageFiles.size} images...")
         val plants = plantNetRepo.identifyPlantFromMultipleImages(imageFiles, organs)
 
+        val topResult = plants.results.firstOrNull()
         val scanResult = ScanResult(
             imagePath = imageFiles.first().absolutePath,
             organ = plants.predictedOrgans.firstOrNull()?.organ ?: "auto",
             bestMatch = plants.bestMatch,
-            candidates = plants.results.map { result ->
-                Candidate(
-                    scientificName = result.species.scientificName,
-                    commonNames = result.species.commonNames,
-                    family = result.species.family.name,
-                    score = result.score.toFloat(),
-                    iucnCategory = result.iucn?.category,
-                    imageUrl = result.images?.firstOrNull()?.url?.m
-                )
-            },
-            aiInfo = null
+            candidates = plants.toCandidates(),
+            rawResponseJson = json.encodeToString(IdentifyPlantResponse.serializer(), plants),
+            plantGbifId = topResult?.gbif?.id?.toString(),
+            identificationScore = topResult?.score,
         )
 
         scanRepo.save(scanResult)
         Log.d(TAG, "Saved scan ${scanResult.id} to local DB")
 
+        try {
+            scanSyncManager.syncPending()
+        } catch (e: Exception) {
+            Log.w(TAG, "Post-save sync failed (will retry later)", e)
+        }
+
         return scanResult
     }
 
-    suspend fun requestAdditionalInfo(scanId: String) {
-        val scan = scanRepo.observeById(scanId).first() ?: return
-        val aiInfo = geminiRepo.getPlantInfo(scan.bestMatch)
-        scanRepo.updateAiInfo(scanId, aiInfo)
+    suspend fun requestAdditionalInfo(scanId: String, scientificName: String): PlantAiInfo {
+        Log.d(TAG, "requestAdditionalInfo: scanId=$scanId name=$scientificName")
+        val info = geminiRepo.getPlantInfo(scientificName)
+        val infoJson = json.encodeToString(PlantAiInfo.serializer(), info)
+        scanRepo.updateCandidateAiInfo(scanId, scientificName, infoJson)
+        return info
     }
 
     fun getPlantsFromLocal(): Flow<List<ScanResult>> = scanRepo.getAll()

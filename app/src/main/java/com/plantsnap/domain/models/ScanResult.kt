@@ -11,8 +11,12 @@ data class ScanResult(
     val bestMatch: String,
     /** All ranked candidates from PlantNet, sorted by confidence descending. */
     val candidates: List<Candidate>,
-    /** AI-generated care/toxicity/habitat info. Null until user requests detail. */
-    val aiInfo: String?,
     val timestamp: Long = System.currentTimeMillis(),
-    val synced: Boolean = false
+    val synced: Boolean = false,
+    /** Raw IdentifyPlantResponse JSON, forwarded to Supabase `all_results` on sync. */
+    val rawResponseJson: String? = null,
+    /** Top candidate's GBIF id, as text. */
+    val plantGbifId: String? = null,
+    /** Top candidate's confidence score (0..1). */
+    val identificationScore: Double? = null,
 )

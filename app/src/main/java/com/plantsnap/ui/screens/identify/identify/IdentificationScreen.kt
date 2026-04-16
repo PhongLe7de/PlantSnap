@@ -601,7 +601,6 @@ private val previewScanResult = ScanResult(
             iucnCategory = "LC",
         ),
     ),
-    aiInfo = null,
 )
 
 @Preview(showBackground = true, showSystemUi = true, name = "Success - Light")

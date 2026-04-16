@@ -71,6 +71,7 @@ class IdentifyViewModel @Inject constructor(
                     Log.d(TAG, "  candidate[$i]: ${c.scientificName} (${c.score * 100}%) family=${c.family}")
                 }
                 _uiState.value = UiState.Success(results)
+                photosHolder.clear()
             } catch (e: HttpException) {
                 Log.e(TAG, "identifyPlant: HTTP ${e.code()}", e)
                 val message = when (e.code()) {

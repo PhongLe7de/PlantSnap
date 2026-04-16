@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -59,35 +60,41 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.plantsnap.R
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
-import com.plantsnap.R
 
 @Composable
 fun PlantDetailScreen(
     plantId: String,
     candidateIndex: Int,
     onBack: () -> Unit,
-    viewModel: PlantDetailViewModel = hiltViewModel()
+    viewModel: PlantDetailViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val candidateState by viewModel.candidateState.collectAsState()
+    val aiInfoState by viewModel.aiInfoState.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
     }
 
     PlantDetailScreenContent(
-        state = state,
+        candidateState = candidateState,
+        aiInfoState = aiInfoState,
         onBack = onBack,
+        onRetryAi = viewModel::retryAiInfo,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlantDetailScreenContent(
-    state: UiState<Candidate>,
+    candidateState: UiState<Candidate>,
+    aiInfoState: UiState<PlantAiInfo> = UiState.Idle,
     onBack: () -> Unit,
+    onRetryAi: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -145,7 +152,7 @@ fun PlantDetailScreenContent(
             )
         },
     ) { innerPadding ->
-        when (state) {
+        when (candidateState) {
             is UiState.Idle,
             is UiState.Loading -> {
                 Box(
@@ -166,7 +173,7 @@ fun PlantDetailScreenContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "Error: ${state.message}",
+                        text = "Error: ${candidateState.message}",
                         color = scheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -175,7 +182,9 @@ fun PlantDetailScreenContent(
 
             is UiState.Success -> {
                 PlantDetailBody(
-                    candidate = state.data,
+                    candidate = candidateState.data,
+                    aiInfoState = aiInfoState,
+                    onRetryAi = onRetryAi,
                     contentPadding = innerPadding,
                 )
             }
@@ -186,6 +195,8 @@ fun PlantDetailScreenContent(
 @Composable
 private fun PlantDetailBody(
     candidate: Candidate,
+    aiInfoState: UiState<PlantAiInfo>,
+    onRetryAi: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -199,7 +210,7 @@ private fun PlantDetailBody(
         item { Spacer(Modifier.height(24.dp)) }
         item { CareBentoSection() }
         item { Spacer(Modifier.height(24.dp)) }
-        item { AiInsightsSection(candidate) }
+        item { AiInsightsSection(candidate, aiInfoState, onRetryAi) }
         item { Spacer(Modifier.height(24.dp)) }
         item { NativeHabitatSection() }
         item { Spacer(Modifier.height(24.dp)) }
@@ -430,7 +441,11 @@ private fun ToxicityCard() {
 }
 
 @Composable
-private fun AiInsightsSection(candidate: Candidate) {
+private fun AiInsightsSection(
+    candidate: Candidate,
+    aiInfoState: UiState<PlantAiInfo>,
+    onRetryAi: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -439,11 +454,10 @@ private fun AiInsightsSection(candidate: Candidate) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(bottom = 12.dp),
         ) {
-                Icon(
-                    imageVector = Icons.Outlined.AutoAwesome,
-                    contentDescription = "AI Insights Icon",
-                )
-
+            Icon(
+                imageVector = Icons.Outlined.AutoAwesome,
+                contentDescription = "AI Insights Icon",
+            )
             Text(
                 text = stringResource(R.string.detail_ai),
                 style = MaterialTheme.typography.headlineSmall,
@@ -458,15 +472,46 @@ private fun AiInsightsSection(candidate: Candidate) {
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    // Placeholder text
-                    text = "${candidate.scientificName} is a species of flowering plant. " +
-                            "It has been introduced to many tropical areas and is a popular " +
-                            "houseplant worldwide.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = scheme.onSurfaceVariant,
-                    lineHeight = 26.sp,
-                )
+                when (aiInfoState) {
+                    is UiState.Idle,
+                    is UiState.Loading -> {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = scheme.primary,
+                            )
+                            Text(
+                                text = "Loading care info…",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = scheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    is UiState.Success -> {
+                        AiInfoField(label = "Care", body = aiInfoState.data.care)
+                        Spacer(Modifier.height(14.dp))
+                        AiInfoField(label = "Toxicity", body = aiInfoState.data.toxicity)
+                        Spacer(Modifier.height(14.dp))
+                        AiInfoField(label = "Habitat", body = aiInfoState.data.habitat)
+                    }
+
+                    is UiState.Error -> {
+                        Text(
+                            text = aiInfoState.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = scheme.error,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(onClick = onRetryAi) {
+                            Text("Retry")
+                        }
+                    }
+                }
 
                 candidate.iucnCategory?.let { iucn ->
                     Spacer(Modifier.height(16.dp))
@@ -485,6 +530,28 @@ private fun AiInsightsSection(candidate: Candidate) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AiInfoField(label: String, body: String) {
+    val scheme = MaterialTheme.colorScheme
+
+    Column {
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            color = scheme.primary,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = body,
+            style = MaterialTheme.typography.bodyLarge,
+            color = scheme.onSurfaceVariant,
+            lineHeight = 24.sp,
+        )
     }
 }
 
@@ -649,12 +716,19 @@ private val previewCandidate = Candidate(
     iucnCategory = "LC",
 )
 
+private val previewAiInfo = PlantAiInfo(
+    care = "Bright, indirect light; let the top inch of soil dry between waterings.",
+    toxicity = "Toxic to cats and dogs — contains calcium oxalate crystals.",
+    habitat = "Native to tropical rainforests of southern Mexico and Panama.",
+)
+
 @Preview(showBackground = true, showSystemUi = true, name = "Detail – Success")
 @Composable
 private fun PlantDetailPreviewSuccess() {
     PlantSnapTheme {
         PlantDetailScreenContent(
-            state = UiState.Success(previewCandidate),
+            candidateState = UiState.Success(previewCandidate),
+            aiInfoState = UiState.Success(previewAiInfo),
             onBack = {},
         )
     }
@@ -666,7 +740,8 @@ private fun PlantDetailPreviewSuccess() {
 private fun PlantDetailPreviewSuccessDark() {
     PlantSnapTheme(darkTheme = true) {
         PlantDetailScreenContent(
-            state = UiState.Success(previewCandidate),
+            candidateState = UiState.Success(previewCandidate),
+            aiInfoState = UiState.Success(previewAiInfo),
             onBack = {},
         )
     }
@@ -677,7 +752,7 @@ private fun PlantDetailPreviewSuccessDark() {
 private fun PlantDetailPreviewLoading() {
     PlantSnapTheme {
         PlantDetailScreenContent(
-            state = UiState.Loading,
+            candidateState = UiState.Loading,
             onBack = {},
         )
     }
@@ -688,7 +763,7 @@ private fun PlantDetailPreviewLoading() {
 private fun PlantDetailPreviewError() {
     PlantSnapTheme {
         PlantDetailScreenContent(
-            state = UiState.Error("Plant details not found"),
+            candidateState = UiState.Error("Plant details not found"),
             onBack = {},
         )
     }

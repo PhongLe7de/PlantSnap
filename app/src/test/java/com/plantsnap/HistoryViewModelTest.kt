@@ -115,7 +115,6 @@ class HistoryViewModelTest {
                 iucnCategory = null,
             )
         ),
-        aiInfo = null,
         timestamp = System.currentTimeMillis(),
     )
 }

@@ -30,7 +30,9 @@ abstract class DatabaseModule {
                 context,
                 PlantSnapDatabase::class.java,
                 "plantsnap.db"
-            ).build()
+            )
+                .fallbackToDestructiveMigration(dropAllTables = true)
+                .build()
 
         @Provides
         @Singleton

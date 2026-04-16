@@ -11,5 +11,7 @@ data class Candidate(
     val score: Float,
     /** IUCN Red List category e.g. "LC", "EN", "CR". Null if not on Red List. */
     val iucnCategory: String?,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    /** Cached PlantAiInfo serialized as JSON. Null until fetched from Gemini. */
+    val aiInfo: String? = null,
 )

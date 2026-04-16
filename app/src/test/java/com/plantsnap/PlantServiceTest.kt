@@ -8,10 +8,12 @@ import com.plantsnap.data.plantnet.Query
 import com.plantsnap.data.plantnet.Result
 import com.plantsnap.data.plantnet.Species
 import com.plantsnap.data.plantnet.Taxon
+import com.plantsnap.data.sync.ScanSyncManager
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.PlantNetRepository
 import com.plantsnap.domain.repository.ScanRepository
 import com.plantsnap.domain.services.PlantService
+import kotlinx.serialization.json.Json
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -34,6 +36,8 @@ class PlantServiceTest {
     private lateinit var plantNetRepo: PlantNetRepository
     private lateinit var scanRepo: ScanRepository
     private lateinit var geminiRepo: GeminiRepository
+    private lateinit var scanSyncManager: ScanSyncManager
+    private val json = Json { ignoreUnknownKeys = true }
     private lateinit var service: PlantService
 
     @Before
@@ -44,7 +48,8 @@ class PlantServiceTest {
         plantNetRepo = mockk()
         scanRepo = mockk()
         geminiRepo = mockk()
-        service = PlantService(plantNetRepo, geminiRepo, scanRepo)
+        scanSyncManager = mockk(relaxed = true)
+        service = PlantService(plantNetRepo, geminiRepo, scanRepo, scanSyncManager, json)
     }
 
     @After
