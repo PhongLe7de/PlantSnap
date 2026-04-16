@@ -1,6 +1,5 @@
 package com.plantsnap.ui.screens.history
 
-import android.widget.Space
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,13 +22,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -86,9 +81,9 @@ private val SUCCULENT_FAMILIES = setOf(
 
 fun ScanResult.inferCategory(): PlantCategory {
     val family = candidates.firstOrNull()?.family ?: return PlantCategory.OUTDOOR
-    return when {
-        family in SUCCULENT_FAMILIES -> PlantCategory.SUCCULENT
-        family in INDOOR_FAMILIES -> PlantCategory.INDOOR
+    return when (family) {
+        in SUCCULENT_FAMILIES -> PlantCategory.SUCCULENT
+        in INDOOR_FAMILIES -> PlantCategory.INDOOR
         else -> PlantCategory.OUTDOOR
     }
 }
@@ -312,39 +307,6 @@ fun HistorySearchBar(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun HistoryList(
-    scans: List<ScanResult>,
-    onScanSelected: (plantId: String, candidateIndex: Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.history_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
-            )
-        }
-
-        items(scans, key = { it.id}) { scan ->
-            HistoryScanCard(
-                scan = scan,
-                onClick = { onScanSelected(scan.id, 0)},
-                modifier = Modifier.padding(horizontal = 20.dp),
-            )
-            Spacer(Modifier.height(12.dp))
-        }
-
-        item { Spacer(Modifier.height(12.dp))}
     }
 }
 
