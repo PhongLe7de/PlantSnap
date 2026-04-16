@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
@@ -31,9 +32,7 @@ import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -41,7 +40,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,13 +53,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.plantsnap.R
+import com.plantsnap.domain.models.CareInfo
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.HabitatInfo
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
@@ -75,6 +77,7 @@ fun PlantDetailScreen(
 ) {
     val candidateState by viewModel.candidateState.collectAsState()
     val aiInfoState by viewModel.aiInfoState.collectAsState()
+    val canRetry by viewModel.canRetry.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
@@ -83,16 +86,17 @@ fun PlantDetailScreen(
     PlantDetailScreenContent(
         candidateState = candidateState,
         aiInfoState = aiInfoState,
+        canRetry = canRetry,
         onBack = onBack,
         onRetryAi = viewModel::retryAiInfo,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlantDetailScreenContent(
     candidateState: UiState<Candidate>,
     aiInfoState: UiState<PlantAiInfo> = UiState.Idle,
+    canRetry: Boolean = true,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
 ) {
@@ -102,54 +106,45 @@ fun PlantDetailScreenContent(
         modifier = Modifier.testTag("screen_plantDetail"),
         containerColor = scheme.background,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.detail_topbar_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = onBack,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = scheme.surfaceContainerHigh,
+                    ),
+                    modifier = Modifier.clip(CircleShape),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = scheme.surfaceContainerHigh,
-                        ),
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .clip(CircleShape),
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { /* TODO: toggle favourite */ },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = scheme.surfaceContainerHigh,
-                        ),
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .clip(CircleShape),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
-                            contentDescription = "Add to favourites",
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = scheme.background.copy(alpha = 0.85f),
-                    scrolledContainerColor = Color.Unspecified,
-                    navigationIconContentColor = Color.Black,
-                    titleContentColor = scheme.primary,
-                    actionIconContentColor = Color.Black
-                ),
-            )
+                }
+                Text(
+                    text = stringResource(R.string.detail_topbar_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.primary,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                )
+                IconButton(
+                    onClick = { /* TODO: toggle favourite */ },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = scheme.surfaceContainerHigh,
+                    ),
+                    modifier = Modifier.clip(CircleShape),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FavoriteBorder,
+                        contentDescription = "Add to favourites",
+                    )
+                }
+            }
         },
     ) { innerPadding ->
         when (candidateState) {
@@ -184,6 +179,7 @@ fun PlantDetailScreenContent(
                 PlantDetailBody(
                     candidate = candidateState.data,
                     aiInfoState = aiInfoState,
+                    canRetry = canRetry,
                     onRetryAi = onRetryAi,
                     contentPadding = innerPadding,
                 )
@@ -196,6 +192,7 @@ fun PlantDetailScreenContent(
 private fun PlantDetailBody(
     candidate: Candidate,
     aiInfoState: UiState<PlantAiInfo>,
+    canRetry: Boolean,
     onRetryAi: () -> Unit,
     contentPadding: PaddingValues,
 ) {
@@ -208,13 +205,13 @@ private fun PlantDetailBody(
     ) {
         item { HeroSection(candidate) }
         item { Spacer(Modifier.height(24.dp)) }
-        item { CareBentoSection() }
+        item { CareBentoSection(aiInfoState, canRetry, onRetryAi) }
         item { Spacer(Modifier.height(24.dp)) }
-        item { AiInsightsSection(candidate, aiInfoState, onRetryAi) }
+        item { AiInsightsSection(candidate, aiInfoState, canRetry, onRetryAi) }
         item { Spacer(Modifier.height(24.dp)) }
-        item { NativeHabitatSection() }
+        item { NativeHabitatSection(aiInfoState) }
         item { Spacer(Modifier.height(24.dp)) }
-        item { CareRoutineSection() }
+        item { CareRoutineSection(aiInfoState) }
     }
 }
 
@@ -300,8 +297,15 @@ private fun HeroSection(candidate: Candidate) {
 }
 
 @Composable
-private fun CareBentoSection() {
+private fun CareBentoSection(
+    aiInfoState: UiState<PlantAiInfo>,
+    canRetry: Boolean,
+    onRetryAi: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+    val isError = aiInfoState is UiState.Error
 
     Column(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -316,20 +320,42 @@ private fun CareBentoSection() {
                 icon = Icons.Default.WbSunny,
                 iconTint = scheme.primary,
                 iconBackground = scheme.primaryContainer.copy(alpha = 0.3f),
-                title = "Light", // Placeholder
-                body = "Bright, indirect sunlight", // Placeholder
+                title = stringResource(R.string.detail_light),
+                body = aiInfo?.care?.light ?: stringResource(R.string.detail_info_unavailable),
+                isLoading = isLoading,
             )
             CareCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.WaterDrop,
                 iconTint = scheme.primary,
                 iconBackground = scheme.primaryContainer.copy(alpha = 0.3f),
-                title = "Water", // Placeholder
-                body = "Every 1–2 weeks", // Placeholder
+                title = stringResource(R.string.detail_water),
+                body = aiInfo?.care?.water ?: stringResource(R.string.detail_info_unavailable),
+                isLoading = isLoading,
             )
         }
 
-        ToxicityCard()
+        ToxicityCard(
+            body = aiInfo?.toxicity ?: stringResource(R.string.detail_info_unavailable),
+            isLoading = isLoading,
+        )
+
+        if (isError && canRetry) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Button(onClick = onRetryAi) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.detail_retry))
+                }
+            }
+        }
     }
 }
 
@@ -341,6 +367,7 @@ private fun CareCard(
     iconBackground: Color,
     title: String,
     body: String,
+    isLoading: Boolean,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -379,19 +406,34 @@ private fun CareCard(
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface,
                 )
-                Text(
-                    text = body,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = scheme.primary,
+                    )
+                } else {
+                    Text(
+                        text = body,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ToxicityCard() {
+private fun ToxicityCard(
+    body: String,
+    isLoading: Boolean,
+) {
     val scheme = MaterialTheme.colorScheme
 
     Card(
@@ -429,12 +471,24 @@ private fun ToxicityCard() {
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface,
                 )
-                Text(
-                    text = "Toxic to cats and dogs if ingested. Contains calcium oxalate crystals.", // Placeholder
-                    style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = scheme.primary,
+                    )
+                } else {
+                    Text(
+                        text = body,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
         }
     }
@@ -444,9 +498,13 @@ private fun ToxicityCard() {
 private fun AiInsightsSection(
     candidate: Candidate,
     aiInfoState: UiState<PlantAiInfo>,
+    canRetry: Boolean,
     onRetryAi: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+    val isError = aiInfoState is UiState.Error
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(
@@ -456,7 +514,7 @@ private fun AiInsightsSection(
         ) {
             Icon(
                 imageVector = Icons.Outlined.AutoAwesome,
-                contentDescription = "AI Insights Icon",
+                contentDescription = null,
             )
             Text(
                 text = stringResource(R.string.detail_ai),
@@ -472,45 +530,47 @@ private fun AiInsightsSection(
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
-                when (aiInfoState) {
-                    is UiState.Idle,
-                    is UiState.Loading -> {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp,
-                                color = scheme.primary,
-                            )
-                            Text(
-                                text = "Loading care info…",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = scheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
-                    is UiState.Success -> {
-                        AiInfoField(label = "Care", body = aiInfoState.data.care)
-                        Spacer(Modifier.height(14.dp))
-                        AiInfoField(label = "Toxicity", body = aiInfoState.data.toxicity)
-                        Spacer(Modifier.height(14.dp))
-                        AiInfoField(label = "Habitat", body = aiInfoState.data.habitat)
-                    }
-
-                    is UiState.Error -> {
-                        Text(
-                            text = aiInfoState.message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = scheme.error,
+                if (isLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = scheme.primary,
                         )
+                        Text(
+                            text = stringResource(R.string.detail_loading),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = scheme.onSurfaceVariant,
+                        )
+                    }
+                } else if (isError) {
+                    Text(
+                        text = (aiInfoState as UiState.Error).message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = scheme.error,
+                    )
+                    if (canRetry) {
                         Spacer(Modifier.height(12.dp))
                         Button(onClick = onRetryAi) {
-                            Text("Retry")
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.size(8.dp))
+                            Text(stringResource(R.string.detail_retry))
                         }
                     }
+                } else {
+                    Text(
+                        text = aiInfo?.description ?: stringResource(R.string.detail_info_unavailable),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = scheme.onSurfaceVariant,
+                        lineHeight = 26.sp,
+                    )
                 }
 
                 candidate.iucnCategory?.let { iucn ->
@@ -534,35 +594,16 @@ private fun AiInsightsSection(
 }
 
 @Composable
-private fun AiInfoField(label: String, body: String) {
-    val scheme = MaterialTheme.colorScheme
+private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
 
-    Column {
-        Text(
-            text = label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            color = scheme.primary,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = body,
-            style = MaterialTheme.typography.bodyLarge,
-            color = scheme.onSurfaceVariant,
-            lineHeight = 24.sp,
-        )
-    }
-}
-
-@Composable
-private fun NativeHabitatSection() {
     Column {
         Text(
             text = stringResource(R.string.detail_habitat),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
         )
         Spacer(Modifier.height(12.dp))
 
@@ -572,14 +613,24 @@ private fun NativeHabitatSection() {
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            HabitatCard(
-                title = "Tropical Jungles",
-                body = "Flourishes in high humidity environments with dappled shade.",
-            )
-            HabitatCard(
-                title = "Central America",
-                body = "Originates from the regions of Southern Mexico and Panama.",
-            )
+            if (isLoading) {
+                repeat(2) {
+                    HabitatCard(title = "", body = "", isLoading = true)
+                }
+            } else {
+                val habitats = aiInfo?.habitat ?: emptyList()
+                if (habitats.isEmpty()) {
+                    HabitatCard(
+                        title = stringResource(R.string.detail_habitat),
+                        body = stringResource(R.string.detail_info_unavailable),
+                        isLoading = false,
+                    )
+                } else {
+                    habitats.forEach { habitat ->
+                        HabitatCard(title = habitat.title, body = habitat.body, isLoading = false)
+                    }
+                }
+            }
         }
     }
 }
@@ -588,6 +639,7 @@ private fun NativeHabitatSection() {
 private fun HabitatCard(
     title: String,
     body: String,
+    isLoading: Boolean,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -606,17 +658,27 @@ private fun HabitatCard(
         )
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = title,
+                text = title.ifEmpty { stringResource(R.string.detail_loading) },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onSurface,
             )
-            Text(
-                text = body,
-                style = MaterialTheme.typography.bodySmall,
-                color = scheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp),
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = scheme.primary,
+                )
+            } else {
+                Text(
+                    text = body,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
         }
     }
 }
@@ -625,22 +687,33 @@ private data class CareItem(
     val icon: ImageVector?,
     val title: String,
     val body: String,
+    val isLoading: Boolean = false,
 )
 
 @Composable
-private fun CareRoutineSection() {
+private fun CareRoutineSection(aiInfoState: UiState<PlantAiInfo>) {
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+
     val items = listOf(
         CareItem(
             Icons.Outlined.Thermostat,
             stringResource(R.string.detail_temperature),
-            "Keep between 65°F–85°F (18°C–30°C). Avoid cold drafts."),
+            aiInfo?.care?.temperature ?: stringResource(R.string.detail_info_unavailable),
+            isLoading,
+        ),
         CareItem(
             Icons.Default.WaterDrop,
             stringResource(R.string.detail_humidity),
-            "Prefers high humidity (60%+). Mist leaves or use a humidifier."),
-        CareItem(Icons.Outlined.Grass,
+            aiInfo?.care?.humidity ?: stringResource(R.string.detail_info_unavailable),
+            isLoading,
+        ),
+        CareItem(
+            Icons.Outlined.Grass,
             stringResource(R.string.detail_soil),
-            "Well-draining, peat-based potting soil. Provide a moss pole for climbing."),
+            aiInfo?.care?.soil ?: stringResource(R.string.detail_info_unavailable),
+            isLoading,
+        ),
     )
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -664,7 +737,7 @@ private fun CareRoutineItem(item: CareItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(horizontal = 4.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -698,12 +771,22 @@ private fun CareRoutineItem(item: CareItem) {
                 fontWeight = FontWeight.Bold,
                 color = scheme.onSurface,
             )
-            Text(
-                text = item.body,
-                style = MaterialTheme.typography.bodySmall,
-                color = scheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp),
-            )
+            if (item.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .size(14.dp),
+                    strokeWidth = 2.dp,
+                    color = scheme.primary,
+                )
+            } else {
+                Text(
+                    text = item.body,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
         }
     }
 }
@@ -717,9 +800,19 @@ private val previewCandidate = Candidate(
 )
 
 private val previewAiInfo = PlantAiInfo(
-    care = "Bright, indirect light; let the top inch of soil dry between waterings.",
+    care = CareInfo(
+        light = "Bright, indirect light",
+        water = "Every 1-2 weeks, let top inch dry",
+        temperature = "65-85°F (18-30°C), avoid cold drafts",
+        humidity = "60%+ preferred, mist regularly",
+        soil = "Well-draining peat-based mix",
+    ),
     toxicity = "Toxic to cats and dogs — contains calcium oxalate crystals.",
-    habitat = "Native to tropical rainforests of southern Mexico and Panama.",
+    habitat = listOf(
+        HabitatInfo("Tropical Jungles", "Flourishes in high humidity environments with dappled shade."),
+        HabitatInfo("Central America", "Originates from the regions of Southern Mexico and Panama."),
+    ),
+    description = "Monstera deliciosa is a species of flowering plant native to tropical forests of southern Mexico, south to Panama. It has been introduced to many tropical areas, and has become a mildly invasive species in Hawaii, Seychelles, Ascension Island and the Society Islands.",
 )
 
 @Preview(showBackground = true, showSystemUi = true, name = "Detail – Success")
