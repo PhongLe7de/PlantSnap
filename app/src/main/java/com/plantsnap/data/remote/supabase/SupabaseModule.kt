@@ -1,6 +1,9 @@
 package com.plantsnap.data.remote.supabase
 
 import com.plantsnap.BuildConfig
+import com.plantsnap.data.repository.ProfileRepositoryImpl
+import com.plantsnap.domain.repository.ProfileRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,27 +19,33 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object SupabaseModule {
+abstract class SupabaseModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideSupabaseClient(): SupabaseClient {
-        return createSupabaseClient(
-            supabaseUrl = BuildConfig.SUPABASE_URL,
-            supabaseKey = BuildConfig.SUPABASE_KEY
-        ) {
-            install(Auth) {
-                alwaysAutoRefresh = true
-                autoLoadFromStorage = true
+    abstract fun bindProfileRepository(impl: ProfileRepositoryImpl): ProfileRepository
 
-                scheme = "com.plantsnap"
-                host = "callback"
-                flowType = FlowType.PKCE
+    companion object {
+        @Provides
+        @Singleton
+        fun provideSupabaseClient(): SupabaseClient {
+            return createSupabaseClient(
+                supabaseUrl = BuildConfig.SUPABASE_URL,
+                supabaseKey = BuildConfig.SUPABASE_KEY
+            ) {
+                install(Auth) {
+                    alwaysAutoRefresh = true
+                    autoLoadFromStorage = true
+
+                    scheme = "com.plantsnap"
+                    host = "callback"
+                    flowType = FlowType.PKCE
+                }
+                install(ComposeAuth) {
+                    googleNativeLogin(serverClientId = BuildConfig.GOOGLE_SERVER_CLIENT_ID)
+                }
+                install(Postgrest)
             }
-            install(ComposeAuth) {
-                googleNativeLogin(serverClientId = BuildConfig.GOOGLE_SERVER_CLIENT_ID)
-            }
-            install(Postgrest)
         }
     }
 }

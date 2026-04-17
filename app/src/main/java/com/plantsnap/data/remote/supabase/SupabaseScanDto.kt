@@ -1,4 +1,4 @@
-package com.plantsnap.data.supabase
+package com.plantsnap.data.remote.supabase
 
 import com.plantsnap.data.local.model.ScanEntity
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
