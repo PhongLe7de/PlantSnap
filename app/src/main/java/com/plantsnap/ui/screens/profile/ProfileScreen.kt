@@ -18,15 +18,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -42,12 +38,34 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.plantsnap.ui.components.TopBar
 
 @Composable
 fun ProfileScreen(
     authState: AuthUiState,
     statsState: ProfileStatsState,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    isSynced: Boolean = false,
+    onSyncNow: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -55,139 +73,299 @@ fun ProfileScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        TopBar(profilePhotoUrl = authState.profilePhotoUrl)
+
+        if (isSynced) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp)
+                    .clip(CircleShape)
+                    .background(scheme.secondaryContainer)
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    Icons.Filled.CloudDone,
+                    contentDescription = null,
+                    tint = scheme.onSecondaryContainer,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = stringResource(R.string.profile_synced),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSecondaryContainer,
+                    letterSpacing = 0.5.sp,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+        } else {
+            Spacer(Modifier.height(20.dp))
+        }
+        ProfileHero(
+            authState = authState,
+            fireScanTimestamp = statsState.firstScanTimestamp,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+
+        Spacer(Modifier.height(28.dp))
+
+        StatsBentoGrid(
+            statsState = statsState,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
+
+        Spacer(Modifier.height(28.dp))
+
+        RankProgressCard(
+            statsState = statsState,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
+
+        Spacer(Modifier.height(28.dp))
+
+        CloudSyncCard(
+            isSynced = isSynced,
+            onSyncNow = onSyncNow,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
+
+        Spacer(Modifier.height(28.dp))
+
+        SettingsSection(modifier = Modifier.padding(horizontal = 20.dp))
+
         Spacer(Modifier.height(24.dp))
 
-        ProfileHeader(authState = authState, firstScanTimestamp = statsState.firstScanTimestamp)
-
-        Spacer(Modifier.height(20.dp))
-
-        RankCard(statsState = statsState)
-
-        Spacer(Modifier.height(20.dp))
-
-        StatItem(value = statsState.totalScans, label = stringResource(R.string.profile_stat_scanned))
-
-        Spacer(Modifier.weight(1f))
-
-        TextButton(onClick = onSignOut) {
-            Text(
-                text = stringResource(R.string.profile_sign_out),
-                color = scheme.error,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(scheme.errorContainer)
+                .clickable(onClick = onSignOut)
+                .padding(vertical = 18.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = null,
+                    tint = scheme.onErrorContainer,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = stringResource(R.string.profile_sign_out),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onErrorContainer
+                )
+            }
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(32.dp))
     }
 }
 
 @Composable
-private fun ProfileHeader(authState: AuthUiState, firstScanTimestamp: Long?) {
+fun SettingsSection(
+    modifier: Modifier
+) {
     val scheme = MaterialTheme.colorScheme
 
-    if (authState.profilePhotoUrl != null) {
-        AsyncImage(
-            model = authState.profilePhotoUrl,
-            contentDescription = "Profile photo",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(96.dp)
-                .clip(CircleShape)
-                .border(2.dp, scheme.primaryContainer, CircleShape)
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(R.string.profile_account_settings),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = scheme.onSurfaceVariant,
+            letterSpacing = 2.sp,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 12.dp),
         )
-    } else {
+
         Box(
             modifier = Modifier
-                .size(96.dp)
-                .clip(CircleShape)
-                .background(scheme.primaryContainer),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(scheme.surfaceContainerLow),
         ) {
+            Column {
+                SettingsRow(icon = Icons.Filled.PersonOutline, label = stringResource(R.string.profile_personal_information))
+                SettingsRow(icon = Icons.Filled.Notifications, label = stringResource(R.string.profile_plant_care))
+                SettingsRow(icon = Icons.Filled.VerifiedUser, label = stringResource(R.string.profile_privacy_security), showDivider = true)
+                SettingsRow(icon = Icons.Filled.Palette, label = stringResource(R.string.profile_appearance), isLast = true)
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsRow(
+    icon: ImageVector,
+    label: String,
+    showDivider: Boolean = false,
+    isLast: Boolean = false,
+    onClick: () -> Unit = {},
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    Column {
+        if (showDivider) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .padding(horizontal = 20.dp)
+                    .background(scheme.outlineVariant.copy(alpha = 0.3f)),
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = scheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp),
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = scheme.onSurface,
+                )
+            }
             Icon(
-                Icons.Filled.Person,
-                contentDescription = "Profile",
-                modifier = Modifier.size(48.dp),
-                tint = scheme.onPrimaryContainer,
+                Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = scheme.outline,
+                modifier = Modifier.size(22.dp),
             )
         }
     }
+}
 
-    Spacer(Modifier.height(12.dp))
+@Composable
+fun CloudSyncCard(
+    isSynced: Boolean,
+    onSyncNow: () -> Unit,
+    modifier: Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
 
-    Text(
-        text = authState.displayName ?: stringResource(R.string.profile_default_name),
-        fontSize = 24.sp,
-        fontWeight = FontWeight.Bold,
-        color = scheme.primary,
-    )
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(scheme.surfaceContainerHighest)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(scheme.background),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.CloudSync,
+                    contentDescription = null,
+                    tint = scheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Column {
+                Text(
+                    text = if (isSynced) stringResource(R.string.profile_cloud_active)
+                    else stringResource(R.string.profile_cloud_sync),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSurface,
+                )
+                Text(
+                    text = if (isSynced) stringResource(R.string.profile_up_to_date) else stringResource(
+                        R.string.profile_sync_your_scans
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant
+                )
+            }
+        }
 
-    if (authState.userEmail != null) {
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = authState.userEmail,
-            fontSize = 14.sp,
-            color = scheme.onSurfaceVariant,
-        )
-    }
-
-    if (firstScanTimestamp != null) {
-        Spacer(Modifier.height(4.dp))
-        val dateStr = SimpleDateFormat("MMM yyyy", Locale.getDefault()).format(Date(firstScanTimestamp))
-        Text(
-            text = stringResource(R.string.profile_member_since, dateStr),
-            fontSize = 12.sp,
-            color = scheme.outline,
-        )
+        Button(
+            onClick = onSyncNow,
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = scheme.primary,
+                contentColor = scheme.onPrimary,
+            ),
+            modifier = Modifier.height(38.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.profile_sync_now),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
 @Composable
-private fun RankCard(statsState: ProfileStatsState) {
+fun RankProgressCard(
+    statsState: ProfileStatsState,
+    modifier: Modifier
+) {
     val scheme = MaterialTheme.colorScheme
     val rank = statsState.rank
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(scheme.surfaceContainerHigh)
+            .padding(16.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = rank.emoji, fontSize = 32.sp)
-                Spacer(Modifier.width(12.dp))
+                Text(text = rank.emoji, fontSize = 24.sp)
+                Spacer(Modifier.width(10.dp))
                 Column {
                     Text(
                         text = rank.displayName,
-                        fontSize = 18.sp,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = scheme.primary,
+                        color = scheme.onSurface,
                     )
-                    if (rank != PlantRank.MASTER_GARDENER) {
-                        Text(
-                            text = stringResource(
-                                R.string.profile_scans_to_next,
-                                statsState.scansToNextRank,
-                                PlantRank.fromScanCount(rank.maxScans).displayName
-                            ),
-                            fontSize = 13.sp,
-                            color = scheme.onSurfaceVariant,
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.profile_max_rank),
-                            fontSize = 13.sp,
-                            color = scheme.onSurfaceVariant,
-                        )
-                    }
+                    Text(
+                        text = if (rank == PlantRank.MASTER_GARDENER) stringResource(R.string.profile_max_rank)
+                        else
+                            stringResource(R.string.profile_scans_to_next, statsState.scansToNextRank, PlantRank.fromScanCount(rank.maxScans).displayName),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                    )
                 }
             }
-
             Spacer(Modifier.height(12.dp))
-
             LinearProgressIndicator(
                 progress = { statsState.rankProgress },
                 modifier = Modifier
@@ -195,44 +373,220 @@ private fun RankCard(statsState: ProfileStatsState) {
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
                 color = scheme.primary,
-                trackColor = scheme.primaryContainer.copy(alpha = 0.4f),
+                trackColor = scheme.surfaceContainerHighest
             )
         }
     }
 }
 
 @Composable
-private fun StatItem(modifier: Modifier = Modifier, value: Int, label: String) {
+fun StatsBentoGrid(
+    statsState: ProfileStatsState,
+    modifier: Modifier
+) {
     val scheme = MaterialTheme.colorScheme
 
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(28.dp))
+                .background(scheme.surfaceContainerLow)
+                .padding(20.dp),
+        ) {
+            Icon(
+                Icons.Filled.LocalFlorist,
+                contentDescription = null,
+                tint = scheme.primary,
+                modifier = Modifier
+                    .size(36.dp)
+                    .align(Alignment.TopStart),
+            )
+            Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                Text(
+                    text = statsState.totalScans.toString(),
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = scheme.primary,
+                )
+                Text(
+                    text = stringResource(R.string.profile_plants_found),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSurfaceVariant,
+                    letterSpacing = 1.sp,
+                )
+            }
+        }
+
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .weight(1f)
+                .height(250.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = value.toString(),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = scheme.primary,
-            )
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                color = scheme.onSurfaceVariant,
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(scheme.primaryContainer)
+                    .padding(16.dp),
+            ) {
+                Icon(
+                    Icons.Filled.CameraAlt,
+                    contentDescription = null,
+                    tint = scheme.onPrimaryContainer,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.TopStart),
+                )
+                Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                    Text(
+                        text = statsState.totalScans.toString(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = scheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = stringResource(R.string.profile_total_scans),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = scheme.onPrimaryContainer.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp,
+                        fontSize = 9.sp,
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(scheme.secondaryContainer)
+                    .padding(16.dp),
+            ) {
+                Icon(
+                    Icons.Filled.Stars,
+                    contentDescription = null,
+                    tint = scheme.onSecondaryContainer,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.TopStart),
+                )
+                Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                    Text(
+                        text = statsState.rank.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = scheme.onSecondaryContainer,
+                    )
+                    Text(
+                        text = statsState.rank.emoji + stringResource(R.string.profile_rank),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = scheme.onSecondaryContainer.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp,
+                        fontSize = 9.sp
+                    )
+                }
+            }
         }
     }
 }
 
+@Composable
+fun ProfileHero(
+    authState: AuthUiState,
+    fireScanTimestamp: Long?,
+    modifier: Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+    
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
 
+    ) {
+        Box {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(scheme.surfaceContainerHighest)
+                    .border(4.dp, scheme.surfaceContainerHighest, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (authState.profilePhotoUrl != null) {
+                    AsyncImage(
+                        model = authState.profilePhotoUrl,
+                        contentDescription = stringResource(R.string.profile_photo_desc),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.Person,
+                        contentDescription = null,
+                        tint = scheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(scheme.primary)
+                    .border(4.dp, scheme.background, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = stringResource(R.string.profile_edit_desc),
+                    tint = scheme.onPrimary,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            text = authState.displayName ?: stringResource(R.string.profile_name_placeholder),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = scheme.primary,
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = authState.userEmail ?: stringResource(R.string.profile_email_placeholder),
+            style = MaterialTheme.typography.bodyMedium,
+            color = scheme.onSurfaceVariant,
+        )
+
+        if (fireScanTimestamp != null) {
+            Spacer(Modifier.height(4.dp))
+            val dateStr = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+                .format(Date(fireScanTimestamp))
+            Text(
+                text = "${stringResource(R.string.profile_member_since)} $dateStr",
+                style = MaterialTheme.typography.bodySmall,
+                color = scheme.outline,
+            )
+        }
+    }
+}
 // -- Previews --
 
 private val previewAuthState = AuthUiState(
@@ -259,6 +613,7 @@ private fun ProfileScreenPreview() {
             authState = previewAuthState,
             statsState = previewStatsState,
             onSignOut = {},
+            isSynced = true,
         )
     }
 }
