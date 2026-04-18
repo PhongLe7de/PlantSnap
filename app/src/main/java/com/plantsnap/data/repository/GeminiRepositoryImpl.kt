@@ -23,9 +23,10 @@ class GeminiRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             val prompt = """
                 Return a JSON object describing the plant "$plantName" with exactly these fields:
-                - "care": 1-2 sentences on light, water, and soil needs.
+                - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °F and °C), "humidity" (short phrase), "soil" (short phrase).
                 - "toxicity": 1 sentence on toxicity to pets and humans.
-                - "habitat": 1 sentence on native habitat or climate.
+                - "habitat": array of 2 objects, each with "title" (short label e.g. "Tropical Jungles", "Central America") and "body" (1 sentence).
+                - "description": 1-2 sentences about the plant's characteristics, history, and notable features.
                 Respond with ONLY the JSON object. No markdown fences, no commentary.
             """.trimIndent()
 

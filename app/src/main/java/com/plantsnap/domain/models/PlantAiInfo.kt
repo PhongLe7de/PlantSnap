@@ -4,7 +4,23 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlantAiInfo(
-    val care: String,
-    val toxicity: String,
-    val habitat: String,
+    val care: CareInfo? = null,
+    val toxicity: String? = null,
+    val habitat: List<HabitatInfo>? = null,
+    val description: String? = null,
+)
+
+@Serializable
+data class CareInfo(
+    val light: String? = null,
+    val water: String? = null,
+    val temperature: String? = null,
+    val humidity: String? = null,
+    val soil: String? = null,
+)
+
+@Serializable
+data class HabitatInfo(
+    val title: String? = null,
+    val body: String? = null,
 )

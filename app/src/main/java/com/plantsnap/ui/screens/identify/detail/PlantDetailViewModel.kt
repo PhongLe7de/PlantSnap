@@ -26,6 +26,7 @@ class PlantDetailViewModel @Inject constructor(
 
     private companion object {
         const val TAG = "PlantDetailViewModel"
+        const val MAX_AI_RETRIES = 3
     }
 
     private val _candidateState = MutableStateFlow<UiState<Candidate>>(UiState.Idle)
@@ -34,12 +35,18 @@ class PlantDetailViewModel @Inject constructor(
     private val _aiInfoState = MutableStateFlow<UiState<PlantAiInfo>>(UiState.Idle)
     val aiInfoState: StateFlow<UiState<PlantAiInfo>> = _aiInfoState.asStateFlow()
 
+    private val _canRetry = MutableStateFlow(true)
+    val canRetry: StateFlow<Boolean> = _canRetry.asStateFlow()
+
+    private var aiRetryCount = 0
     private var lastScanId: String? = null
     private var lastScientificName: String? = null
 
     fun loadPlantDetail(plantId: String, candidateIndex: Int) {
         _candidateState.value = UiState.Loading
         _aiInfoState.value = UiState.Idle
+        aiRetryCount = 0
+        _canRetry.value = true
         Log.d(TAG, "loadPlantDetail: scanId=$plantId, candidateIndex=$candidateIndex")
         viewModelScope.launch {
             val scanResult = scanRepository.observeById(plantId).firstOrNull()
@@ -74,6 +81,7 @@ class PlantDetailViewModel @Inject constructor(
     }
 
     fun retryAiInfo() {
+        if (!_canRetry.value) return
         val scanId = lastScanId ?: return
         val name = lastScientificName ?: return
         fetchAiInfo(scanId, name)
@@ -84,10 +92,20 @@ class PlantDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val info = plantService.requestAdditionalInfo(scanId, scientificName)
+                aiRetryCount = 0
+                _canRetry.value = true
                 _aiInfoState.value = UiState.Success(info)
             } catch (e: Exception) {
-                Log.w(TAG, "gemini fetch failed for $scientificName", e)
-                _aiInfoState.value = UiState.Error("Couldn't load care info")
+                aiRetryCount++
+                _canRetry.value = aiRetryCount < MAX_AI_RETRIES
+                Log.w(TAG, "gemini fetch failed for $scientificName (attempt $aiRetryCount/$MAX_AI_RETRIES)", e)
+                val remaining = MAX_AI_RETRIES - aiRetryCount
+                val message = when {
+                    remaining > 1 -> "Couldn't load plant info ($remaining retries left)"
+                    remaining == 1 -> "Couldn't load plant info (1 retry left)"
+                    else -> "Couldn't load plant info. Please try again later."
+                }
+                _aiInfoState.value = UiState.Error(message)
             }
         }
     }
