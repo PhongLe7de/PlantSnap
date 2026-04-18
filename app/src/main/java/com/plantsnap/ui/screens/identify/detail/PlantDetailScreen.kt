@@ -599,7 +599,11 @@ private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
                     )
                 } else {
                     habitats.forEach { habitat ->
-                        HabitatCard(title = habitat.title, body = habitat.body, isLoading = false)
+                        HabitatCard(
+                            title = habitat.title.orEmpty(),
+                            body = habitat.body ?: stringResource(R.string.detail_info_unavailable),
+                            isLoading = false,
+                        )
                     }
                 }
             }

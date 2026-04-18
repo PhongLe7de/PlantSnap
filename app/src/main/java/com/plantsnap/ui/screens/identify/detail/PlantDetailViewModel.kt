@@ -100,10 +100,10 @@ class PlantDetailViewModel @Inject constructor(
                 _canRetry.value = aiRetryCount < MAX_AI_RETRIES
                 Log.w(TAG, "gemini fetch failed for $scientificName (attempt $aiRetryCount/$MAX_AI_RETRIES)", e)
                 val remaining = MAX_AI_RETRIES - aiRetryCount
-                val message = if (remaining > 0) {
-                    "Couldn't load care info ($remaining retries left)"
-                } else {
-                    "Couldn't load care info. Please try again later."
+                val message = when {
+                    remaining > 1 -> "Couldn't load care info ($remaining retries left)"
+                    remaining == 1 -> "Couldn't load care info (1 retry left)"
+                    else -> "Couldn't load care info. Please try again later."
                 }
                 _aiInfoState.value = UiState.Error(message)
             }
