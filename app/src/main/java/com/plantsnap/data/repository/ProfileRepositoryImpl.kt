@@ -5,9 +5,14 @@ import com.plantsnap.data.remote.supabase.SupabaseProfileDto
 import com.plantsnap.data.remote.supabase.toDto
 import com.plantsnap.domain.models.SupabaseProfile
 import com.plantsnap.domain.repository.ProfileRepository
+import com.plantsnap.ui.screens.onboarding.ExperienceLevel
+import com.plantsnap.ui.screens.onboarding.PetType
+import com.plantsnap.ui.screens.onboarding.PlantInterest
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,7 +39,14 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateOnboardingData(profile: SupabaseProfile) {
+    override suspend fun hasCompletedOnboarding(): Boolean {
+        return getProfile()?.onboardingCompleted ?: false
+    }
+    override suspend fun updateOnboardingData(
+        petType: PetType?,
+        plantInterests: Set<PlantInterest>,
+        experienceLevel: ExperienceLevel?
+    ){
         val userId = supabase.auth.currentUserOrNull()?.id
         if (userId == null) {
             Log.w(TAG, "updateOnboardingData: not authenticated")
@@ -42,7 +54,11 @@ class ProfileRepositoryImpl @Inject constructor(
         }
         try {
             supabase.postgrest.from(TABLE)
-                .update(profile.toDto()) { filter { eq("user_id", userId) } }
+                .update(OnboardingUpdate(
+                    petType = petType?.name,
+                    plantInterests = plantInterests.map { it.name },
+                    experienceLevel = experienceLevel?.name
+                )) { filter { eq("user_id", userId) } }
             Log.d(TAG, "onboarding data updated for $userId")
         } catch (e: Exception) {
             Log.e(TAG, "updateOnboardingData failed", e)
@@ -50,3 +66,12 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 }
+
+// Using this instead of mapOf updated values mainly for type safety and reusability
+@Serializable
+internal data class OnboardingUpdate(
+    @SerialName("onboarding_completed") val onboardingCompleted: Boolean = true,
+    @SerialName("pet_type") val petType: String?,
+    @SerialName("plant_interests") val plantInterests: List<String>,
+    @SerialName("experience_level") val experienceLevel: String?
+)
