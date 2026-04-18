@@ -1,23 +1,31 @@
 package com.plantsnap.ui.screens.onboarding
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.plantsnap.domain.repository.ProfileRepository
+import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class OnboardingViewModel @Inject constructor() : ViewModel() {
+class OnboardingViewModel @Inject constructor(
+    private val profileRepository: ProfileRepository
+) : ViewModel() {
 
     data class State(
-        val isOnboardingComplete: Boolean = false, // TODO: redundant when user data persistence is implemented
         val selectedPets: PetType? = null,
         val selectedInterests: Set<PlantInterest> = emptySet(),
         val selectedExperience: ExperienceLevel? = null
     )
 
+    private val _uiState = MutableStateFlow<UiState<List<Uri>>>(UiState.Idle)
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
 
@@ -41,7 +49,18 @@ class OnboardingViewModel @Inject constructor() : ViewModel() {
     }
 
     fun completeOnboarding() {
-        // TODO: supabase repo will be called here once user data persistence is implemented
-        _state.update { it.copy(isOnboardingComplete = true) }
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                profileRepository.updateOnboardingData(
+                    petType = state.value.selectedPets,
+                    plantInterests = state.value.selectedInterests,
+                    experienceLevel = state.value.selectedExperience
+                )
+                _uiState.value = UiState.Idle
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error("Failed to save", e)
+            }
+        }
     }
 }

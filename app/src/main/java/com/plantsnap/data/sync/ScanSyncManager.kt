@@ -3,9 +3,9 @@ package com.plantsnap.data.sync
 import android.util.Log
 import com.plantsnap.data.device.DeviceIdProvider
 import com.plantsnap.data.local.model.toEntity
-import com.plantsnap.data.supabase.SupabaseScanDto
-import com.plantsnap.data.supabase.toScanResult
-import com.plantsnap.data.supabase.toSupabaseDto
+import com.plantsnap.data.remote.supabase.SupabaseScanDto
+import com.plantsnap.data.remote.supabase.toScanResult
+import com.plantsnap.data.remote.supabase.toSupabaseDto
 import com.plantsnap.domain.repository.ScanRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth

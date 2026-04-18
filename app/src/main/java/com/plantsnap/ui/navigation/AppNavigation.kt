@@ -1,5 +1,6 @@
 package com.plantsnap.ui.navigation
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -77,8 +78,16 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.uiState.collectAsState()
 
-    // TODO: replace with supabase repository check once user data persistence is implemented
-    val hasCompletedOnboarding = true
+    val hasCompletedOnboarding = authState.hasCompletedOnboarding
+    // Show loading while checking
+    //TODO: splash screen?
+    if (hasCompletedOnboarding == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     val startDestination = if (hasCompletedOnboarding) BottomNavItem.HOME.route else ROUTE_ONBOARDING
 
     val showBottomBar = currentDestination?.route != ROUTE_ONBOARDING
@@ -147,7 +156,7 @@ fun AppNavigation() {
             composable(BottomNavItem.HOME.route) {
                 HomeScreen(
                     onIdentifyPlantSelected = {
-                        navController.navigate(BottomNavItem.IDENTIFY.route){
+                        navController.navigate(BottomNavItem.IDENTIFY.route) {
                             launchSingleTop = true
                         }
                     },
@@ -171,7 +180,8 @@ fun AppNavigation() {
                     )
                 }
                 composable("${IdentifyNavItem.PREVIEW.route}?page={page}") { backStackEntry ->
-                    val initialPage = backStackEntry.arguments?.getString("page")?.toIntOrNull() ?: 0
+                    val initialPage =
+                        backStackEntry.arguments?.getString("page")?.toIntOrNull() ?: 0
                     val cameraViewModel: CameraViewModel = hiltViewModel()
                     ImagePreviewScreen(
                         initialPage = initialPage,
@@ -198,7 +208,8 @@ fun AppNavigation() {
                 composable("${IdentifyNavItem.PLANT_DETAILS.route}/{plantId}/{candidateIndex}") { backStackEntry ->
                     PlantDetailScreen(
                         plantId = backStackEntry.arguments?.getString("plantId") ?: "",
-                        candidateIndex = backStackEntry.arguments?.getString("candidateIndex")?.toIntOrNull() ?: 0,
+                        candidateIndex = backStackEntry.arguments?.getString("candidateIndex")
+                            ?.toIntOrNull() ?: 0,
                         onBack = { navController.popBackStack() }
                     )
                 }
