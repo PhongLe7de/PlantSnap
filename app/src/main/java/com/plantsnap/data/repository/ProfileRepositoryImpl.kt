@@ -42,11 +42,12 @@ class ProfileRepositoryImpl @Inject constructor(
     override suspend fun hasCompletedOnboarding(): Boolean {
         return getProfile()?.onboardingCompleted ?: false
     }
+
     override suspend fun updateOnboardingData(
         petType: PetType?,
         plantInterests: Set<PlantInterest>,
         experienceLevel: ExperienceLevel?
-    ){
+    ) {
         val userId = supabase.auth.currentUserOrNull()?.id
         if (userId == null) {
             Log.w(TAG, "updateOnboardingData: not authenticated")
@@ -54,11 +55,14 @@ class ProfileRepositoryImpl @Inject constructor(
         }
         try {
             supabase.postgrest.from(TABLE)
-                .update(OnboardingUpdate(
-                    petType = petType?.name,
-                    plantInterests = plantInterests.map { it.name },
-                    experienceLevel = experienceLevel?.name
-                )) { filter { eq("user_id", userId) } }
+                .update(
+                    OnboardingUpdate(
+                        onboardingCompleted = true,
+                        petType = petType?.name,
+                        plantInterests = plantInterests.map { it.name },
+                        experienceLevel = experienceLevel?.name
+                    )
+                ) { filter { eq("user_id", userId) } }
             Log.d(TAG, "onboarding data updated for $userId")
         } catch (e: Exception) {
             Log.e(TAG, "updateOnboardingData failed", e)
@@ -70,7 +74,7 @@ class ProfileRepositoryImpl @Inject constructor(
 // Using this instead of mapOf updated values mainly for type safety and reusability
 @Serializable
 internal data class OnboardingUpdate(
-    @SerialName("onboarding_completed") val onboardingCompleted: Boolean = true,
+    @SerialName("onboarding_completed") val onboardingCompleted: Boolean,
     @SerialName("pet_type") val petType: String?,
     @SerialName("plant_interests") val plantInterests: List<String>,
     @SerialName("experience_level") val experienceLevel: String?

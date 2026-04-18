@@ -20,7 +20,6 @@ class OnboardingViewModel @Inject constructor(
 ) : ViewModel() {
 
     data class State(
-        val isOnboardingComplete: Boolean = false, // TODO: redundant when user data persistence is implemented
         val selectedPets: PetType? = null,
         val selectedInterests: Set<PlantInterest> = emptySet(),
         val selectedExperience: ExperienceLevel? = null
@@ -58,7 +57,6 @@ class OnboardingViewModel @Inject constructor(
                     plantInterests = state.value.selectedInterests,
                     experienceLevel = state.value.selectedExperience
                 )
-                _state.update { it.copy(isOnboardingComplete = true) }
                 _uiState.value = UiState.Idle
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Failed to save", e)

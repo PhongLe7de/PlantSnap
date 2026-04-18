@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SupabaseProfileDto(
-    @SerialName("id") val id: String,
     @SerialName("user_id") val userId: String,
     @SerialName("created_at") val createdAt: String,
     @SerialName("onboarding_completed") val onboardingCompleted: Boolean = false,
@@ -15,7 +14,6 @@ data class SupabaseProfileDto(
     @SerialName("experience_level") val experienceLevel: String? = null
 ) {
     fun toDomain(): SupabaseProfile = SupabaseProfile(
-        id = id,
         userId = userId,
         createdAt = createdAt,
         onboardingCompleted = onboardingCompleted,
@@ -26,7 +24,6 @@ data class SupabaseProfileDto(
 }
 
 fun SupabaseProfile.toDto(): SupabaseProfileDto = SupabaseProfileDto(
-    id = id,
     userId = userId,
     createdAt = createdAt,
     onboardingCompleted = onboardingCompleted,

@@ -1,7 +1,9 @@
 package com.plantsnap.ui.screens.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plantsnap.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -16,6 +18,7 @@ import javax.inject.Inject
 
 data class AuthUiState(
     val isLoggedIn: Boolean = false,
+    val hasCompletedOnboarding: Boolean? = null,
     val userEmail: String? = null,
     val displayName: String? = null,
     val profilePhotoUrl: String? = null,
@@ -25,7 +28,8 @@ data class AuthUiState(
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    val supabaseClient: SupabaseClient
+    val supabaseClient: SupabaseClient,
+    val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -39,6 +43,7 @@ class AuthViewModel @Inject constructor(
                         val user = status.session.user
                         _uiState.value = AuthUiState(
                             isLoggedIn = true,
+                            hasCompletedOnboarding = profileRepository.hasCompletedOnboarding(),
                             userEmail = user?.email,
                             displayName = user?.userMetadata?.get("full_name")?.jsonPrimitive?.contentOrNull
                                 ?: user?.userMetadata?.get("name")?.jsonPrimitive?.contentOrNull,
@@ -48,7 +53,11 @@ class AuthViewModel @Inject constructor(
                         )
                     }
                     is SessionStatus.NotAuthenticated -> {
-                        _uiState.value = AuthUiState(isLoggedIn = false, isLoading = false)
+                        _uiState.value = AuthUiState(
+                            isLoggedIn = false,
+                            hasCompletedOnboarding = true,  // guests skip onboarding
+                            isLoading = false
+                        )
                     }
                     is SessionStatus.Initializing -> {
                         _uiState.value = AuthUiState(isLoading = true)
@@ -56,6 +65,7 @@ class AuthViewModel @Inject constructor(
                     is SessionStatus.RefreshFailure -> {
                         _uiState.value = AuthUiState(
                             isLoggedIn = false,
+                            hasCompletedOnboarding = true,  // treat as guest
                             isLoading = false,
                             errorMessage = "Session expired. Please sign in again."
                         )
