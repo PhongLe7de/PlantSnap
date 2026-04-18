@@ -79,16 +79,8 @@ fun AppNavigation() {
     val authState by authViewModel.uiState.collectAsState()
 
     val hasCompletedOnboarding = authState.hasCompletedOnboarding
-    // Show loading while checking
-    //TODO: splash screen?
-    if (hasCompletedOnboarding == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        return
-    }
 
-    val startDestination = if (hasCompletedOnboarding) BottomNavItem.HOME.route else ROUTE_ONBOARDING
+    val startDestination = if (hasCompletedOnboarding == true) BottomNavItem.HOME.route else ROUTE_ONBOARDING
 
     val showBottomBar = currentDestination?.route != ROUTE_ONBOARDING
 

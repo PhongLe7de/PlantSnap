@@ -2,4 +2,8 @@
 <resources>
 
     <style name="Theme.PlantSnap" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.PlantSnap.Starting" parent="Theme.PlantSnap" >
+        <item name="windowSplashScreenBackground">@color/plantsnap_logo_background</item>
+        <item name="postSplashScreenTheme">@style/Theme.PlantSnap</item>
+</style>
 </resources>
