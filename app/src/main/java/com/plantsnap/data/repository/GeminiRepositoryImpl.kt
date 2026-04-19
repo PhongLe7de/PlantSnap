@@ -2,6 +2,7 @@ package com.plantsnap.data.repository
 
 import com.google.genai.Client
 import com.plantsnap.domain.models.PlantAiInfo
+import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.ProfileRepository
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,44 @@ class GeminiRepositoryImpl @Inject constructor(
             .removeSuffix("```")
             .trim()
         json.decodeFromString(PlantAiInfo.serializer(), cleaned)
+    }
+
+    override suspend fun getPlantOfTheDay(): PlantOfTheDay = withContext(Dispatchers.IO) {
+        val profile = try { profileRepository.getProfile() } catch (_: Exception) { null }
+        val petType = profile?.petType
+        val plantInterests = profile?.plantInterests?.toSet() ?: emptySet()
+        val experienceLevel = profile?.experienceLevel
+
+        val toxicity = buildToxicityInstruction(petType)
+        val care = buildCareInstruction(experienceLevel, plantInterests)
+        val tone = buildToneInstruction(experienceLevel)
+
+        val interestHint = if (plantInterests.isNotEmpty()) {
+            "Pick a plant that fits these interests: ${plantInterests.joinToString(", ").lowercase().replace("_", " ")}."
+        } else {
+            "Pick any interesting, beautiful, or unique plant."
+        }
+
+        val prompt = """
+            Recommend a random plant for "Plant of the Day". $interestHint
+            Return a JSON object with exactly these fields:
+            - "scientificName": the plant's scientific name
+            - "commonName": the most popular common name
+            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °F and °C), "humidity" (short phrase), "soil" (short phrase).$care
+            - "toxicity": Possible toxicity to humans and $toxicity
+            - "habitat": array of 2 objects, each with "title" (short label) and "body" (1 sentence).
+            - "description": 1-2 sentences about the plant's characteristics and history.
+            ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
+        """.trimIndent()
+
+        val response = client.models.generateContent(MODEL, prompt, null)
+        val raw = response.text() ?: error("Empty Gemini response")
+        val cleaned = raw.trim()
+            .removePrefix("```json")
+            .removePrefix("```")
+            .removeSuffix("```")
+            .trim()
+        json.decodeFromString(PlantOfTheDay.serializer(), cleaned)
     }
 
     private fun buildToxicityInstruction(petType: String?): String = when (petType) {

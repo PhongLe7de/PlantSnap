@@ -5,6 +5,7 @@ import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.toCandidates
 import com.plantsnap.data.sync.ScanSyncManager
 import com.plantsnap.domain.models.PlantAiInfo
+import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.PlantNetRepository
@@ -69,5 +70,9 @@ class PlantService @Inject constructor(
         return info
     }
 
+    //TODO: add caching and handle image search
+    suspend fun getPlantOfTheDay(): PlantOfTheDay {
+        return geminiRepo.getPlantOfTheDay()
+    }
     fun getPlantsFromLocal(): Flow<List<ScanResult>> = scanRepo.getAll()
 }

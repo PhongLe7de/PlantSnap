@@ -24,3 +24,13 @@ data class HabitatInfo(
     val title: String? = null,
     val body: String? = null,
 )
+
+@Serializable
+data class PlantOfTheDay(
+    val scientificName: String,
+    val commonName: String,
+    val care: CareInfo? = null,
+    val toxicity: String? = null,
+    val habitat: List<HabitatInfo>? = null,
+    val description: String? = null,
+)
