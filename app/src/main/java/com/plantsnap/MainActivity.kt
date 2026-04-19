@@ -32,25 +32,21 @@ class MainActivity : ComponentActivity() {
                 authViewModel.uiState.value.hasCompletedOnboarding == null
             }
             setOnExitAnimationListener { splashScreenView ->
-                val zoomX = ObjectAnimator.ofFloat(
-                    splashScreenView.iconView,
-                    "scaleX",
-                    0.4f,
-                    0.0f
-                )
+                val iconView = try {
+                    splashScreenView.iconView // iconView is null when animations are disabled
+                } catch (e: NullPointerException) {
+                    splashScreenView.remove()
+                    return@setOnExitAnimationListener
+                }
+
+                val zoomX = ObjectAnimator.ofFloat(iconView, "scaleX", 0.4f, 0.0f)
                 zoomX.interpolator = OvershootInterpolator()
                 zoomX.duration = 500L
                 zoomX.doOnEnd { splashScreenView.remove() }
 
-                val zoomY = ObjectAnimator.ofFloat(
-                    splashScreenView.iconView,
-                    "scaleY",
-                    0.4f,
-                    0.0f
-                )
+                val zoomY = ObjectAnimator.ofFloat(iconView, "scaleY", 0.4f, 0.0f)
                 zoomY.interpolator = OvershootInterpolator()
                 zoomY.duration = 500L
-                zoomY.doOnEnd { splashScreenView.remove() }
 
                 zoomX.start()
                 zoomY.start()
