@@ -13,12 +13,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/plantsnap_logo_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PlantSnap">
+        android:theme="@style/Theme.PlantSnap.Starting">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.PlantSnap">
+            android:theme="@style/Theme.PlantSnap.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
