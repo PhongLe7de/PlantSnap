@@ -1,6 +1,9 @@
 package com.plantsnap.ui.screens.identify.detail
 
 import androidx.compose.foundation.background
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +53,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -226,11 +231,14 @@ private fun HeroSection(candidate: Candidate) {
             .aspectRatio(4f / 5f)
             .clip(RoundedCornerShape(32.dp)),
     ) {
-        // Image placeholder
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(scheme.primaryContainer.copy(alpha = 0.4f)),
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(candidate.imageUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = candidate.scientificName,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
         )
 
         Box(
@@ -464,7 +472,7 @@ private fun ToxicityCard(
                         text = body,
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant,
-                        maxLines = 3,
+                        maxLines = 4,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 4.dp),
                     )
