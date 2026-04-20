@@ -49,8 +49,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
+import com.plantsnap.ui.screens.home.previewAuthState
 import com.plantsnap.ui.screens.profile.AuthUiState
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
@@ -67,7 +69,8 @@ fun HomeScreen(
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
     authState: AuthUiState,
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val scansState by viewModel.scansState.collectAsState()
+    val plantOfTheDayState by viewModel.plantOfTheDayState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
@@ -76,10 +79,11 @@ fun HomeScreen(
     HomeScreenContent(
         onIdentifyPlantSelected = onIdentifyPlantSelected,
         profilePhotoUrl = profilePhotoUrl,
-        state = state,
+        scansState = scansState,
+        authState = authState,
         onViewAllScans = onViewAllScans,
         onScanSelected = onScanSelected,
-        authState = authState,
+        plantOfTheDayState = plantOfTheDayState,
     )
 }
 
@@ -87,7 +91,8 @@ fun HomeScreen(
 fun HomeScreenContent(
     onIdentifyPlantSelected: () -> Unit,
     profilePhotoUrl: String? = null,
-    state: UiState<List<ScanResult>>,
+    scansState: UiState<List<ScanResult>>,
+    plantOfTheDayState: UiState<PlantOfTheDay> = UiState.Idle,
     onViewAllScans: () -> Unit = {},
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
     authState: AuthUiState,
@@ -116,7 +121,7 @@ fun HomeScreenContent(
                 Spacer(Modifier.height(12.dp))
             }
 
-            when (state) {
+            when (scansState) {
                 is UiState.Idle,
                 is UiState.Loading -> item {
                     Box(
@@ -131,7 +136,7 @@ fun HomeScreenContent(
 
                 is UiState.Error -> item {
                     Text(
-                        text = stringResource(R.string.home_error, state.message),
+                        text = stringResource(R.string.home_error, scansState.message),
                         color = scheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(vertical = 16.dp),
@@ -139,7 +144,7 @@ fun HomeScreenContent(
                 }
 
                 is UiState.Success -> {
-                    if (state.data.isEmpty()) {
+                    if (scansState.data.isEmpty()) {
                         item {
                             Text(
                                 text = stringResource(R.string.home_no_plants),
@@ -149,7 +154,7 @@ fun HomeScreenContent(
                             )
                         }
                     } else {
-                        items(state.data) { plant ->
+                        items(scansState.data) { plant ->
                             val formattedDate = remember(plant.timestamp) {
                                 SimpleDateFormat("d MMM yyyy", Locale.getDefault())
                                     .format(Date(plant.timestamp))
@@ -169,7 +174,7 @@ fun HomeScreenContent(
             }
 
             item { Spacer(Modifier.height(20.dp)) }
-            item { PlantOfTheDaySection() }
+            item { PlantOfTheDaySection(plantOfTheDayState) }
             item { Spacer(Modifier.height(20.dp)) }
             item { DailyCareSection() }
             item { Spacer(Modifier.height(20.dp)) }
@@ -389,35 +394,44 @@ private fun PlantOfTheDaySection() {
             )
 
             Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Cool Plant", // Placeholder text
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = scheme.primary,
-                    letterSpacing = (-0.3).sp,
-                )
-                Spacer(Modifier.height(8.dp))
+                when (state) {
+                    is UiState.Idle, is UiState.Loading -> {
+                        CircularProgressIndicator(color = scheme.primary)
+                    }
+                    is UiState.Error -> {
+                        Text(state.message, color = scheme.error)
+                    }
+                    is UiState.Success -> {
+                        val plant = state.data
+                        Text(
+                            text = plant.commonName,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = scheme.primary,
+                        )
+                        Spacer(Modifier.height(8.dp))
 
-                Text(
-                    text = "Cool plant description blah blah blah blah blah blah blah blah blah",
-                    fontSize = 14.sp,
-                    color = scheme.onSurface.copy(alpha = 0.75f),
-                    lineHeight = 20.sp,
-                )
-                Spacer(Modifier.height(16.dp))
-
-                Button(
-                    onClick = {}, // TODO: navigate to plant detail
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_learn),
-                        fontWeight = FontWeight.Bold,
-                        color = scheme.onPrimary,
-                        modifier = Modifier.padding(vertical = 4.dp),
-                    )
+                        Text(
+                            text = plant.description ?: stringResource(R.string.detail_info_unavailable),
+                            fontSize = 14.sp,
+                            color = scheme.onSurface.copy(alpha = 0.75f),
+                            lineHeight = 20.sp,
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Button(
+                            onClick = {}, // TODO: navigate to plant detail
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
+                            shape = RoundedCornerShape(12.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_learn),
+                                fontWeight = FontWeight.Bold,
+                                color = scheme.onPrimary,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -568,13 +582,19 @@ private val previewAuthState = AuthUiState(
     profilePhotoUrl = null,
 )
 
+private val plantOfTheDay = PlantOfTheDay(
+    scientificName = "Dracaena trifasciata",
+    commonName = "Snake Plant",
+    description = "A hardy, low-maintenance plant with striking upright leaves.",
+)
+
 @Preview(showBackground = true, showSystemUi = true, name = "Success – Light")
 @Composable
 private fun HomeScreenPreviewSuccess() {
     PlantSnapTheme {
         HomeScreenContent(
-            state = UiState.Success(
-            previewPlants),
+            scansState = UiState.Success(previewPlants),
+            plantOfTheDayState = UiState.Success(plantOfTheDay),
             onIdentifyPlantSelected = {},
             authState = previewAuthState,
         )
@@ -587,10 +607,11 @@ private fun HomeScreenPreviewSuccess() {
 private fun HomeScreenPreviewSuccessDark() {
     PlantSnapTheme(darkTheme = true) {
         HomeScreenContent(
-            state = UiState.Success(previewPlants),
+            scansState = UiState.Success(previewPlants),
+            plantOfTheDayState = UiState.Success(plantOfTheDay),
             onIdentifyPlantSelected = {},
             authState = previewAuthState,
-        )
+            )
     }
 }
 
@@ -599,10 +620,11 @@ private fun HomeScreenPreviewSuccessDark() {
 private fun HomeScreenPreviewLoading() {
     PlantSnapTheme {
         HomeScreenContent(
-            state = UiState.Loading,
+            scansState = UiState.Loading,
+            plantOfTheDayState = UiState.Loading,
             onIdentifyPlantSelected = {},
             authState = previewAuthState,
-        )
+            )
     }
 }
 
@@ -611,7 +633,7 @@ private fun HomeScreenPreviewLoading() {
 private fun HomeScreenPreviewEmpty() {
     PlantSnapTheme {
         HomeScreenContent(
-            state = UiState.Success(emptyList()),
+            scansState = UiState.Success(emptyList()),
             onIdentifyPlantSelected = {},
             authState = previewAuthState,
         )
@@ -622,8 +644,8 @@ private fun HomeScreenPreviewEmpty() {
 @Composable
 private fun HomeScreenPreviewError() {
     PlantSnapTheme {
-        HomeScreenContent(state = UiState.Error(
-            "Couldn't fetch results"),
+        HomeScreenContent(
+            scansState = UiState.Error("Couldn't fetch results"),
             onIdentifyPlantSelected = {},
             authState = previewAuthState,
         )
