@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
@@ -60,9 +61,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private const val FALLBACK_IMAGE_URL = "https://picsum.photos/seed/plant/600/400"
+
 @Composable
 fun HomeScreen(
     onIdentifyPlantSelected: () -> Unit,
+    onLearnMorePlantOfTheDay: () -> Unit = {},
     onViewAllScans: () -> Unit = {},
     profilePhotoUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -78,6 +82,7 @@ fun HomeScreen(
 
     HomeScreenContent(
         onIdentifyPlantSelected = onIdentifyPlantSelected,
+        onLearnMorePlantOfTheDay = onLearnMorePlantOfTheDay,
         profilePhotoUrl = profilePhotoUrl,
         scansState = scansState,
         authState = authState,
@@ -90,6 +95,7 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     onIdentifyPlantSelected: () -> Unit,
+    onLearnMorePlantOfTheDay: () -> Unit = {},
     profilePhotoUrl: String? = null,
     scansState: UiState<List<ScanResult>>,
     plantOfTheDayState: UiState<PlantOfTheDay> = UiState.Idle,
@@ -174,7 +180,7 @@ fun HomeScreenContent(
             }
 
             item { Spacer(Modifier.height(20.dp)) }
-            item { PlantOfTheDaySection(plantOfTheDayState) }
+            item { PlantOfTheDaySection(plantOfTheDayState, onLearnMorePlantOfTheDay) }
             item { Spacer(Modifier.height(20.dp)) }
             item { DailyCareSection() }
             item { Spacer(Modifier.height(20.dp)) }
@@ -367,8 +373,12 @@ private fun ScanCard(
 }
 
 @Composable
-private fun PlantOfTheDaySection() {
+private fun PlantOfTheDaySection(
+    state: UiState<PlantOfTheDay>,
+    onLearnMore: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
+    val plant = (state as? UiState.Success)?.data
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -385,15 +395,20 @@ private fun PlantOfTheDaySection() {
             colors = CardDefaults.cardColors(containerColor = scheme.secondaryContainer),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         ) {
-            // Image placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .background(scheme.secondary.copy(alpha = 0.28f)),
-            )
+            Column(modifier = Modifier.padding(4.dp)) {
+                AsyncImage(
+                    model = plant?.imageUrl ?: FALLBACK_IMAGE_URL,
+                    contentDescription = plant?.commonName,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(scheme.secondary.copy(alpha = 0.28f)),
+                )
+            }
 
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                 when (state) {
                     is UiState.Idle, is UiState.Loading -> {
                         CircularProgressIndicator(color = scheme.primary)
@@ -402,33 +417,50 @@ private fun PlantOfTheDaySection() {
                         Text(state.message, color = scheme.error)
                     }
                     is UiState.Success -> {
-                        val plant = state.data
+                        val data = state.data
+                        // Rare species badge
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(scheme.onSecondaryContainer.copy(alpha = 0.10f))
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                        ) {
+                            Text(
+                                text = "RARE SPECIES",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.5.sp,
+                                color = scheme.onSecondaryContainer,
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
                         Text(
-                            text = plant.commonName,
+                            text = data.commonName,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = scheme.primary,
+                            color = scheme.onSecondaryContainer,
+                            lineHeight = 28.sp,
                         )
                         Spacer(Modifier.height(8.dp))
-
                         Text(
-                            text = plant.description ?: stringResource(R.string.detail_info_unavailable),
-                            fontSize = 14.sp,
-                            color = scheme.onSurface.copy(alpha = 0.75f),
+                            text = data.description ?: stringResource(R.string.detail_info_unavailable),
+                            fontSize = 13.sp,
+                            color = scheme.onSecondaryContainer.copy(alpha = 0.75f),
                             lineHeight = 20.sp,
                         )
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(20.dp))
                         Button(
-                            onClick = {}, // TODO: navigate to plant detail
+                            onClick = onLearnMore,
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
+                            colors = ButtonDefaults.buttonColors(containerColor = scheme.onSecondaryContainer),
                             shape = RoundedCornerShape(12.dp),
                         ) {
                             Text(
                                 text = stringResource(R.string.home_learn),
                                 fontWeight = FontWeight.Bold,
                                 color = scheme.onPrimary,
-                                modifier = Modifier.padding(vertical = 4.dp),
+                                letterSpacing = 0.5.sp,
+                                modifier = Modifier.padding(vertical = 6.dp),
                             )
                         }
                     }

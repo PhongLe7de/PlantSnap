@@ -23,6 +23,7 @@ data class CareInfo(
 data class HabitatInfo(
     val title: String? = null,
     val body: String? = null,
+    val imageUrl: String? = null,
 )
 
 @Serializable
@@ -33,4 +34,5 @@ data class PlantOfTheDay(
     val toxicity: String? = null,
     val habitat: List<HabitatInfo>? = null,
     val description: String? = null,
+    val imageUrl: String? = null,
 )

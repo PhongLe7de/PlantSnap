@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
 import com.plantsnap.ui.screens.home.HomeScreen
+import com.plantsnap.ui.screens.home.PlantOfTheDayDetailScreen
 import com.plantsnap.ui.screens.onboarding.OnboardingScreen
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.screens.profile.AuthenticationScreen
@@ -56,6 +57,8 @@ enum class BottomNavItem(
     HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
+
+private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
 
 enum class IdentifyNavItem(
     val route: String,
@@ -163,8 +166,17 @@ fun AppNavigation() {
                     onScanSelected = { plantId, candidateIndex ->
                         navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                     },
+                    onLearnMorePlantOfTheDay = {
+                        navController.navigate(ROUTE_PLANT_OF_THE_DAY_DETAIL)
+                    },
                     profilePhotoUrl = authState.profilePhotoUrl,
                     authState = authState,
+                )
+            }
+
+            composable(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
+                PlantOfTheDayDetailScreen(
+                    onBack = { navController.popBackStack() },
                 )
             }
 

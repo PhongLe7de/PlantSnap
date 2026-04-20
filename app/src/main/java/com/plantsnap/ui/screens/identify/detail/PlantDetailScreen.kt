@@ -73,6 +73,8 @@ import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
+private const val FALLBACK_IMAGE_URL = "https://picsum.photos/seed/plant/600/400"
+
 @Composable
 fun PlantDetailScreen(
     plantId: String,
@@ -114,6 +116,7 @@ fun PlantDetailScreenContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(scheme.background)
                     .padding(horizontal = 8.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -611,6 +614,7 @@ private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
                             title = habitat.title.orEmpty(),
                             body = habitat.body ?: stringResource(R.string.detail_info_unavailable),
                             isLoading = false,
+                            imageUrl = habitat.imageUrl,
                         )
                     }
                 }
@@ -624,6 +628,7 @@ private fun HabitatCard(
     title: String,
     body: String,
     isLoading: Boolean,
+    imageUrl: String? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -633,8 +638,10 @@ private fun HabitatCard(
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        // Image placeholder
-        Box(
+        AsyncImage(
+            model = imageUrl ?: FALLBACK_IMAGE_URL,
+            contentDescription = title.ifEmpty { null },
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp)
