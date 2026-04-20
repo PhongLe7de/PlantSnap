@@ -72,8 +72,8 @@ import com.plantsnap.domain.models.HabitatInfo
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
-
-private const val FALLBACK_IMAGE_URL = "https://picsum.photos/seed/plant/600/400"
+import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
+import com.plantsnap.ui.util.validImageUrlOrNull
 
 @Composable
 fun PlantDetailScreen(
@@ -639,7 +639,7 @@ private fun HabitatCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         AsyncImage(
-            model = imageUrl ?: FALLBACK_IMAGE_URL,
+            model = imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
             contentDescription = title.ifEmpty { null },
             contentScale = ContentScale.Crop,
             modifier = Modifier

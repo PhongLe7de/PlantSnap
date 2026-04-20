@@ -57,11 +57,11 @@ import com.plantsnap.ui.screens.home.previewAuthState
 import com.plantsnap.ui.screens.profile.AuthUiState
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
+import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
+import com.plantsnap.ui.util.validImageUrlOrNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private const val FALLBACK_IMAGE_URL = "https://picsum.photos/seed/plant/600/400"
 
 @Composable
 fun HomeScreen(
@@ -378,7 +378,6 @@ private fun PlantOfTheDaySection(
     onLearnMore: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val plant = (state as? UiState.Success)?.data
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -395,29 +394,41 @@ private fun PlantOfTheDaySection(
             colors = CardDefaults.cardColors(containerColor = scheme.secondaryContainer),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         ) {
-            Column(modifier = Modifier.padding(4.dp)) {
-                AsyncImage(
-                    model = plant?.imageUrl ?: FALLBACK_IMAGE_URL,
-                    contentDescription = plant?.commonName,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(240.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(scheme.secondary.copy(alpha = 0.28f)),
-                )
-            }
-
-            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-                when (state) {
-                    is UiState.Idle, is UiState.Loading -> {
+            when (state) {
+                is UiState.Idle, is UiState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         CircularProgressIndicator(color = scheme.primary)
                     }
-                    is UiState.Error -> {
+                }
+                is UiState.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                    ) {
                         Text(state.message, color = scheme.error)
                     }
-                    is UiState.Success -> {
-                        val data = state.data
+                }
+                is UiState.Success -> {
+                    val data = state.data
+                    Column(modifier = Modifier.padding(4.dp)) {
+                        AsyncImage(
+                            model = data.imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
+                            contentDescription = data.commonName,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(240.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(scheme.secondary.copy(alpha = 0.28f)),
+                        )
+                    }
+                    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                         // Rare species badge
                         Box(
                             modifier = Modifier
@@ -426,7 +437,7 @@ private fun PlantOfTheDaySection(
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
                         ) {
                             Text(
-                                text = "RARE SPECIES",
+                                text = stringResource(R.string.home_potd_rare_species),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.5.sp,
@@ -452,7 +463,7 @@ private fun PlantOfTheDaySection(
                         Button(
                             onClick = onLearnMore,
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = scheme.onSecondaryContainer),
+                            colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                             shape = RoundedCornerShape(12.dp),
                         ) {
                             Text(
