@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -45,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.plantsnap.R
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
@@ -61,6 +63,7 @@ fun HomeScreen(
     onViewAllScans: () -> Unit = {},
     profilePhotoUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel(),
+    onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -73,6 +76,7 @@ fun HomeScreen(
         profilePhotoUrl = profilePhotoUrl,
         state = state,
         onViewAllScans = onViewAllScans,
+        onScanSelected = onScanSelected,
     )
 }
 
@@ -82,6 +86,7 @@ fun HomeScreenContent(
     profilePhotoUrl: String? = null,
     state: UiState<List<ScanResult>>,
     onViewAllScans: () -> Unit = {},
+    onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -150,6 +155,8 @@ fun HomeScreenContent(
                                 plantName = plant.bestMatch,
                                 commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull() ?: "",
                                 timeLabel = formattedDate,
+                                imageModel = plant.imagePath.takeIf { it.isNotBlank() },
+                                onClick = { onScanSelected(plant.id, 0) },
                             )
                             Spacer(Modifier.height(12.dp))
                         }
@@ -277,23 +284,34 @@ private fun ScanCard(
     plantName: String,
     commonName: String,
     timeLabel: String,
+    imageModel: Any? = null,
+    onClick: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
     Card(
         modifier = modifier,
+        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        // Image placeholder
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(120.dp)
                 .background(scheme.primary.copy(alpha = 0.12f)),
             contentAlignment = Alignment.TopStart,
-        ) {}
+        ) {
+            if (imageModel != null) {
+                AsyncImage(
+                    model = imageModel,
+                    contentDescription = plantName,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
 
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
