@@ -2,7 +2,11 @@
     <string name="app_name">PlantSnap</string>
 
     <!-- Home Screen -->
-    <string name="home_greeting">Good morning, Gardener</string> <!-- Replace with username variable? -->
+    <string name="home_greeting">Greetings, %s</string>
+    <string name="home_morning">Good morning, %s</string>
+    <string name="home_afternoon">Good afternoon, %s</string>
+    <string name="home_evening">Good evening, %s</string>
+    <string name="home_night">Good night, %s</string>
     <string name="home_subtitle">Your digital herbarium has %d new updates today.</string>
     <string name="home_identify_title">Identify any plant</string>
     <string name="home_identify_desc">Point your camera at a leaf, flower, or tree for instant identification.</string>

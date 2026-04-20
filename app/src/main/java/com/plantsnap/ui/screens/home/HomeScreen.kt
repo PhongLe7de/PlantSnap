@@ -51,6 +51,7 @@ import com.plantsnap.R
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
+import com.plantsnap.ui.screens.profile.AuthUiState
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 import java.text.SimpleDateFormat
@@ -64,6 +65,7 @@ fun HomeScreen(
     profilePhotoUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel(),
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
+    authState: AuthUiState,
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -77,6 +79,7 @@ fun HomeScreen(
         state = state,
         onViewAllScans = onViewAllScans,
         onScanSelected = onScanSelected,
+        authState = authState,
     )
 }
 
@@ -87,6 +90,7 @@ fun HomeScreenContent(
     state: UiState<List<ScanResult>>,
     onViewAllScans: () -> Unit = {},
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
+    authState: AuthUiState,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -102,7 +106,7 @@ fun HomeScreenContent(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
-            item { WelcomeSection() }
+            item { WelcomeSection(authState = authState) }
             item { Spacer(Modifier.height(20.dp)) }
             item { IdentifySection(onIdentifyPlantSelected = onIdentifyPlantSelected) }
             item { Spacer(Modifier.height(20.dp)) }
@@ -173,9 +177,28 @@ fun HomeScreenContent(
     }
 }
 
+fun getGreeting(): Int {
+    return try {
+        val hour = java.time.LocalTime.now().hour
+        return when (hour) {
+            in 5..11 -> R.string.home_morning
+            in 12..16 -> R.string.home_afternoon
+            in 17..21 -> R.string.home_evening
+            in 22..23, in 0..4 -> R.string.home_night
+            else -> R.string.home_greeting
+        }
+    } catch (e: Exception) {
+        R.string.home_greeting
+    }
+}
+
 @Composable
-private fun WelcomeSection() {
+private fun WelcomeSection(authState: AuthUiState) {
     val scheme = MaterialTheme.colorScheme
+
+    val displayName = authState.displayName ?: "Gardener"
+    val firstName = displayName.split(" ").firstOrNull() ?: "Gardener"
+    val greetingText = stringResource(getGreeting(), firstName)
 
     Column(
         modifier = Modifier
@@ -183,7 +206,7 @@ private fun WelcomeSection() {
             .padding(top = 24.dp),
     ) {
         Text(
-            text = stringResource(R.string.home_greeting),
+            text = greetingText,
             fontSize = 34.sp,
             fontWeight = FontWeight.ExtraBold,
             lineHeight = 40.sp,
@@ -538,11 +561,23 @@ private val previewPlants = listOf(
     ),
 )
 
+private val previewAuthState = AuthUiState(
+    isLoggedIn = true,
+    userEmail = "user@example.com",
+    displayName = "Jane Doe",
+    profilePhotoUrl = null,
+)
+
 @Preview(showBackground = true, showSystemUi = true, name = "Success – Light")
 @Composable
 private fun HomeScreenPreviewSuccess() {
     PlantSnapTheme {
-        HomeScreenContent(state = UiState.Success(previewPlants), onIdentifyPlantSelected = {})
+        HomeScreenContent(
+            state = UiState.Success(
+            previewPlants),
+            onIdentifyPlantSelected = {},
+            authState = previewAuthState,
+        )
     }
 }
 
@@ -551,7 +586,11 @@ private fun HomeScreenPreviewSuccess() {
 @Composable
 private fun HomeScreenPreviewSuccessDark() {
     PlantSnapTheme(darkTheme = true) {
-        HomeScreenContent(state = UiState.Success(previewPlants), onIdentifyPlantSelected = {})
+        HomeScreenContent(
+            state = UiState.Success(previewPlants),
+            onIdentifyPlantSelected = {},
+            authState = previewAuthState,
+        )
     }
 }
 
@@ -559,7 +598,11 @@ private fun HomeScreenPreviewSuccessDark() {
 @Composable
 private fun HomeScreenPreviewLoading() {
     PlantSnapTheme {
-        HomeScreenContent(state = UiState.Loading, onIdentifyPlantSelected = {})
+        HomeScreenContent(
+            state = UiState.Loading,
+            onIdentifyPlantSelected = {},
+            authState = previewAuthState,
+        )
     }
 }
 
@@ -567,7 +610,11 @@ private fun HomeScreenPreviewLoading() {
 @Composable
 private fun HomeScreenPreviewEmpty() {
     PlantSnapTheme {
-        HomeScreenContent(state = UiState.Success(emptyList()), onIdentifyPlantSelected = {})
+        HomeScreenContent(
+            state = UiState.Success(emptyList()),
+            onIdentifyPlantSelected = {},
+            authState = previewAuthState,
+        )
     }
 }
 
@@ -575,6 +622,10 @@ private fun HomeScreenPreviewEmpty() {
 @Composable
 private fun HomeScreenPreviewError() {
     PlantSnapTheme {
-        HomeScreenContent(state = UiState.Error("Couldn't fetch results"), onIdentifyPlantSelected = {})
+        HomeScreenContent(state = UiState.Error(
+            "Couldn't fetch results"),
+            onIdentifyPlantSelected = {},
+            authState = previewAuthState,
+        )
     }
 }

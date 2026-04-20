@@ -164,6 +164,7 @@ fun AppNavigation() {
                         navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                     },
                     profilePhotoUrl = authState.profilePhotoUrl,
+                    authState = authState,
                 )
             }
 
