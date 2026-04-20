@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+private const val MAX_RECENT_SCANS = 2
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val plantService: PlantService
@@ -24,7 +26,11 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             plantService.getPlantsFromLocal().collect { scans ->
-                _uiState.value = UiState.Success(scans)
+                _uiState.value = UiState.Success(
+                    scans
+                        .sortedByDescending { it.timestamp }
+                        .take(MAX_RECENT_SCANS)
+                )
             }
         }
     }

@@ -58,6 +58,7 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     onIdentifyPlantSelected: () -> Unit,
+    onViewAllScans: () -> Unit = {},
     profilePhotoUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -71,6 +72,7 @@ fun HomeScreen(
         onIdentifyPlantSelected = onIdentifyPlantSelected,
         profilePhotoUrl = profilePhotoUrl,
         state = state,
+        onViewAllScans = onViewAllScans,
     )
 }
 
@@ -79,6 +81,7 @@ fun HomeScreenContent(
     onIdentifyPlantSelected: () -> Unit,
     profilePhotoUrl: String? = null,
     state: UiState<List<ScanResult>>,
+    onViewAllScans: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -100,7 +103,7 @@ fun HomeScreenContent(
             item { Spacer(Modifier.height(20.dp)) }
 
             item {
-                RecentScansHeader()
+                RecentScansHeader(onViewAllScans = onViewAllScans)
                 Spacer(Modifier.height(12.dp))
             }
 
@@ -243,7 +246,7 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
 }
 
 @Composable
-private fun RecentScansHeader() {
+private fun RecentScansHeader(onViewAllScans: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
 
     Row(
@@ -257,7 +260,7 @@ private fun RecentScansHeader() {
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
         )
-        TextButton(onClick = { /* TODO: Navigate to scans */ }) {
+        TextButton(onClick = onViewAllScans) {
             Text(
                 text = stringResource(R.string.home_view_all),
                 color = scheme.primary,
