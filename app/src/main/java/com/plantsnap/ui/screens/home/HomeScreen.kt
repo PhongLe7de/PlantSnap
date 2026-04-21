@@ -45,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.layout.ContentScale
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
@@ -53,7 +52,6 @@ import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
-import com.plantsnap.ui.screens.home.previewAuthState
 import com.plantsnap.ui.screens.profile.AuthUiState
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
