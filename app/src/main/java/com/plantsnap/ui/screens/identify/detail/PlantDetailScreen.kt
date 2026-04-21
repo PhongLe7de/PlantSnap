@@ -104,6 +104,7 @@ fun PlantDetailScreenContent(
     candidateState: UiState<Candidate>,
     aiInfoState: UiState<PlantAiInfo> = UiState.Idle,
     canRetry: Boolean = true,
+    showScanMetadata: Boolean = true,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
 ) {
@@ -188,6 +189,7 @@ fun PlantDetailScreenContent(
                     candidate = candidateState.data,
                     aiInfoState = aiInfoState,
                     canRetry = canRetry,
+                    showScanMetadata = showScanMetadata,
                     onRetryAi = onRetryAi,
                     contentPadding = innerPadding,
                 )
@@ -201,6 +203,7 @@ private fun PlantDetailBody(
     candidate: Candidate,
     aiInfoState: UiState<PlantAiInfo>,
     canRetry: Boolean,
+    showScanMetadata: Boolean,
     onRetryAi: () -> Unit,
     contentPadding: PaddingValues,
 ) {
@@ -211,7 +214,7 @@ private fun PlantDetailBody(
             bottom = contentPadding.calculateBottomPadding() + 32.dp,
         ),
     ) {
-        item { HeroSection(candidate) }
+        item { HeroSection(candidate, showScanMetadata) }
         item { Spacer(Modifier.height(24.dp)) }
         item { CareBentoSection(aiInfoState, canRetry, onRetryAi) }
         item { Spacer(Modifier.height(24.dp)) }
@@ -224,7 +227,7 @@ private fun PlantDetailBody(
 }
 
 @Composable
-private fun HeroSection(candidate: Candidate) {
+private fun HeroSection(candidate: Candidate, showScanMetadata: Boolean = true) {
     val scheme = MaterialTheme.colorScheme
 
     Box(
@@ -262,21 +265,23 @@ private fun HeroSection(candidate: Candidate) {
                 .align(Alignment.BottomStart)
                 .padding(24.dp),
         ) {
-            // Family badge
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = scheme.secondaryContainer,
-            ) {
-                Text(
-                    text = stringResource(R.string.detail_family, candidate.family).uppercase(),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.5.sp,
-                    color = scheme.onSecondaryContainer,
-                )
+            if (showScanMetadata) {
+                // Family badge
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = scheme.secondaryContainer,
+                ) {
+                    Text(
+                        text = stringResource(R.string.detail_family, candidate.family).uppercase(),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp,
+                        color = scheme.onSecondaryContainer,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
             }
-            Spacer(Modifier.height(8.dp))
 
             Text(
                 text = candidate.scientificName,
@@ -296,13 +301,15 @@ private fun HeroSection(candidate: Candidate) {
                 )
             }
 
-            // Confidence score
-            Text(
-                text = stringResource(R.string.detail_match, (candidate.score * 100).toInt()),
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.65f),
-                modifier = Modifier.padding(top = 6.dp),
-            )
+            if (showScanMetadata) {
+                // Confidence score
+                Text(
+                    text = stringResource(R.string.detail_match, (candidate.score * 100).toInt()),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.65f),
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
         }
     }
 }
@@ -638,15 +645,24 @@ private fun HabitatCard(
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        AsyncImage(
-            model = imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
-            contentDescription = title.ifEmpty { null },
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp)
-                .background(scheme.primaryContainer.copy(alpha = 0.35f)),
-        )
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .background(scheme.primaryContainer.copy(alpha = 0.35f)),
+            )
+        } else {
+            AsyncImage(
+                model = imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
+                contentDescription = title.ifEmpty { null },
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .background(scheme.primaryContainer.copy(alpha = 0.35f)),
+            )
+        }
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = when {

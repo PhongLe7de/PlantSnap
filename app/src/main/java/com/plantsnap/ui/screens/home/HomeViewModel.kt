@@ -47,7 +47,8 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadPlantOfTheDay() {
-        if (_plantOfTheDayState.value is UiState.Success) return
+        val state = _plantOfTheDayState.value
+        if (state is UiState.Success || state is UiState.Loading) return
         viewModelScope.launch {
             _plantOfTheDayState.value = UiState.Loading
             try {

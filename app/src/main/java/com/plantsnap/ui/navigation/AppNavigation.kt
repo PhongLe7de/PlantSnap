@@ -167,7 +167,9 @@ fun AppNavigation() {
                         navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                     },
                     onLearnMorePlantOfTheDay = {
-                        navController.navigate(ROUTE_PLANT_OF_THE_DAY_DETAIL)
+                        navController.navigate(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
+                            launchSingleTop = true
+                        }
                     },
                     profilePhotoUrl = authState.profilePhotoUrl,
                     authState = authState,
