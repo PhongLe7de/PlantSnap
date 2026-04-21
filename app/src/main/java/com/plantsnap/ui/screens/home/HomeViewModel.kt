@@ -24,6 +24,7 @@ class HomeViewModel @Inject constructor(
 
     private companion object {
         const val TAG = "HomeViewModel"
+        val HTTP_CODE_REGEX = Regex("""\b(\d{3})\b""")
     }
 
     private val _scansState = MutableStateFlow<UiState<List<ScanResult>>>(UiState.Idle)
@@ -69,7 +70,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** Pulls a leading 3-digit HTTP status code out of error messages like "403 . Method doesn't allow…". */
+    /**
+     * Pulls the first standalone 3-digit HTTP status code out of error messages like
+     * "403 . Method doesn't allow…" or "HTTP 403 Forbidden".
+     */
     private fun extractHttpCode(message: String?): Int? =
-        message?.trim()?.take(3)?.toIntOrNull()?.takeIf { it in 100..599 }
+        message
+            ?.let { HTTP_CODE_REGEX.find(it)?.groupValues?.getOrNull(1) }
+            ?.toIntOrNull()
+            ?.takeIf { it in 100..599 }
+
 }
