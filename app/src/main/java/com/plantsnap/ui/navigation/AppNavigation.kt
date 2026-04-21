@@ -1,6 +1,5 @@
 package com.plantsnap.ui.navigation
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -152,7 +151,20 @@ fun AppNavigation() {
                             launchSingleTop = true
                         }
                     },
+                    onViewAllScans = {
+                        navController.navigate(BottomNavItem.HISTORY.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onScanSelected = { plantId, candidateIndex ->
+                        navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
+                    },
                     profilePhotoUrl = authState.profilePhotoUrl,
+                    authState = authState,
                 )
             }
 
