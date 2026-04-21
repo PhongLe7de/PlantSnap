@@ -9,6 +9,8 @@ import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.ui.screens.identify.detail.PlantDetailScreenContent
 import com.plantsnap.ui.state.UiState
+import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
+import com.plantsnap.ui.util.validImageUrlOrNull
 
 @Composable
 fun PlantOfTheDayDetailScreen(
@@ -29,7 +31,7 @@ fun PlantOfTheDayDetailScreen(
         family = "",
         score = 1f,
         iucnCategory = null,
-        imageUrl = current.imageUrl,
+        imageUrl = current.imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
     )
     val aiInfo = PlantAiInfo(
         care = current.care,
