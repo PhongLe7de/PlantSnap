@@ -25,4 +25,5 @@ fun ScanWithCandidates.toDomain() = ScanResult(
     rawResponseJson = scan.rawResponseJson,
     plantGbifId = scan.plantGbifId,
     identificationScore = scan.identificationScore,
+    isFavorite = scan.isFavorite,
 )
