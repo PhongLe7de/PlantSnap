@@ -23,7 +23,6 @@
     <string name="home_rotate_desc">Ensure even sun exposure</string>
     <string name="home_no_plants">No plants found</string>
     <string name="home_error">Error: %s</string>
-    <string name="home_potd_rare_species">RARE SPECIES</string>
 
     <!-- Identification Screen -->
     <string name="id_safety_title">Safety Disclaimer</string>

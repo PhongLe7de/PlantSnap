@@ -58,6 +58,7 @@ enum class BottomNavItem(
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
 
+private const val ROUTE_HOME_MAIN = "home_main"
 private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
 
 enum class IdentifyNavItem(
@@ -147,39 +148,44 @@ fun AppNavigation() {
                 )
             }
 
-            composable(BottomNavItem.HOME.route) {
-                HomeScreen(
-                    onIdentifyPlantSelected = {
-                        navController.navigate(BottomNavItem.IDENTIFY.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onViewAllScans = {
-                        navController.navigate(BottomNavItem.HISTORY.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+            navigation(
+                startDestination = ROUTE_HOME_MAIN,
+                route = BottomNavItem.HOME.route,
+            ) {
+                composable(ROUTE_HOME_MAIN) {
+                    HomeScreen(
+                        onIdentifyPlantSelected = {
+                            navController.navigate(BottomNavItem.IDENTIFY.route) {
+                                launchSingleTop = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onScanSelected = { plantId, candidateIndex ->
-                        navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
-                    },
-                    onLearnMorePlantOfTheDay = {
-                        navController.navigate(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
-                            launchSingleTop = true
-                        }
-                    },
-                    profilePhotoUrl = authState.profilePhotoUrl,
-                    authState = authState,
-                )
-            }
+                        },
+                        onViewAllScans = {
+                            navController.navigate(BottomNavItem.HISTORY.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onScanSelected = { plantId, candidateIndex ->
+                            navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
+                        },
+                        onLearnMorePlantOfTheDay = {
+                            navController.navigate(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
+                                launchSingleTop = true
+                            }
+                        },
+                        profilePhotoUrl = authState.profilePhotoUrl,
+                        authState = authState,
+                    )
+                }
 
-            composable(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
-                PlantOfTheDayDetailScreen(
-                    onBack = { navController.popBackStack() },
-                )
+                composable(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
+                    PlantOfTheDayDetailScreen(
+                        onBack = { navController.popBackStack() },
+                    )
+                }
             }
 
             navigation(

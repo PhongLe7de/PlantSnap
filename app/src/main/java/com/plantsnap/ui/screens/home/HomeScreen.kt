@@ -427,22 +427,6 @@ private fun PlantOfTheDaySection(
                         )
                     }
                     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-                        // Rare species badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .background(scheme.onSecondaryContainer.copy(alpha = 0.10f))
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.home_potd_rare_species),
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.5.sp,
-                                color = scheme.onSecondaryContainer,
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
                         Text(
                             text = data.commonName,
                             fontSize = 24.sp,
