@@ -12,7 +12,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GeminiRepositoryImpl @Inject constructor(
+open class GeminiRepositoryImpl @Inject constructor(
     private val client: Client,
     private val profileRepository: ProfileRepository,
     private val json: Json,
@@ -21,6 +21,16 @@ class GeminiRepositoryImpl @Inject constructor(
     private companion object {
         const val MODEL = "gemini-3.1-flash-lite-preview"
     }
+
+    /**
+     * Extracted SDK call — open so tests can override without needing to mock
+     * the concrete [Client] / [Models] classes.
+     */
+    protected open suspend fun callGemini(prompt: String): String =
+        withContext(Dispatchers.IO) {
+            val response = client.models.generateContent(MODEL, prompt, null)
+            response.text() ?: error("Empty Gemini response")
+        }
 
     override suspend fun getPlantInfo(
         plantName: String,
@@ -43,8 +53,7 @@ class GeminiRepositoryImpl @Inject constructor(
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
         """.trimIndent()
 
-        val response = client.models.generateContent(MODEL, prompt, null)
-        val raw = response.text() ?: error("Empty Gemini response")
+        val raw = callGemini(prompt)
         val cleaned = raw.trim()
             .removePrefix("```json")
             .removePrefix("```")
@@ -81,8 +90,7 @@ class GeminiRepositoryImpl @Inject constructor(
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
         """.trimIndent()
 
-        val response = client.models.generateContent(MODEL, prompt, null)
-        val raw = response.text() ?: error("Empty Gemini response")
+        val raw = callGemini(prompt)
         val cleaned = raw.trim()
             .removePrefix("```json")
             .removePrefix("```")
