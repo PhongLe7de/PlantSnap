@@ -5,14 +5,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantAiInfo
+import com.plantsnap.domain.models.SupabaseProfile
+import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.domain.repository.ScanRepository
+import com.plantsnap.domain.safety.SafetyAdvisor
+import com.plantsnap.domain.safety.SafetyAlert
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -21,6 +28,7 @@ import javax.inject.Inject
 class PlantDetailViewModel @Inject constructor(
     private val scanRepository: ScanRepository,
     private val plantService: PlantService,
+    private val profileRepository: ProfileRepository,
     private val json: Json,
 ) : ViewModel() {
 
@@ -34,6 +42,12 @@ class PlantDetailViewModel @Inject constructor(
 
     private val _aiInfoState = MutableStateFlow<UiState<PlantAiInfo>>(UiState.Idle)
     val aiInfoState: StateFlow<UiState<PlantAiInfo>> = _aiInfoState.asStateFlow()
+
+    private val _profile = MutableStateFlow<SupabaseProfile?>(null)
+
+    val safetyAlerts: StateFlow<List<SafetyAlert>> = combine(_aiInfoState, _profile) { ai, profile ->
+        if (ai is UiState.Success) SafetyAdvisor.evaluate(ai.data, profile) else emptyList()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _canRetry = MutableStateFlow(true)
     val canRetry: StateFlow<Boolean> = _canRetry.asStateFlow()
@@ -69,6 +83,8 @@ class PlantDetailViewModel @Inject constructor(
             _candidateState.value = UiState.Success(candidate)
             lastScanId = plantId
             lastScientificName = candidate.scientificName
+
+            _profile.value = runCatching { profileRepository.getProfile() }.getOrNull()
 
             val cached = candidate.aiInfo?.let { runCatching { json.decodeFromString(PlantAiInfo.serializer(), it) }.getOrNull() }
             if (cached != null) {

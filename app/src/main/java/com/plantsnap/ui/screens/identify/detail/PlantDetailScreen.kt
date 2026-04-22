@@ -70,6 +70,7 @@ import com.plantsnap.domain.models.CareInfo
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.HabitatInfo
 import com.plantsnap.domain.models.PlantAiInfo
+import com.plantsnap.domain.safety.SafetyAlert
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
@@ -83,6 +84,7 @@ fun PlantDetailScreen(
     val candidateState by viewModel.candidateState.collectAsState()
     val aiInfoState by viewModel.aiInfoState.collectAsState()
     val canRetry by viewModel.canRetry.collectAsState()
+    val safetyAlerts by viewModel.safetyAlerts.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
@@ -92,6 +94,7 @@ fun PlantDetailScreen(
         candidateState = candidateState,
         aiInfoState = aiInfoState,
         canRetry = canRetry,
+        safetyAlerts = safetyAlerts,
         onBack = onBack,
         onRetryAi = viewModel::retryAiInfo,
     )
@@ -102,6 +105,7 @@ fun PlantDetailScreenContent(
     candidateState: UiState<Candidate>,
     aiInfoState: UiState<PlantAiInfo> = UiState.Idle,
     canRetry: Boolean = true,
+    safetyAlerts: List<SafetyAlert> = emptyList(),
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
 ) {
@@ -185,6 +189,7 @@ fun PlantDetailScreenContent(
                     candidate = candidateState.data,
                     aiInfoState = aiInfoState,
                     canRetry = canRetry,
+                    safetyAlerts = safetyAlerts,
                     onRetryAi = onRetryAi,
                     contentPadding = innerPadding,
                 )
@@ -198,6 +203,7 @@ private fun PlantDetailBody(
     candidate: Candidate,
     aiInfoState: UiState<PlantAiInfo>,
     canRetry: Boolean,
+    safetyAlerts: List<SafetyAlert>,
     onRetryAi: () -> Unit,
     contentPadding: PaddingValues,
 ) {
@@ -210,9 +216,11 @@ private fun PlantDetailBody(
     ) {
         item { HeroSection(candidate) }
         item { Spacer(Modifier.height(24.dp)) }
-        item { CareBentoSection(aiInfoState, canRetry, onRetryAi) }
-        item { Spacer(Modifier.height(24.dp)) }
         item { AiInsightsSection(candidate, aiInfoState, canRetry, onRetryAi) }
+        item { Spacer(Modifier.height(24.dp)) }
+        item { SafetyAlertsSection(safetyAlerts, aiInfoState) }
+        item { Spacer(Modifier.height(24.dp)) }
+        item { CareBentoSection(aiInfoState, canRetry, onRetryAi) }
         item { Spacer(Modifier.height(24.dp)) }
         item { NativeHabitatSection(aiInfoState) }
         item { Spacer(Modifier.height(24.dp)) }
@@ -343,11 +351,6 @@ private fun CareBentoSection(
             )
         }
 
-        ToxicityCard(
-            body = aiInfo?.toxicity ?: stringResource(R.string.detail_info_unavailable),
-            isLoading = isLoading,
-        )
-
         if (isError && canRetry) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -424,18 +427,87 @@ private fun CareCard(
 }
 
 @Composable
-private fun ToxicityCard(
+private fun SafetyAlertsSection(
+    alerts: List<SafetyAlert>,
+    aiInfoState: UiState<PlantAiInfo>,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val aiInfo = (aiInfoState as? UiState.Success)?.data
+    val isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading
+    val isError = aiInfoState is UiState.Error
+
+    if (alerts.isEmpty() && isError) return
+
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (alerts.isEmpty()) {
+            SafetyAlertCard(
+                title = stringResource(R.string.detail_toxicity_alert),
+                body = aiInfo?.toxicity ?: stringResource(R.string.detail_info_unavailable),
+                containerColor = scheme.errorContainer,
+                accentColor = scheme.onSurface,
+                iconBackground = scheme.errorContainer,
+                iconTint = scheme.error,
+                isLoading = isLoading,
+            )
+            return@Column
+        }
+
+        alerts.forEach { alert ->
+            when (alert) {
+                is SafetyAlert.PetToxicity -> {
+                    val (titleRes, defaultBodyRes) = when (alert.pet) {
+                        SafetyAlert.Pet.DOG -> R.string.safety_alert_dog_toxic_title to R.string.safety_alert_pet_toxic_body_dog
+                        SafetyAlert.Pet.CAT -> R.string.safety_alert_cat_toxic_title to R.string.safety_alert_pet_toxic_body_cat
+                    }
+                    SafetyAlertCard(
+                        title = stringResource(titleRes),
+                        body = alert.symptoms ?: stringResource(defaultBodyRes),
+                        containerColor = scheme.errorContainer,
+                        accentColor = scheme.error,
+                        iconBackground = scheme.errorContainer,
+                        iconTint = scheme.error,
+                    )
+                }
+
+                is SafetyAlert.ForagingCaution -> {
+                    val titleRes = when (alert.reason) {
+                        SafetyAlert.Reason.TOXIC_TO_HUMANS -> R.string.safety_alert_foraging_toxic_title
+                        SafetyAlert.Reason.INEDIBLE -> R.string.safety_alert_foraging_inedible_title
+                        SafetyAlert.Reason.GENERAL_CAUTION -> R.string.safety_alert_foraging_caution_title
+                    }
+                    SafetyAlertCard(
+                        title = stringResource(titleRes),
+                        body = alert.guidance ?: stringResource(R.string.safety_alert_foraging_body_default),
+                        containerColor = scheme.tertiaryContainer,
+                        accentColor = scheme.onTertiaryContainer,
+                        iconBackground = scheme.tertiaryContainer,
+                        iconTint = scheme.onTertiaryContainer,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SafetyAlertCard(
+    title: String,
     body: String,
-    isLoading: Boolean,
+    containerColor: Color,
+    accentColor: Color,
+    iconBackground: Color,
+    iconTint: Color,
+    isLoading: Boolean = false,
 ) {
     val scheme = MaterialTheme.colorScheme
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = scheme.errorContainer.copy(alpha = 0.35f),
-        ),
+        colors = CardDefaults.cardColors(containerColor = containerColor.copy(alpha = 0.35f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
@@ -447,23 +519,23 @@ private fun ToxicityCard(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(scheme.errorContainer),
+                    .background(iconBackground),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = null,
-                    tint = scheme.error,
+                    tint = iconTint,
                     modifier = Modifier.size(28.dp),
                 )
             }
 
             Column {
                 Text(
-                    text = stringResource(R.string.detail_toxicity_alert),
+                    text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = scheme.onSurface,
+                    color = accentColor,
                 )
                 if (isLoading) {
                     SmallLoadingIndicator()
@@ -495,22 +567,6 @@ private fun AiInsightsSection(
     val isError = aiInfoState is UiState.Error
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(bottom = 12.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.AutoAwesome,
-                contentDescription = null,
-            )
-            Text(
-                text = stringResource(R.string.detail_ai),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
@@ -536,7 +592,7 @@ private fun AiInsightsSection(
                     }
                 } else if (isError) {
                     Text(
-                        text = (aiInfoState as UiState.Error).message,
+                        text = (aiInfoState).message,
                         style = MaterialTheme.typography.bodyMedium,
                         color = scheme.error,
                     )
@@ -811,7 +867,7 @@ private val previewAiInfo = PlantAiInfo(
         humidity = "60%+ preferred, mist regularly",
         soil = "Well-draining peat-based mix",
     ),
-    toxicity = "Toxic to cats and dogs — contains calcium oxalate crystals.",
+    toxicity = "Toxic to cats and dogs, contains calcium oxalate crystals.",
     habitat = listOf(
         HabitatInfo("Tropical Jungles", "Flourishes in high humidity environments with dappled shade."),
         HabitatInfo("Central America", "Originates from the regions of Southern Mexico and Panama."),

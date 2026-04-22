@@ -36,8 +36,14 @@ class GeminiRepositoryImpl @Inject constructor(
 
         val prompt = """
             Return a JSON object describing the plant "$plantName" with exactly these fields:
-            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °F and °C), "humidity" (short phrase), "soil" (short phrase).$care
-            - "toxicity": Possible toxicity to humans and $toxicity
+            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (short phrase), "soil" (short phrase).$care
+            - "toxicity": 1-2 sentences summarizing toxicity risks to humans, dogs, and cats. Every sentence MUST begin with the exposure route that triggers the risk (e.g. "If ingested,", "On skin contact,", "If inhaled,", "If the sap contacts skin,"). $toxicity
+            - "safety": object with keys:
+                "dog": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route (e.g. \"If ingested,\", \"On contact,\", \"If chewed,\") followed by the symptoms observed in dogs, or null if level is NONE/UNKNOWN" },
+                "cat": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route followed by symptoms observed in cats, or null if level is NONE/UNKNOWN" },
+                "human": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route followed by symptoms observed in humans, or null if level is NONE/UNKNOWN" },
+                "edibility": "EDIBLE|INEDIBLE|TOXIC|UNKNOWN",
+                "foragingNotes": "1 sentence on foraging caution (e.g. toxic lookalikes, preparation requirements, exposure routes), or null if not applicable".
             - "habitat": array of 2 objects, each with "title" (short label e.g. "Tropical Jungles", "Central America") and "body" (1 sentence).
             - "description": 1-2 sentences about the plant's characteristics, history, and notable features.
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
@@ -74,7 +80,7 @@ class GeminiRepositoryImpl @Inject constructor(
             Return a JSON object with exactly these fields:
             - "scientificName": the plant's scientific name
             - "commonName": the most popular common name
-            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °F and °C), "humidity" (short phrase), "soil" (short phrase).$care
+            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (short phrase), "soil" (short phrase).$care
             - "toxicity": Possible toxicity to humans and $toxicity
             - "habitat": array of 2 objects, each with "title" (short label) and "body" (1 sentence).
             - "description": 1-2 sentences about the plant's characteristics and history.
