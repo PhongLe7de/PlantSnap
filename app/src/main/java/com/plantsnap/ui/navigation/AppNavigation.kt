@@ -34,7 +34,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
+import com.plantsnap.ui.screens.home.HomeCallbacks
 import com.plantsnap.ui.screens.home.HomeScreen
+import com.plantsnap.ui.screens.home.PlantOfTheDayDetailScreen
 import com.plantsnap.ui.screens.onboarding.OnboardingScreen
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.screens.profile.AuthenticationScreen
@@ -56,6 +58,9 @@ enum class BottomNavItem(
     HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
+
+private const val ROUTE_HOME_MAIN = "home_main"
+private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
 
 enum class IdentifyNavItem(
     val route: String,
@@ -144,28 +149,46 @@ fun AppNavigation() {
                 )
             }
 
-            composable(BottomNavItem.HOME.route) {
-                HomeScreen(
-                    onIdentifyPlantSelected = {
-                        navController.navigate(BottomNavItem.IDENTIFY.route) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onViewAllScans = {
-                        navController.navigate(BottomNavItem.HISTORY.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onScanSelected = { plantId, candidateIndex ->
-                        navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
-                    },
-                    profilePhotoUrl = authState.profilePhotoUrl,
-                    authState = authState,
-                )
+            navigation(
+                startDestination = ROUTE_HOME_MAIN,
+                route = BottomNavItem.HOME.route,
+            ) {
+                composable(ROUTE_HOME_MAIN) {
+                    HomeScreen(
+                        callbacks = HomeCallbacks(
+                            onIdentifyPlantSelected = {
+                                navController.navigate(BottomNavItem.IDENTIFY.route) {
+                                    launchSingleTop = true
+                                }
+                            },
+                            onViewAllScans = {
+                                navController.navigate(BottomNavItem.HISTORY.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            onScanSelected = { plantId, candidateIndex ->
+                                navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
+                            },
+                            onLearnMorePlantOfTheDay = {
+                                navController.navigate(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
+                                    launchSingleTop = true
+                                }
+                            },
+                        ),
+                        profilePhotoUrl = authState.profilePhotoUrl,
+                        authState = authState,
+                    )
+                }
+
+                composable(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
+                    PlantOfTheDayDetailScreen(
+                        onBack = { navController.popBackStack() },
+                    )
+                }
             }
 
             navigation(
