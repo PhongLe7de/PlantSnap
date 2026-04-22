@@ -1,5 +1,6 @@
 package com.plantsnap.data.repository
 
+import android.util.Log
 import com.google.genai.Client
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.PlantOfTheDay
@@ -36,8 +37,8 @@ class GeminiRepositoryImpl @Inject constructor(
 
         val prompt = """
             Return a JSON object describing the plant "$plantName" with exactly these fields:
-            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (short phrase), "soil" (short phrase).$care
-            - "toxicity": 1-2 sentences summarizing toxicity risks to humans, dogs, and cats. Every sentence MUST begin with the exposure route that triggers the risk (e.g. "If ingested,", "On skin contact,", "If inhaled,", "If the sap contacts skin,"). $toxicity
+            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (a numeric percentage range like "40-60%", not a descriptive phrase), "soil" (short phrase).$care
+            - "toxicity": a single plain JSON string (NOT a nested object or array) of 1-2 sentences summarizing toxicity risks to humans, dogs, and cats. Every sentence MUST begin with the exposure route that triggers the risk (e.g. "If ingested,", "On skin contact,", "If inhaled,", "If the sap contacts skin,"). $toxicity
             - "safety": object with keys:
                 "dog": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route (e.g. \"If ingested,\", \"On contact,\", \"If chewed,\") followed by the symptoms observed in dogs, or null if level is NONE/UNKNOWN" },
                 "cat": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route followed by symptoms observed in cats, or null if level is NONE/UNKNOWN" },
@@ -80,8 +81,8 @@ class GeminiRepositoryImpl @Inject constructor(
             Return a JSON object with exactly these fields:
             - "scientificName": the plant's scientific name
             - "commonName": the most popular common name
-            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (short phrase), "soil" (short phrase).$care
-            - "toxicity": Possible toxicity to humans and $toxicity
+            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (a numeric percentage range like "40-60%", not a descriptive phrase), "soil" (short phrase).$care
+            - "toxicity": a single plain JSON string (NOT a nested object or array). Possible toxicity to humans and $toxicity
             - "habitat": array of 2 objects, each with "title" (short label), "body" (1 sentence), and "imageUrl" (direct URL to a representative Wikimedia Commons photo, omit if unsure).
             - "description": 1-2 sentences about the plant's characteristics and history.
             - "imageUrl": a direct URL to a Wikimedia Commons photo of this plant (e.g., https://upload.wikimedia.org/...). If unsure, omit this field.
