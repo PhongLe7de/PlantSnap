@@ -1,10 +1,14 @@
 package com.plantsnap
 
+import android.util.Log
 import com.plantsnap.data.repository.GeminiRepositoryImpl
+import com.plantsnap.data.wikipedia.WikipediaApi
 import com.plantsnap.domain.models.SupabaseProfile
 import com.plantsnap.domain.repository.ProfileRepository
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -28,6 +32,7 @@ class GeminiRepositoryImplTest {
 
     private lateinit var profileRepository: ProfileRepository
     private lateinit var repository: TestableGeminiRepository
+    private lateinit var wikipediaApi: WikipediaApi
 
     private val validAiInfoJson = """
         {
@@ -81,8 +86,9 @@ class GeminiRepositoryImplTest {
 
     class TestableGeminiRepository(
         profileRepository: ProfileRepository,
+        wikipediaApi: WikipediaApi,
         json: Json,
-    ) : GeminiRepositoryImpl(mockk(relaxed = true), profileRepository, json) {
+    ) : GeminiRepositoryImpl(mockk(relaxed = true), profileRepository, wikipediaApi, json) {
 
         var nextResponse: String = ""
         var lastPrompt: String = ""
@@ -96,9 +102,15 @@ class GeminiRepositoryImplTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
+        every { Log.w(any<String>(), any<String>()) } returns 0
+        every { Log.w(any<String>(), any<String>(), any()) } returns 0
         profileRepository = mockk()
+        wikipediaApi = mockk(relaxed = true)
         coEvery { profileRepository.getProfile() } returns makeProfile()
-        repository = TestableGeminiRepository(profileRepository, json)
+        coEvery { wikipediaApi.summary(any()) } returns mockk(relaxed = true)
+        repository = TestableGeminiRepository(profileRepository,wikipediaApi, json)
     }
 
     @After
@@ -378,5 +390,71 @@ class GeminiRepositoryImplTest {
             "INTERMEDIATE should have no tone instruction",
             !repository.lastPrompt.contains("encouraging") && !repository.lastPrompt.contains("horticultural")
         )
+    }
+
+    @Test
+    fun `getPlantOfTheDay uses Wikipedia image when available`() = runTest {
+        coEvery { wikipediaApi.summary("Ficus lyrata") } returns mockk {
+            every { thumbnail } returns mockk { every { source } returns "https://wiki.img/ficus.jpg" }
+            every { originalimage } returns null
+        }
+        repository.nextResponse = validPlantOfDayJson
+
+        val result = repository.getPlantOfTheDay()
+        advanceUntilIdle()
+
+        assertEquals("https://wiki.img/ficus.jpg", result.imageUrl)
+    }
+
+    @Test
+    fun `getPlantOfTheDay falls back to Gemini imageUrl when Wikipedia returns null`() = runTest {
+        coEvery { wikipediaApi.summary(any()) } returns mockk {
+            every { thumbnail } returns null
+            every { originalimage } returns null
+        }
+        val jsonWithImage = """
+            {
+              "scientificName": "Ficus lyrata",
+              "commonName": "Fiddle Leaf Fig",
+              "care": {
+                "light": "Bright indirect light",
+                "water": "When top inch is dry",
+                "temperature": "60-75°F (15-24°C)",
+                "humidity": "Moderate",
+                "soil": "Well-draining potting mix"
+              },
+              "toxicity": "Mildly toxic to pets.",
+              "habitat": [
+                {"title": "West Africa", "body": "Native to lowland tropical rainforest."},
+                {"title": "Rainforest", "body": "Grows in warm, humid conditions."}
+              ],
+              "description": "A striking plant with large, violin-shaped leaves.",
+              "imageUrl": "https://gemini.img/plant.jpg"
+            }
+        """.trimIndent()
+        repository.nextResponse = jsonWithImage
+
+        val result = repository.getPlantOfTheDay()
+        advanceUntilIdle()
+
+        assertEquals("https://gemini.img/plant.jpg", result.imageUrl)
+    }
+
+    @Test
+    fun `getPlantOfTheDay falls back to common name lookup when scientific name returns no image`() = runTest {
+        coEvery { wikipediaApi.summary("Ficus lyrata") } returns mockk {
+            every { thumbnail } returns null
+            every { originalimage } returns null
+        }
+        coEvery { wikipediaApi.summary("Fiddle Leaf Fig") } returns mockk {
+            every { thumbnail } returns mockk { every { source } returns "https://wiki.img/fiddle.jpg" }
+            every { originalimage } returns null
+        }
+        repository.nextResponse = validPlantOfDayJson
+
+        val result = repository.getPlantOfTheDay()
+        advanceUntilIdle()
+
+        assertEquals("https://wiki.img/fiddle.jpg", result.imageUrl)
     }
 }
