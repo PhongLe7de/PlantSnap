@@ -87,6 +87,16 @@
     <string name="detail_back">Back</string>
     <string name="detail_favourite">Add to favourites</string>
 
+    <!-- Safety Alerts -->
+    <string name="safety_alert_dog_toxic_title">Toxic to your dog</string>
+    <string name="safety_alert_cat_toxic_title">Toxic to your cat</string>
+    <string name="safety_alert_pet_toxic_body_dog">Known to cause reactions in dogs. Keep out of reach.</string>
+    <string name="safety_alert_pet_toxic_body_cat">Known to cause reactions in cats. Keep out of reach.</string>
+    <string name="safety_alert_foraging_inedible_title">Not safe to forage</string>
+    <string name="safety_alert_foraging_toxic_title">Toxic — do not consume</string>
+    <string name="safety_alert_foraging_caution_title">Foraging caution</string>
+    <string name="safety_alert_foraging_body_default">This plant is not safe to eat. Seek expert identification before foraging.</string>
+
     <!-- History Screen -->
     <string name="history_title">History</string>
     <string name="history_match">%d %% match</string>
@@ -126,7 +136,7 @@
 
     <!-- Onboarding: Plant Interests -->
     <string name="onboarding_interests_title">What are you into?</string>
-    <string name="onboarding_interests_subtitle">Select all that apply — we\'ll tailor your experience.</string>
+    <string name="onboarding_interests_subtitle">Select all that apply, we\'ll tailor your experience.</string>
     <string name="onboarding_interests_option_indoor">Indoor houseplants</string>
     <string name="onboarding_interests_option_outdoor">Garden &amp; outdoor</string>
     <string name="onboarding_interests_option_edible">Wild plants &amp; foraging</string>
