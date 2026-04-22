@@ -326,6 +326,8 @@ fun HistoryScanCard(
     }
     val confidencePct = topCandidate?.score?.let { (it * 100).toInt() }
         ?: scan.identificationScore?.let { (it * 100).toInt() }
+    val imageModel: Any? = scan.imagePath.takeIf { it.isNotBlank() }
+        ?: topCandidate?.imageUrl?.takeIf { it.isNotBlank() }
 
     Box(
         modifier = modifier
@@ -336,9 +338,9 @@ fun HistoryScanCard(
     ) {
         Row(modifier = Modifier.height(112.dp)) {
             Box(modifier = Modifier.size(112.dp)) {
-                if (scan.imagePath.isNotBlank()) {
+                if (imageModel != null) {
                     AsyncImage(
-                        model = scan.imagePath,
+                        model = imageModel,
                         contentDescription = scan.bestMatch,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
