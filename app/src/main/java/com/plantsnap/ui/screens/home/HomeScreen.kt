@@ -61,15 +61,20 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** Navigation callbacks consumed by the Home screen. Grouped to keep param counts low. */
+data class HomeCallbacks(
+    val onIdentifyPlantSelected: () -> Unit = {},
+    val onLearnMorePlantOfTheDay: () -> Unit = {},
+    val onViewAllScans: () -> Unit = {},
+    val onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
+)
+
 @Composable
 fun HomeScreen(
-    onIdentifyPlantSelected: () -> Unit,
-    onLearnMorePlantOfTheDay: () -> Unit = {},
-    onViewAllScans: () -> Unit = {},
+    callbacks: HomeCallbacks,
+    authState: AuthUiState,
     profilePhotoUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel(),
-    onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
-    authState: AuthUiState,
 ) {
     val scansState by viewModel.scansState.collectAsState()
     val plantOfTheDayState by viewModel.plantOfTheDayState.collectAsState()
@@ -79,26 +84,20 @@ fun HomeScreen(
     }
 
     HomeScreenContent(
-        onIdentifyPlantSelected = onIdentifyPlantSelected,
-        onLearnMorePlantOfTheDay = onLearnMorePlantOfTheDay,
+        callbacks = callbacks,
         profilePhotoUrl = profilePhotoUrl,
         scansState = scansState,
-        authState = authState,
-        onViewAllScans = onViewAllScans,
-        onScanSelected = onScanSelected,
         plantOfTheDayState = plantOfTheDayState,
+        authState = authState,
     )
 }
 
 @Composable
 fun HomeScreenContent(
-    onIdentifyPlantSelected: () -> Unit,
-    onLearnMorePlantOfTheDay: () -> Unit = {},
+    callbacks: HomeCallbacks = HomeCallbacks(),
     profilePhotoUrl: String? = null,
     scansState: UiState<List<ScanResult>>,
     plantOfTheDayState: UiState<PlantOfTheDay> = UiState.Idle,
-    onViewAllScans: () -> Unit = {},
-    onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
     authState: AuthUiState,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -117,11 +116,11 @@ fun HomeScreenContent(
         ) {
             item { WelcomeSection(authState = authState) }
             item { Spacer(Modifier.height(20.dp)) }
-            item { IdentifySection(onIdentifyPlantSelected = onIdentifyPlantSelected) }
+            item { IdentifySection(onIdentifyPlantSelected = callbacks.onIdentifyPlantSelected) }
             item { Spacer(Modifier.height(20.dp)) }
 
             item {
-                RecentScansHeader(onViewAllScans = onViewAllScans)
+                RecentScansHeader(onViewAllScans = callbacks.onViewAllScans)
                 Spacer(Modifier.height(12.dp))
             }
 
@@ -169,7 +168,7 @@ fun HomeScreenContent(
                                 commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull() ?: "",
                                 timeLabel = formattedDate,
                                 imageModel = plant.imagePath.takeIf { it.isNotBlank() },
-                                onClick = { onScanSelected(plant.id, 0) },
+                                onClick = { callbacks.onScanSelected(plant.id, 0) },
                             )
                             Spacer(Modifier.height(12.dp))
                         }
@@ -178,7 +177,7 @@ fun HomeScreenContent(
             }
 
             item { Spacer(Modifier.height(20.dp)) }
-            item { PlantOfTheDaySection(plantOfTheDayState, onLearnMorePlantOfTheDay) }
+            item { PlantOfTheDaySection(plantOfTheDayState, callbacks.onLearnMorePlantOfTheDay) }
             item { Spacer(Modifier.height(20.dp)) }
             item { DailyCareSection() }
             item { Spacer(Modifier.height(20.dp)) }
@@ -569,6 +568,8 @@ private fun CareTaskItem(
     }
 }
 
+private const val PREVIEW_SNAKE_PLANT_SCIENTIFIC = "Dracaena trifasciata"
+
 private val previewPlants = listOf(
     ScanResult(
         imagePath = "",
@@ -587,10 +588,10 @@ private val previewPlants = listOf(
     ScanResult(
         imagePath = "",
         organ = "leaf",
-        bestMatch = "Dracaena trifasciata",
+        bestMatch = PREVIEW_SNAKE_PLANT_SCIENTIFIC,
         candidates = listOf(
             Candidate(
-                scientificName = "Dracaena trifasciata",
+                scientificName = PREVIEW_SNAKE_PLANT_SCIENTIFIC,
                 commonNames = listOf("Snake Plant", "Mother-in-law's Tongue"),
                 family = "Asparagaceae",
                 score = 0.91f,
@@ -608,7 +609,7 @@ private val previewAuthState = AuthUiState(
 )
 
 private val plantOfTheDay = PlantOfTheDay(
-    scientificName = "Dracaena trifasciata",
+    scientificName = PREVIEW_SNAKE_PLANT_SCIENTIFIC,
     commonName = "Snake Plant",
     description = "A hardy, low-maintenance plant with striking upright leaves.",
 )
@@ -620,7 +621,6 @@ private fun HomeScreenPreviewSuccess() {
         HomeScreenContent(
             scansState = UiState.Success(previewPlants),
             plantOfTheDayState = UiState.Success(plantOfTheDay),
-            onIdentifyPlantSelected = {},
             authState = previewAuthState,
         )
     }
@@ -634,7 +634,6 @@ private fun HomeScreenPreviewSuccessDark() {
         HomeScreenContent(
             scansState = UiState.Success(previewPlants),
             plantOfTheDayState = UiState.Success(plantOfTheDay),
-            onIdentifyPlantSelected = {},
             authState = previewAuthState,
             )
     }
@@ -647,7 +646,6 @@ private fun HomeScreenPreviewLoading() {
         HomeScreenContent(
             scansState = UiState.Loading,
             plantOfTheDayState = UiState.Loading,
-            onIdentifyPlantSelected = {},
             authState = previewAuthState,
             )
     }
@@ -659,7 +657,6 @@ private fun HomeScreenPreviewEmpty() {
     PlantSnapTheme {
         HomeScreenContent(
             scansState = UiState.Success(emptyList()),
-            onIdentifyPlantSelected = {},
             authState = previewAuthState,
         )
     }
@@ -671,7 +668,6 @@ private fun HomeScreenPreviewError() {
     PlantSnapTheme {
         HomeScreenContent(
             scansState = UiState.Error("Couldn't fetch results"),
-            onIdentifyPlantSelected = {},
             authState = previewAuthState,
         )
     }
