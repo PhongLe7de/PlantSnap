@@ -2,6 +2,7 @@ package com.plantsnap.data.repository
 
 import android.util.Log
 import com.google.genai.Client
+import com.plantsnap.data.wikipedia.WikipediaApi
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.repository.GeminiRepository
@@ -16,10 +17,12 @@ import javax.inject.Singleton
 open class GeminiRepositoryImpl @Inject constructor(
     private val client: Client,
     private val profileRepository: ProfileRepository,
+    private val wikipediaApi: WikipediaApi,
     private val json: Json,
 ) : GeminiRepository {
 
     private companion object {
+        const val TAG = "GeminiRepository"
         const val MODEL = "gemini-3.1-flash-lite-preview"
     }
 
@@ -94,7 +97,6 @@ open class GeminiRepositoryImpl @Inject constructor(
             - "toxicity": a single plain JSON string (NOT a nested object or array). Possible toxicity to humans and $toxicity
             - "habitat": array of 2 objects, each with "title" (short label), "body" (1 sentence), and "imageUrl" (direct URL to a representative Wikimedia Commons photo, omit if unsure).
             - "description": 1-2 sentences about the plant's characteristics and history.
-            - "imageUrl": a direct URL to a Wikimedia Commons photo of this plant (e.g., https://upload.wikimedia.org/...). If unsure, omit this field.
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
         """.trimIndent()
 
@@ -104,7 +106,27 @@ open class GeminiRepositoryImpl @Inject constructor(
             .removePrefix("```")
             .removeSuffix("```")
             .trim()
-        json.decodeFromString(PlantOfTheDay.serializer(), cleaned)
+        val potd = json.decodeFromString(PlantOfTheDay.serializer(), cleaned)
+
+        val wikiImageUrl = fetchWikipediaImage(potd.scientificName)
+            ?: fetchWikipediaImage(potd.commonName)
+        val finalImageUrl = wikiImageUrl ?: potd.imageUrl
+        Log.d(
+            TAG,
+            "getPlantOfTheDay final imageUrl=$finalImageUrl (wiki=$wikiImageUrl, gemini=${potd.imageUrl}) for ${potd.scientificName} / ${potd.commonName}",
+        )
+        potd.copy(imageUrl = finalImageUrl)
+    }
+
+    private suspend fun fetchWikipediaImage(title: String): String? {
+        val trimmed = title.trim()
+        if (trimmed.isBlank()) return null
+        return runCatching {
+            val summary = wikipediaApi.summary(trimmed)
+            summary.thumbnail?.source ?: summary.originalimage?.source
+        }.onFailure { error ->
+            Log.w(TAG, "Wikipedia lookup failed for '$trimmed'", error)
+        }.getOrNull()
     }
 
     private fun buildToxicityInstruction(petType: String?): String = when (petType) {

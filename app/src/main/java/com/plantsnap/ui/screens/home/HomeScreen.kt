@@ -162,12 +162,14 @@ fun HomeScreenContent(
                                 SimpleDateFormat("d MMM yyyy", Locale.getDefault())
                                     .format(Date(plant.timestamp))
                             }
+                            val topCandidate = plant.candidates.firstOrNull()
                             ScanCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 plantName = plant.bestMatch,
-                                commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull() ?: "",
+                                commonName = topCandidate?.commonNames?.firstOrNull() ?: "",
                                 timeLabel = formattedDate,
-                                imageModel = plant.imagePath.takeIf { it.isNotBlank() },
+                                imageModel = plant.imagePath.takeIf { it.isNotBlank() }
+                                    ?: topCandidate?.imageUrl?.takeIf { it.isNotBlank() },
                                 onClick = { callbacks.onScanSelected(plant.id, 0) },
                             )
                             Spacer(Modifier.height(12.dp))
