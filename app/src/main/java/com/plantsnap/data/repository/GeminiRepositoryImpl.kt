@@ -44,7 +44,7 @@ class GeminiRepositoryImpl @Inject constructor(
                 "human": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route followed by symptoms observed in humans, or null if level is NONE/UNKNOWN" },
                 "edibility": "EDIBLE|INEDIBLE|TOXIC|UNKNOWN",
                 "foragingNotes": "1 sentence on foraging caution (e.g. toxic lookalikes, preparation requirements, exposure routes), or null if not applicable".
-            - "habitat": array of 2 objects, each with "title" (short label e.g. "Tropical Jungles", "Central America") and "body" (1 sentence).
+            - "habitat": array of 2 objects, each with "title" (short label e.g. "Tropical Jungles", "Central America"), "body" (1 sentence), and "imageUrl" (direct URL to a representative Wikimedia Commons photo, omit if unsure).
             - "description": 1-2 sentences about the plant's characteristics, history, and notable features.
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
         """.trimIndent()
@@ -82,8 +82,9 @@ class GeminiRepositoryImpl @Inject constructor(
             - "commonName": the most popular common name
             - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (short phrase), "soil" (short phrase).$care
             - "toxicity": Possible toxicity to humans and $toxicity
-            - "habitat": array of 2 objects, each with "title" (short label) and "body" (1 sentence).
+            - "habitat": array of 2 objects, each with "title" (short label), "body" (1 sentence), and "imageUrl" (direct URL to a representative Wikimedia Commons photo, omit if unsure).
             - "description": 1-2 sentences about the plant's characteristics and history.
+            - "imageUrl": a direct URL to a Wikimedia Commons photo of this plant (e.g., https://upload.wikimedia.org/...). If unsure, omit this field.
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
         """.trimIndent()
 

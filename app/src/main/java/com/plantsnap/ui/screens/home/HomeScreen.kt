@@ -49,47 +49,55 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
 import com.plantsnap.ui.screens.profile.AuthUiState
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
+import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
+import com.plantsnap.ui.util.validImageUrlOrNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** Navigation callbacks consumed by the Home screen. Grouped to keep param counts low. */
+data class HomeCallbacks(
+    val onIdentifyPlantSelected: () -> Unit = {},
+    val onLearnMorePlantOfTheDay: () -> Unit = {},
+    val onViewAllScans: () -> Unit = {},
+    val onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
+)
+
 @Composable
 fun HomeScreen(
-    onIdentifyPlantSelected: () -> Unit,
-    onViewAllScans: () -> Unit = {},
+    callbacks: HomeCallbacks,
+    authState: AuthUiState,
     profilePhotoUrl: String? = null,
     viewModel: HomeViewModel = hiltViewModel(),
-    onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
-    authState: AuthUiState,
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val scansState by viewModel.scansState.collectAsState()
+    val plantOfTheDayState by viewModel.plantOfTheDayState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
     }
 
     HomeScreenContent(
-        onIdentifyPlantSelected = onIdentifyPlantSelected,
+        callbacks = callbacks,
         profilePhotoUrl = profilePhotoUrl,
-        state = state,
-        onViewAllScans = onViewAllScans,
-        onScanSelected = onScanSelected,
+        scansState = scansState,
+        plantOfTheDayState = plantOfTheDayState,
         authState = authState,
     )
 }
 
 @Composable
 fun HomeScreenContent(
-    onIdentifyPlantSelected: () -> Unit,
+    callbacks: HomeCallbacks = HomeCallbacks(),
     profilePhotoUrl: String? = null,
-    state: UiState<List<ScanResult>>,
-    onViewAllScans: () -> Unit = {},
-    onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
+    scansState: UiState<List<ScanResult>>,
+    plantOfTheDayState: UiState<PlantOfTheDay> = UiState.Idle,
     authState: AuthUiState,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -108,15 +116,15 @@ fun HomeScreenContent(
         ) {
             item { WelcomeSection(authState = authState) }
             item { Spacer(Modifier.height(20.dp)) }
-            item { IdentifySection(onIdentifyPlantSelected = onIdentifyPlantSelected) }
+            item { IdentifySection(onIdentifyPlantSelected = callbacks.onIdentifyPlantSelected) }
             item { Spacer(Modifier.height(20.dp)) }
 
             item {
-                RecentScansHeader(onViewAllScans = onViewAllScans)
+                RecentScansHeader(onViewAllScans = callbacks.onViewAllScans)
                 Spacer(Modifier.height(12.dp))
             }
 
-            when (state) {
+            when (scansState) {
                 is UiState.Idle,
                 is UiState.Loading -> item {
                     Box(
@@ -131,7 +139,7 @@ fun HomeScreenContent(
 
                 is UiState.Error -> item {
                     Text(
-                        text = stringResource(R.string.home_error, state.message),
+                        text = stringResource(R.string.home_error, scansState.message),
                         color = scheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(vertical = 16.dp),
@@ -139,7 +147,7 @@ fun HomeScreenContent(
                 }
 
                 is UiState.Success -> {
-                    if (state.data.isEmpty()) {
+                    if (scansState.data.isEmpty()) {
                         item {
                             Text(
                                 text = stringResource(R.string.home_no_plants),
@@ -149,7 +157,7 @@ fun HomeScreenContent(
                             )
                         }
                     } else {
-                        items(state.data) { plant ->
+                        items(scansState.data) { plant ->
                             val formattedDate = remember(plant.timestamp) {
                                 SimpleDateFormat("d MMM yyyy", Locale.getDefault())
                                     .format(Date(plant.timestamp))
@@ -160,7 +168,7 @@ fun HomeScreenContent(
                                 commonName = plant.candidates.firstOrNull()?.commonNames?.firstOrNull() ?: "",
                                 timeLabel = formattedDate,
                                 imageModel = plant.imagePath.takeIf { it.isNotBlank() },
-                                onClick = { onScanSelected(plant.id, 0) },
+                                onClick = { callbacks.onScanSelected(plant.id, 0) },
                             )
                             Spacer(Modifier.height(12.dp))
                         }
@@ -169,7 +177,7 @@ fun HomeScreenContent(
             }
 
             item { Spacer(Modifier.height(20.dp)) }
-            item { PlantOfTheDaySection() }
+            item { PlantOfTheDaySection(plantOfTheDayState, callbacks.onLearnMorePlantOfTheDay) }
             item { Spacer(Modifier.height(20.dp)) }
             item { DailyCareSection() }
             item { Spacer(Modifier.height(20.dp)) }
@@ -362,7 +370,10 @@ private fun ScanCard(
 }
 
 @Composable
-private fun PlantOfTheDaySection() {
+private fun PlantOfTheDaySection(
+    state: UiState<PlantOfTheDay>,
+    onLearnMore: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -380,44 +391,71 @@ private fun PlantOfTheDaySection() {
             colors = CardDefaults.cardColors(containerColor = scheme.secondaryContainer),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         ) {
-            // Image placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .background(scheme.secondary.copy(alpha = 0.28f)),
-            )
-
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Cool Plant", // Placeholder text
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = scheme.primary,
-                    letterSpacing = (-0.3).sp,
-                )
-                Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = "Cool plant description blah blah blah blah blah blah blah blah blah",
-                    fontSize = 14.sp,
-                    color = scheme.onSurface.copy(alpha = 0.75f),
-                    lineHeight = 20.sp,
-                )
-                Spacer(Modifier.height(16.dp))
-
-                Button(
-                    onClick = {}, // TODO: navigate to plant detail
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_learn),
-                        fontWeight = FontWeight.Bold,
-                        color = scheme.onPrimary,
-                        modifier = Modifier.padding(vertical = 4.dp),
-                    )
+            when (state) {
+                is UiState.Idle, is UiState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = scheme.primary)
+                    }
+                }
+                is UiState.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                    ) {
+                        Text(state.message, color = scheme.error)
+                    }
+                }
+                is UiState.Success -> {
+                    val data = state.data
+                    Column(modifier = Modifier.padding(4.dp)) {
+                        AsyncImage(
+                            model = data.imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
+                            contentDescription = data.commonName,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(240.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(scheme.secondary.copy(alpha = 0.28f)),
+                        )
+                    }
+                    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                        Text(
+                            text = data.commonName,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = scheme.onSecondaryContainer,
+                            lineHeight = 28.sp,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = data.description ?: stringResource(R.string.detail_info_unavailable),
+                            fontSize = 13.sp,
+                            color = scheme.onSecondaryContainer.copy(alpha = 0.75f),
+                            lineHeight = 20.sp,
+                        )
+                        Spacer(Modifier.height(20.dp))
+                        Button(
+                            onClick = onLearnMore,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
+                            shape = RoundedCornerShape(12.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_learn),
+                                fontWeight = FontWeight.Bold,
+                                color = scheme.onPrimary,
+                                letterSpacing = 0.5.sp,
+                                modifier = Modifier.padding(vertical = 6.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -530,6 +568,8 @@ private fun CareTaskItem(
     }
 }
 
+private const val PREVIEW_SNAKE_PLANT_SCIENTIFIC = "Dracaena trifasciata"
+
 private val previewPlants = listOf(
     ScanResult(
         imagePath = "",
@@ -548,10 +588,10 @@ private val previewPlants = listOf(
     ScanResult(
         imagePath = "",
         organ = "leaf",
-        bestMatch = "Dracaena trifasciata",
+        bestMatch = PREVIEW_SNAKE_PLANT_SCIENTIFIC,
         candidates = listOf(
             Candidate(
-                scientificName = "Dracaena trifasciata",
+                scientificName = PREVIEW_SNAKE_PLANT_SCIENTIFIC,
                 commonNames = listOf("Snake Plant", "Mother-in-law's Tongue"),
                 family = "Asparagaceae",
                 score = 0.91f,
@@ -568,14 +608,19 @@ private val previewAuthState = AuthUiState(
     profilePhotoUrl = null,
 )
 
+private val plantOfTheDay = PlantOfTheDay(
+    scientificName = PREVIEW_SNAKE_PLANT_SCIENTIFIC,
+    commonName = "Snake Plant",
+    description = "A hardy, low-maintenance plant with striking upright leaves.",
+)
+
 @Preview(showBackground = true, showSystemUi = true, name = "Success – Light")
 @Composable
 private fun HomeScreenPreviewSuccess() {
     PlantSnapTheme {
         HomeScreenContent(
-            state = UiState.Success(
-            previewPlants),
-            onIdentifyPlantSelected = {},
+            scansState = UiState.Success(previewPlants),
+            plantOfTheDayState = UiState.Success(plantOfTheDay),
             authState = previewAuthState,
         )
     }
@@ -587,10 +632,10 @@ private fun HomeScreenPreviewSuccess() {
 private fun HomeScreenPreviewSuccessDark() {
     PlantSnapTheme(darkTheme = true) {
         HomeScreenContent(
-            state = UiState.Success(previewPlants),
-            onIdentifyPlantSelected = {},
+            scansState = UiState.Success(previewPlants),
+            plantOfTheDayState = UiState.Success(plantOfTheDay),
             authState = previewAuthState,
-        )
+            )
     }
 }
 
@@ -599,10 +644,10 @@ private fun HomeScreenPreviewSuccessDark() {
 private fun HomeScreenPreviewLoading() {
     PlantSnapTheme {
         HomeScreenContent(
-            state = UiState.Loading,
-            onIdentifyPlantSelected = {},
+            scansState = UiState.Loading,
+            plantOfTheDayState = UiState.Loading,
             authState = previewAuthState,
-        )
+            )
     }
 }
 
@@ -611,8 +656,7 @@ private fun HomeScreenPreviewLoading() {
 private fun HomeScreenPreviewEmpty() {
     PlantSnapTheme {
         HomeScreenContent(
-            state = UiState.Success(emptyList()),
-            onIdentifyPlantSelected = {},
+            scansState = UiState.Success(emptyList()),
             authState = previewAuthState,
         )
     }
@@ -622,9 +666,8 @@ private fun HomeScreenPreviewEmpty() {
 @Composable
 private fun HomeScreenPreviewError() {
     PlantSnapTheme {
-        HomeScreenContent(state = UiState.Error(
-            "Couldn't fetch results"),
-            onIdentifyPlantSelected = {},
+        HomeScreenContent(
+            scansState = UiState.Error("Couldn't fetch results"),
             authState = previewAuthState,
         )
     }
