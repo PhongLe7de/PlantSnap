@@ -5,9 +5,12 @@ import com.google.genai.Client
 import com.plantsnap.data.wikipedia.WikipediaApi
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.PlantOfTheDay
+import com.plantsnap.domain.models.SupabaseProfile
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.ProfileRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -24,7 +27,11 @@ open class GeminiRepositoryImpl @Inject constructor(
     private companion object {
         const val TAG = "GeminiRepository"
         const val MODEL = "gemini-3.1-flash-lite-preview"
+        const val PROFILE_CACHE_TTL_MS = 5 * 60 * 1000L
     }
+
+    @Volatile private var profileCache: SupabaseProfile? = null
+    @Volatile private var profileCacheExpiry = 0L
 
     /**
      * Extracted SDK call — open so tests can override without needing to mock
@@ -36,10 +43,19 @@ open class GeminiRepositoryImpl @Inject constructor(
             response.text() ?: error("Empty Gemini response")
         }
 
+    private suspend fun getCachedProfile(): SupabaseProfile? {
+        val now = System.currentTimeMillis()
+        if (now < profileCacheExpiry) return profileCache
+        val fresh = try { profileRepository.getProfile() } catch (_: Exception) { null }
+        profileCache = fresh
+        profileCacheExpiry = now + PROFILE_CACHE_TTL_MS
+        return fresh
+    }
+
     override suspend fun getPlantInfo(
         plantName: String,
     ): PlantAiInfo = withContext(Dispatchers.IO) {
-        val profile = try { profileRepository.getProfile() } catch (e: Exception) { null }
+        val profile = getCachedProfile()
         val petType = profile?.petType ?: "NONE"
         val plantInterests = profile?.plantInterests?.toSet() ?: emptySet()
         val experienceLevel = profile?.experienceLevel ?: "NOT SPECIFIED"
@@ -73,7 +89,7 @@ open class GeminiRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPlantOfTheDay(): PlantOfTheDay = withContext(Dispatchers.IO) {
-        val profile = try { profileRepository.getProfile() } catch (_: Exception) { null }
+        val profile = getCachedProfile()
         val petType = profile?.petType
         val plantInterests = profile?.plantInterests?.toSet() ?: emptySet()
         val experienceLevel = profile?.experienceLevel
@@ -108,8 +124,11 @@ open class GeminiRepositoryImpl @Inject constructor(
             .trim()
         val potd = json.decodeFromString(PlantOfTheDay.serializer(), cleaned)
 
-        val wikiImageUrl = fetchWikipediaImage(potd.scientificName)
-            ?: fetchWikipediaImage(potd.commonName)
+        val wikiImageUrl = coroutineScope {
+            val byScientific = async { fetchWikipediaImage(potd.scientificName) }
+            val byCommon = async { fetchWikipediaImage(potd.commonName) }
+            byScientific.await() ?: byCommon.await()
+        }
         val finalImageUrl = wikiImageUrl ?: potd.imageUrl
         Log.d(
             TAG,
