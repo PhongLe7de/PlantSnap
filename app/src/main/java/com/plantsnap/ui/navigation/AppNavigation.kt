@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
+import com.plantsnap.ui.screens.garden.MyGardenScreen
 import com.plantsnap.ui.screens.home.HomeCallbacks
 import com.plantsnap.ui.screens.home.HomeScreen
 import com.plantsnap.ui.screens.home.PlantOfTheDayDetailScreen
@@ -56,6 +58,7 @@ enum class BottomNavItem(
     HOME("home", "Home", Icons.Filled.Home),
     IDENTIFY("identify", "Identify", Icons.Filled.CameraAlt),
     HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
+    FAVORITE("favorite", "Favorite", Icons.Filled.Favorite),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
 
@@ -248,6 +251,10 @@ fun AppNavigation() {
                         navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                     }
                 )
+            }
+
+            composable(BottomNavItem.FAVORITE.route) {
+                MyGardenScreen()
             }
 
             composable(BottomNavItem.PROFILE.route) {

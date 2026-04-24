@@ -97,6 +97,29 @@
     <string name="safety_alert_foraging_caution_title">Foraging caution</string>
     <string name="safety_alert_foraging_body_default">This plant is not safe to eat. Seek expert identification before foraging.</string>
 
+    <!-- My Garden Screen -->
+    <string name="garden_topbar_title">The Arboretum</string>
+    <string name="garden_section_title">My Garden</string>
+    <string name="garden_section_subtitle">%d thriving specimens under your care.</string>
+    <string name="garden_all_watered">All Watered</string>
+    <string name="garden_tasks_title">Today\'s Tasks</string>
+    <string name="garden_view_all">View All</string>
+    <string name="garden_collection_title">The Collection</string>
+    <string name="garden_add_specimen">Add Specimen</string>
+    <string name="garden_add_specimen_desc">Identify or enter manually</string>
+    <string name="garden_recent_progress">Recent Progress</string>
+    <string name="garden_log_growth">Log Growth</string>
+    <string name="garden_status_thriving">Thriving</string>
+    <string name="garden_watered_ago">%s ago</string>
+    <string name="garden_plant_height">%dcm</string>
+    <string name="garden_acquired_label">Acquired %s</string>
+    <string name="garden_completed">Completed</string>
+    <string name="garden_task_water">Water (%s)</string>
+    <string name="garden_task_fertilize">Fertilize (%s)</string>
+    <string name="garden_task_mist">Mist Leaves</string>
+    <string name="garden_empty_title">No saved plants yet</string>
+    <string name="garden_empty_desc">Scan a plant and tap ♡ to add it to your garden.</string>
+
     <!-- History Screen -->
     <string name="history_title">History</string>
     <string name="history_match">%d %% match</string>

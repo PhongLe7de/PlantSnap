@@ -4,23 +4,33 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
+import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.screens.identify.camera.CapturedPhotosHolder
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.File
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class IdentifyViewModel @Inject constructor(
     private val plantService: PlantService,
-    private val photosHolder: CapturedPhotosHolder
+    private val photosHolder: CapturedPhotosHolder,
+    private val savedPlantRepo: SavedPlantRepository,
 ) : ViewModel() {
 
     private companion object {
@@ -32,6 +42,31 @@ class IdentifyViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<UiState<ScanResult>>(UiState.Idle)
     val uiState: StateFlow<UiState<ScanResult>> = _uiState.asStateFlow()
+
+    /** Set of scientific names currently saved for the active scan. Reactive. */
+    val savedNames: StateFlow<Set<String>> = _uiState
+        .flatMapLatest { state ->
+            val scanId = (state as? UiState.Success)?.data?.id
+            if (scanId == null) flowOf(emptySet())
+            else savedPlantRepo.observeAll().map { plants ->
+                plants.filter { it.sourceScanId == scanId }
+                    .map { it.plant.scientificName }
+                    .toSet()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+
+    fun toggleSaved(candidate: Candidate) {
+        val scanId = (_uiState.value as? UiState.Success)?.data?.id ?: return
+        viewModelScope.launch {
+            val existing = savedPlantRepo.findExisting(scanId, candidate.scientificName)
+            if (existing != null) {
+                savedPlantRepo.unsave(existing.id)
+            } else {
+                savedPlantRepo.save(candidate, scanId)
+            }
+        }
+    }
 
     fun startIdentification() {
         val uris = photosHolder.photos.value

@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
@@ -87,6 +88,7 @@ fun PlantDetailScreen(
     val aiInfoState by viewModel.aiInfoState.collectAsState()
     val canRetry by viewModel.canRetry.collectAsState()
     val safetyAlerts by viewModel.safetyAlerts.collectAsState()
+    val isSaved by viewModel.isSaved.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
@@ -97,8 +99,10 @@ fun PlantDetailScreen(
         aiInfoState = aiInfoState,
         canRetry = canRetry,
         safetyAlerts = safetyAlerts,
+        isSaved = isSaved,
         onBack = onBack,
         onRetryAi = viewModel::retryAiInfo,
+        onToggleSaved = viewModel::toggleSaved,
     )
 }
 
@@ -109,8 +113,10 @@ fun PlantDetailScreenContent(
     canRetry: Boolean = true,
     safetyAlerts: List<SafetyAlert> = emptyList(),
     showScanMetadata: Boolean = true,
+    isSaved: Boolean = false,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
+    onToggleSaved: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -146,15 +152,16 @@ fun PlantDetailScreenContent(
                     textAlign = TextAlign.Center,
                 )
                 IconButton(
-                    onClick = { /* TODO: toggle favourite */ },
+                    onClick = onToggleSaved,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = scheme.surfaceContainerHigh,
                     ),
                     modifier = Modifier.clip(CircleShape),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.FavoriteBorder,
+                        imageVector = if (isSaved) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                         contentDescription = stringResource(R.string.detail_favourite),
+                        tint = if (isSaved) scheme.primary else scheme.onSurface,
                     )
                 }
             }
