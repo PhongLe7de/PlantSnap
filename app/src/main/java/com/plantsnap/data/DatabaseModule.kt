@@ -38,8 +38,10 @@ abstract class DatabaseModule {
                 PlantSnapDatabase::class.java,
                 "plantsnap.db"
             )
-                .addMigrations(PlantSnapDatabase.MIGRATION_5_6)
-                .fallbackToDestructiveMigration(dropAllTables = true)
+                .addMigrations(
+                    PlantSnapDatabase.MIGRATION_5_6,
+                    PlantSnapDatabase.MIGRATION_6_7,
+                )
                 .build()
 
         @Provides
