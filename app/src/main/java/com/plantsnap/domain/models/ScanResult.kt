@@ -19,4 +19,5 @@ data class ScanResult(
     val plantGbifId: String? = null,
     /** Top candidate's confidence score (0..1). */
     val identificationScore: Double? = null,
+    val isFavorite: Boolean = false,
 )
