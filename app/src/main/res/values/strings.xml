@@ -38,6 +38,8 @@
     <string name="id_error">Error: %s</string>
     <string name="id_back">Back</string>
     <string name="id_uploaded_photo">Uploaded plant photo</string>
+    <string name="id_save_plant">Save plant</string>
+    <string name="id_unsave_plant">Remove plant from saved</string>
 
     <!-- Profile Screen -->
     <string name="profile_default_name">User</string>

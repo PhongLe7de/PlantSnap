@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface SavedPlantRepository {
     fun observeAll(): Flow<List<SavedPlant>>
+    fun observeSavedNamesByScanId(scanId: String): Flow<Set<String>>
     fun observeIsSaved(scanId: String, scientificName: String): Flow<Boolean>
     suspend fun findExisting(scanId: String, scientificName: String): SavedPlant?
     suspend fun save(candidate: Candidate, scanId: String?): SavedPlant

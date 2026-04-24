@@ -22,6 +22,9 @@ class SavedPlantRepositoryImpl @Inject constructor(
     override fun observeAll(): Flow<List<SavedPlant>> =
         dao.observeAll().map { rows -> rows.map { it.toDomain(json) } }
 
+    override fun observeSavedNamesByScanId(scanId: String): Flow<Set<String>> =
+        dao.observeSavedNamesByScanId(scanId).map { it.toSet() }
+
     override fun observeIsSaved(scanId: String, scientificName: String): Flow<Boolean> =
         dao.observeIsSaved(scanId, scientificName)
 

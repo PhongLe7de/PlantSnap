@@ -73,7 +73,7 @@ class IdentifyViewModelTest {
         plantService = mockk()
         photosHolder = CapturedPhotosHolder()
         savedPlantRepo = mockk(relaxed = true) {
-            every { observeAll() } returns flowOf(emptyList())
+            every { observeSavedNamesByScanId(any()) } returns flowOf(emptySet())
         }
         viewModel = IdentifyViewModel(plantService, photosHolder, savedPlantRepo)
     }

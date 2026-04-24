@@ -12,6 +12,9 @@ interface SavedPlantDao {
     @Query("SELECT * FROM saved_plants ORDER BY savedAt DESC")
     fun observeAll(): Flow<List<SavedPlantEntity>>
 
+    @Query("SELECT scientificName FROM saved_plants WHERE sourceScanId = :scanId")
+    fun observeSavedNamesByScanId(scanId: String): Flow<List<String>>
+
     @Query("""
         SELECT EXISTS(
           SELECT 1 FROM saved_plants

@@ -95,7 +95,10 @@ private fun MyGardenScreenContent(plantsState: UiState<List<SavedPlant>>) {
             ),
             verticalArrangement = Arrangement.spacedBy(48.dp),
         ) {
-            item { GardenHeader(thrivingCount = 12) }
+            item {
+                val thrivingCount = (plantsState as? UiState.Success)?.data?.size ?: 0
+                GardenHeader(thrivingCount = thrivingCount)
+            }
             item { TodaysTasksSection(tasks = PREVIEW_TASKS) }
             item {
                 when (val state = plantsState) {
@@ -537,7 +540,7 @@ private fun CollectionLoadingSection() {
 private fun SavedPlant.toGardenPlant(): GardenPlant = GardenPlant(
     nickname = plant.commonNames.firstOrNull() ?: plant.scientificName,
     species = plant.scientificName,
-    imageUrl = plant.imageUrl ?: "https://picsum.photos/seed/${plant.scientificName.hashCode()}/600/400",
+    imageUrl = plant.imageUrl,
     status = PlantStatus.THRIVING,
     acquiredLabel = null,
     wateredAgoLabel = null,
@@ -962,7 +965,7 @@ private data class TodaysTask(
 private data class GardenPlant(
     val nickname: String,
     val species: String,
-    val imageUrl: String,
+    val imageUrl: String?,
     val status: PlantStatus,
     val acquiredLabel: String? = null,
     val wateredAgoLabel: String? = null,

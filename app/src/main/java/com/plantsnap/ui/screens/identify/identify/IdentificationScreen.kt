@@ -511,7 +511,9 @@ private fun CandidateCard(
             IconButton(onClick = onToggleSaved) {
                 Icon(
                     imageVector = if (isSaved) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = null,
+                    contentDescription = stringResource(
+                        if (isSaved) R.string.id_unsave_plant else R.string.id_save_plant
+                    ),
                     tint = if (isSaved) scheme.primary else scheme.primary.copy(alpha = 0.4f),
                 )
             }

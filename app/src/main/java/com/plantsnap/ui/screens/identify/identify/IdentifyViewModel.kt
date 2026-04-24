@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -48,11 +47,7 @@ class IdentifyViewModel @Inject constructor(
         .flatMapLatest { state ->
             val scanId = (state as? UiState.Success)?.data?.id
             if (scanId == null) flowOf(emptySet())
-            else savedPlantRepo.observeAll().map { plants ->
-                plants.filter { it.sourceScanId == scanId }
-                    .map { it.plant.scientificName }
-                    .toSet()
-            }
+            else savedPlantRepo.observeSavedNamesByScanId(scanId)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 

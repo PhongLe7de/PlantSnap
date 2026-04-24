@@ -147,8 +147,8 @@ class PlantDetailViewModel @Inject constructor(
         val c = (candidateState.value as? UiState.Success)?.data ?: return
         val scanId = currentScanId ?: return
         viewModelScope.launch {
-            if (isSaved.value) {
-                val existing = savedPlantRepo.findExisting(scanId, c.scientificName) ?: return@launch
+            val existing = savedPlantRepo.findExisting(scanId, c.scientificName)
+            if (existing != null) {
                 savedPlantRepo.unsave(existing.id)
             } else {
                 savedPlantRepo.save(c, scanId)
