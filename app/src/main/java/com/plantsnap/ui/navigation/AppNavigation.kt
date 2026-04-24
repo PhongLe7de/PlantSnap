@@ -58,7 +58,7 @@ enum class BottomNavItem(
     HOME("home", "Home", Icons.Filled.Home),
     IDENTIFY("identify", "Identify", Icons.Filled.CameraAlt),
     HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
-    FAVORITE("favorite", "Favorite", Icons.Filled.Favorite),
+    FAVORITE("favorite", "My Garden", Icons.Filled.Favorite),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
 

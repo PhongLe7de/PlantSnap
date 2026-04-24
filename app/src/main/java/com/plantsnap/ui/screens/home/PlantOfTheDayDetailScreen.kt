@@ -45,9 +45,8 @@ fun PlantOfTheDayDetailScreen(
         aiInfoState = UiState.Success(aiInfo),
         canRetry = false,
         showScanMetadata = false,
-        isSaved = false,
+        showAddToGarden = false,
         onBack = onBack,
         onRetryAi = {},
-        onToggleSaved = {},
     )
 }
