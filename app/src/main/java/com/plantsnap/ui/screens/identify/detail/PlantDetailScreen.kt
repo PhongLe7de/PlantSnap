@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.Button
@@ -87,6 +88,7 @@ fun PlantDetailScreen(
     val aiInfoState by viewModel.aiInfoState.collectAsState()
     val canRetry by viewModel.canRetry.collectAsState()
     val safetyAlerts by viewModel.safetyAlerts.collectAsState()
+    val isSaved by viewModel.isSaved.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
@@ -98,10 +100,12 @@ fun PlantDetailScreen(
         aiInfoState = aiInfoState,
         canRetry = canRetry,
         safetyAlerts = safetyAlerts,
+        isSaved = isSaved,
         onBack = onBack,
         onRetryAi = viewModel::retryAiInfo,
         isFavorite = isFavorite,
         onToggleFavorite = viewModel::toggleFavorite,
+        onToggleSaved = viewModel::toggleSaved,
     )
 }
 
@@ -112,10 +116,12 @@ fun PlantDetailScreenContent(
     canRetry: Boolean = true,
     safetyAlerts: List<SafetyAlert> = emptyList(),
     showScanMetadata: Boolean = true,
+    isSaved: Boolean = false,
     isFavorite: Boolean = false,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
-    onToggleFavorite: () -> Unit = {}
+    onToggleFavorite: () -> Unit = {},
+    onToggleSaved: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
 

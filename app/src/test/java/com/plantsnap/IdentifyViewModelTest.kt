@@ -4,10 +4,12 @@ import android.net.Uri
 import android.util.Log
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
+import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.screens.identify.camera.CapturedPhotosHolder
 import com.plantsnap.ui.screens.identify.identify.IdentifyViewModel
 import com.plantsnap.ui.state.UiState
+import kotlinx.coroutines.flow.flowOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -42,6 +44,7 @@ class IdentifyViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var plantService: PlantService
     private lateinit var photosHolder: CapturedPhotosHolder
+    private lateinit var savedPlantRepo: SavedPlantRepository
     private lateinit var viewModel: IdentifyViewModel
 
     private val testCandidate = Candidate(
@@ -69,7 +72,10 @@ class IdentifyViewModelTest {
 
         plantService = mockk()
         photosHolder = CapturedPhotosHolder()
-        viewModel = IdentifyViewModel(plantService, photosHolder)
+        savedPlantRepo = mockk(relaxed = true) {
+            every { observeAll() } returns flowOf(emptyList())
+        }
+        viewModel = IdentifyViewModel(plantService, photosHolder, savedPlantRepo)
     }
 
     @After

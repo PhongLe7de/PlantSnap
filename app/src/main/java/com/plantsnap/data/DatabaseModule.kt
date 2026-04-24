@@ -3,8 +3,11 @@ package com.plantsnap.data
 import android.content.Context
 import androidx.room.Room
 import com.plantsnap.data.local.PlantSnapDatabase
+import com.plantsnap.data.local.SavedPlantDao
 import com.plantsnap.data.local.ScanDao
+import com.plantsnap.data.repository.SavedPlantRepositoryImpl
 import com.plantsnap.data.repository.ScanRepositoryImpl
+import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.repository.ScanRepository
 import dagger.Binds
 import dagger.Module
@@ -22,6 +25,10 @@ abstract class DatabaseModule {
     @Singleton
     abstract fun bindScanRepository(impl: ScanRepositoryImpl): ScanRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindSavedPlantRepository(impl: SavedPlantRepositoryImpl): SavedPlantRepository
+
     companion object {
         @Provides
         @Singleton
@@ -38,5 +45,9 @@ abstract class DatabaseModule {
         @Provides
         @Singleton
         fun provideScanDao(db: PlantSnapDatabase): ScanDao = db.scanDao()
+
+        @Provides
+        @Singleton
+        fun provideSavedPlantDao(db: PlantSnapDatabase): SavedPlantDao = db.savedPlantDao()
     }
 }

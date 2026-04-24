@@ -25,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -69,6 +71,7 @@ fun IdentificationScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val photos by viewModel.photos.collectAsState()
+    val savedNames by viewModel.savedNames.collectAsState()
 
     LaunchedEffect(Unit) {
         if (viewModel.uiState.value is UiState.Idle) {
@@ -79,8 +82,10 @@ fun IdentificationScreen(
     IdentificationScreenContent(
         state = state,
         photos = photos,
+        savedNames = savedNames,
         onBack = onBack,
         onPlantSelected = onPlantSelected,
+        onToggleSaved = viewModel::toggleSaved,
     )
 }
 
@@ -88,8 +93,10 @@ fun IdentificationScreen(
 private fun IdentificationScreenContent(
     state: UiState<ScanResult>,
     photos: List<Uri> = emptyList(),
+    savedNames: Set<String> = emptySet(),
     onBack: () -> Unit = {},
     onPlantSelected: (String, Int) -> Unit = { _, _ -> },
+    onToggleSaved: (Candidate) -> Unit = {},
 ) {
     Box(
         modifier = Modifier
@@ -108,8 +115,10 @@ private fun IdentificationScreenContent(
             is UiState.Success -> IdentificationSuccessContent(
                 scanResult = state.data,
                 photos = photos,
+                savedNames = savedNames,
                 onBack = onBack,
                 onPlantSelected = onPlantSelected,
+                onToggleSaved = onToggleSaved,
             )
         }
     }
@@ -182,8 +191,10 @@ private fun IdentificationErrorContent(
 private fun IdentificationSuccessContent(
     scanResult: ScanResult,
     photos: List<Uri>,
+    savedNames: Set<String>,
     onBack: () -> Unit,
     onPlantSelected: (String, Int) -> Unit,
+    onToggleSaved: (Candidate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -227,7 +238,9 @@ private fun IdentificationSuccessContent(
         itemsIndexed(scanResult.candidates) { index, candidate ->
             CandidateCard(
                 candidate = candidate,
+                isSaved = candidate.scientificName in savedNames,
                 onClick = { onPlantSelected(scanResult.id, index) },
+                onToggleSaved = { onToggleSaved(candidate) },
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
             Spacer(Modifier.height(12.dp))
@@ -408,7 +421,9 @@ private fun UploadedImagePreview(
 @Composable
 private fun CandidateCard(
     candidate: Candidate,
+    isSaved: Boolean,
     onClick: () -> Unit,
+    onToggleSaved: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -493,11 +508,13 @@ private fun CandidateCard(
                 }
             }
 
-            Icon(
-                Icons.Filled.ChevronRight,
-                contentDescription = null,
-                tint = scheme.primary.copy(alpha = 0.4f),
-            )
+            IconButton(onClick = onToggleSaved) {
+                Icon(
+                    imageVector = if (isSaved) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = null,
+                    tint = if (isSaved) scheme.primary else scheme.primary.copy(alpha = 0.4f),
+                )
+            }
         }
     }
 }
