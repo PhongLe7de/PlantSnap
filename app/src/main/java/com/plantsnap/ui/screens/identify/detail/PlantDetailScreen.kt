@@ -24,12 +24,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.Button
@@ -87,6 +87,7 @@ fun PlantDetailScreen(
     val aiInfoState by viewModel.aiInfoState.collectAsState()
     val canRetry by viewModel.canRetry.collectAsState()
     val safetyAlerts by viewModel.safetyAlerts.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
@@ -99,6 +100,8 @@ fun PlantDetailScreen(
         safetyAlerts = safetyAlerts,
         onBack = onBack,
         onRetryAi = viewModel::retryAiInfo,
+        isFavorite = isFavorite,
+        onToggleFavorite = viewModel::toggleFavorite,
     )
 }
 
@@ -109,8 +112,10 @@ fun PlantDetailScreenContent(
     canRetry: Boolean = true,
     safetyAlerts: List<SafetyAlert> = emptyList(),
     showScanMetadata: Boolean = true,
+    isFavorite: Boolean = false,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -146,15 +151,17 @@ fun PlantDetailScreenContent(
                     textAlign = TextAlign.Center,
                 )
                 IconButton(
-                    onClick = { /* TODO: toggle favourite */ },
+                    onClick = onToggleFavorite,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = scheme.surfaceContainerHigh,
+                        contentColor = if (isFavorite) Color.Red else scheme.onSurfaceVariant
                     ),
                     modifier = Modifier.clip(CircleShape),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.FavoriteBorder,
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = stringResource(R.string.detail_favourite),
+                        tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
                     )
                 }
             }

@@ -56,6 +56,9 @@ class PlantDetailViewModel @Inject constructor(
     private var lastScanId: String? = null
     private var lastScientificName: String? = null
 
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+
     fun loadPlantDetail(plantId: String, candidateIndex: Int) {
         _candidateState.value = UiState.Loading
         _aiInfoState.value = UiState.Idle
@@ -69,6 +72,9 @@ class PlantDetailViewModel @Inject constructor(
                 _candidateState.value = UiState.Error("Plant details not found")
                 return@launch
             }
+
+            _isFavorite.value = scanResult.isFavorite
+
             val candidate = scanResult.candidates.getOrNull(candidateIndex)
             if (candidate == null) {
                 Log.w(
@@ -122,6 +128,21 @@ class PlantDetailViewModel @Inject constructor(
                     else -> "Couldn't load plant info. Please try again later."
                 }
                 _aiInfoState.value = UiState.Error(message)
+            }
+        }
+    }
+
+    fun toggleFavorite() {
+        val scanId = lastScanId ?: return
+        val newValue = !_isFavorite.value
+        _isFavorite.value = newValue
+
+        viewModelScope.launch {
+            try {
+                scanRepository.setFavorite(scanId, newValue)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to toggle favorite", e)
+                _isFavorite.value = !newValue
             }
         }
     }
