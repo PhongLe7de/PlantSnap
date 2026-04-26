@@ -74,7 +74,7 @@ open class GeminiRepositoryImpl @Inject constructor(
                 "human": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route followed by symptoms observed in humans, or null if level is NONE/UNKNOWN" },
                 "edibility": "EDIBLE|INEDIBLE|TOXIC|UNKNOWN",
                 "foragingNotes": "1 sentence on foraging caution (e.g. toxic lookalikes, preparation requirements, exposure routes), or null if not applicable".
-            - "habitat": array of 2 objects, each with "title" (short label e.g. "Tropical Jungles", "Central America"), "body" (1 sentence), and "imageUrl" (direct URL to a representative Wikimedia Commons photo, omit if unsure).
+            - "habitat": array of 2 objects, each with "title" (short label e.g. "Tropical Jungles", "Central America"), "body" (1 sentence), "latitude" (decimal degrees of a representative location in this habitat, e.g. 1.35), and "longitude" (decimal degrees, e.g. 103.87).
             - "description": 1-2 sentences about the plant's characteristics, history, and notable features.
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
         """.trimIndent()
@@ -111,7 +111,7 @@ open class GeminiRepositoryImpl @Inject constructor(
             - "commonName": the most popular common name
             - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (a numeric percentage range like "40-60%", not a descriptive phrase), "soil" (short phrase).$care
             - "toxicity": a single plain JSON string (NOT a nested object or array). Possible toxicity to humans and $toxicity
-            - "habitat": array of 2 objects, each with "title" (short label), "body" (1 sentence), and "imageUrl" (direct URL to a representative Wikimedia Commons photo, omit if unsure).
+            - "habitat": array of 2 objects, each with "title" (short label), "body" (1 sentence), "latitude" (decimal degrees of a representative location), and "longitude" (decimal degrees).
             - "description": 1-2 sentences about the plant's characteristics and history.
             ${if (tone.isNotEmpty()) "$tone\n" else ""}Respond with ONLY the JSON object. No markdown fences, no commentary.
         """.trimIndent()

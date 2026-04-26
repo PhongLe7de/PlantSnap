@@ -27,6 +27,7 @@ navigationCompose = "2.9.7"
 credentials = "1.5.0-rc01"
 googleid = "1.1.1"
 sonarqube = "5.1.0.4882"
+mapsCompose = "8.3.0"
 uiTextGoogleFonts = "<version>"
 rules = "1.7.0"
 ui = "1.10.6"
@@ -91,6 +92,9 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 
 # Kotlinx Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# Google Maps Compose
+maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
 
 # Credentials (for Google Sign-In)
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }

@@ -1,5 +1,6 @@
 package com.plantsnap.ui.screens.identify.detail
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -65,6 +66,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.plantsnap.R
 import com.plantsnap.domain.models.CareInfo
 import com.plantsnap.domain.models.Candidate
@@ -684,7 +692,8 @@ private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
                             title = habitat.title.orEmpty(),
                             body = habitat.body ?: stringResource(R.string.detail_info_unavailable),
                             isLoading = false,
-                            imageUrl = habitat.imageUrl,
+                            latitude = habitat.latitude,
+                            longitude = habitat.longitude,
                         )
                     }
                 }
@@ -693,12 +702,14 @@ private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 private fun HabitatCard(
     title: String,
     body: String,
     isLoading: Boolean,
-    imageUrl: String? = null,
+    latitude: Double? = null,
+    longitude: Double? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -715,11 +726,31 @@ private fun HabitatCard(
                     .height(140.dp)
                     .background(scheme.primaryContainer.copy(alpha = 0.35f)),
             )
+        } else if (latitude != null && longitude != null) {
+            val position = LatLng(latitude, longitude)
+            val cameraPositionState = rememberCameraPositionState {
+                this.position = CameraPosition.fromLatLngZoom(position, 4f)
+            }
+            GoogleMap(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp),
+                cameraPositionState = cameraPositionState,
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = false,
+                    scrollGesturesEnabled = false,
+                    zoomGesturesEnabled = false,
+                    tiltGesturesEnabled = false,
+                    rotationGesturesEnabled = false,
+                ),
+            ) {
+                Marker(
+                    state = MarkerState(position = position),
+                    title = title.ifEmpty { null },
+                )
+            }
         } else {
-            AsyncImage(
-                model = imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
-                contentDescription = title.ifEmpty { null },
-                contentScale = ContentScale.Crop,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
