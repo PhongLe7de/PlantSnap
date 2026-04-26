@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Button
@@ -64,6 +65,7 @@ fun ProfileScreen(
     authState: AuthUiState,
     statsState: ProfileStatsState,
     onSignOut: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     isSynced: Boolean = false,
     onSyncNow: () -> Unit = {},
 ) {
@@ -134,7 +136,10 @@ fun ProfileScreen(
 
         Spacer(Modifier.height(28.dp))
 
-        SettingsSection(modifier = Modifier.padding(horizontal = 20.dp))
+        SettingsSection(
+            onNavigateToSettings = onNavigateToSettings,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
 
         Spacer(Modifier.height(24.dp))
 
@@ -173,7 +178,8 @@ fun ProfileScreen(
 
 @Composable
 fun SettingsSection(
-    modifier: Modifier
+    modifier: Modifier,
+    onNavigateToSettings: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -194,10 +200,7 @@ fun SettingsSection(
                 .background(scheme.surfaceContainerLow),
         ) {
             Column {
-                SettingsRow(icon = Icons.Filled.PersonOutline, label = stringResource(R.string.profile_personal_information))
-                SettingsRow(icon = Icons.Filled.Notifications, label = stringResource(R.string.profile_plant_care))
-                SettingsRow(icon = Icons.Filled.VerifiedUser, label = stringResource(R.string.profile_privacy_security), showDivider = true)
-                SettingsRow(icon = Icons.Filled.Palette, label = stringResource(R.string.profile_appearance), isLast = true)
+                SettingsRow(icon = Icons.Filled.Settings, label = stringResource(R.string.profile_settings), isLast = true, onClick = onNavigateToSettings)
             }
         }
     }

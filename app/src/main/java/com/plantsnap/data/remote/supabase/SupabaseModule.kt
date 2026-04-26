@@ -2,7 +2,9 @@ package com.plantsnap.data.remote.supabase
 
 import com.plantsnap.BuildConfig
 import com.plantsnap.data.repository.ProfileRepositoryImpl
+import com.plantsnap.data.repository.SettingsRepositoryImpl
 import com.plantsnap.domain.repository.ProfileRepository
+import com.plantsnap.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -24,6 +26,10 @@ abstract class SupabaseModule {
     @Binds
     @Singleton
     abstract fun bindProfileRepository(impl: ProfileRepositoryImpl): ProfileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 
     companion object {
         @Provides

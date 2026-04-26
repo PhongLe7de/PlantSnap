@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.plantsnap.domain.models.AppTheme
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -259,16 +260,24 @@ val unspecified_scheme = ColorFamily(
 
 @Composable
 fun PlantSnapTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    appTheme: AppTheme = AppTheme.SYSTEM,        // ← new param, used by MainActivity
+    darkTheme: Boolean = isSystemInDarkTheme(),  // ← kept for previews / tests
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
+    // Resolve the effective dark mode
+    val isDark = when (appTheme) {
+        AppTheme.LIGHT -> false
+        AppTheme.DARK -> true
+        AppTheme.SYSTEM -> darkTheme  // respects system setting
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> darkScheme
+        isDark -> darkScheme
         else -> lightScheme
     }
 
@@ -277,7 +286,7 @@ fun PlantSnapTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.surface.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDark
         }
     }
 
