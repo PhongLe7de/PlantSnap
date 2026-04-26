@@ -50,6 +50,9 @@ interface ScanDao {
     @Query("SELECT COUNT(*) FROM scans")
     fun observeTotalScanCount(): Flow<Int>
 
-@Query("SELECT MIN(timestamp) FROM scans")
-    fun observeFirstScanTimestamp(): Flow<Long?>
+    @Query("SELECT MIN(timestamp) FROM scans")
+        fun observeFirstScanTimestamp(): Flow<Long?>
+
+    @Query("UPDATE scans SET isFavorite = :isFavorite WHERE id = :id")
+    suspend fun setFavorite(id: String, isFavorite: Boolean)
 }

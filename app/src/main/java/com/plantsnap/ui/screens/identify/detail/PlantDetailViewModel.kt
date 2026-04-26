@@ -7,18 +7,22 @@ import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.SupabaseProfile
 import com.plantsnap.domain.repository.ProfileRepository
+import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.repository.ScanRepository
 import com.plantsnap.domain.safety.SafetyAdvisor
 import com.plantsnap.domain.safety.SafetyAlert
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -29,6 +33,7 @@ class PlantDetailViewModel @Inject constructor(
     private val scanRepository: ScanRepository,
     private val plantService: PlantService,
     private val profileRepository: ProfileRepository,
+    private val savedPlantRepo: SavedPlantRepository,
     private val json: Json,
 ) : ViewModel() {
 
@@ -55,12 +60,27 @@ class PlantDetailViewModel @Inject constructor(
     private var aiRetryCount = 0
     private var lastScanId: String? = null
     private var lastScientificName: String? = null
+    private var currentScanId: String? = null
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val isSaved: StateFlow<Boolean> = candidateState
+        .flatMapLatest { state ->
+            val c = (state as? UiState.Success)?.data
+            val scanId = currentScanId
+            if (c == null || scanId == null) flowOf(false)
+            else savedPlantRepo.observeIsSaved(scanId, c.scientificName)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
 
     fun loadPlantDetail(plantId: String, candidateIndex: Int) {
         _candidateState.value = UiState.Loading
         _aiInfoState.value = UiState.Idle
         aiRetryCount = 0
         _canRetry.value = true
+        currentScanId = plantId
         Log.d(TAG, "loadPlantDetail: scanId=$plantId, candidateIndex=$candidateIndex")
         viewModelScope.launch {
             val scanResult = scanRepository.observeById(plantId).firstOrNull()
@@ -69,6 +89,9 @@ class PlantDetailViewModel @Inject constructor(
                 _candidateState.value = UiState.Error("Plant details not found")
                 return@launch
             }
+
+            _isFavorite.value = scanResult.isFavorite
+
             val candidate = scanResult.candidates.getOrNull(candidateIndex)
             if (candidate == null) {
                 Log.w(
@@ -122,6 +145,34 @@ class PlantDetailViewModel @Inject constructor(
                     else -> "Couldn't load plant info. Please try again later."
                 }
                 _aiInfoState.value = UiState.Error(message)
+            }
+        }
+    }
+
+    fun toggleFavorite() {
+        val scanId = lastScanId ?: return
+        val newValue = !_isFavorite.value
+        _isFavorite.value = newValue
+
+        viewModelScope.launch {
+            try {
+                scanRepository.setFavorite(scanId, newValue)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to toggle favorite", e)
+                _isFavorite.value = !newValue
+            }
+        }
+    }
+
+    fun toggleSaved() {
+        val c = (candidateState.value as? UiState.Success)?.data ?: return
+        val scanId = currentScanId ?: return
+        viewModelScope.launch {
+            if (isSaved.value) {
+                val existing = savedPlantRepo.findExisting(scanId, c.scientificName) ?: return@launch
+                savedPlantRepo.unsave(existing.id)
+            } else {
+                savedPlantRepo.save(c, scanId)
             }
         }
     }

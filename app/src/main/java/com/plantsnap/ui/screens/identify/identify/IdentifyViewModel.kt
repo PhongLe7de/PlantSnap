@@ -20,7 +20,7 @@ import java.io.File
 @HiltViewModel
 class IdentifyViewModel @Inject constructor(
     private val plantService: PlantService,
-    private val photosHolder: CapturedPhotosHolder
+    private val photosHolder: CapturedPhotosHolder,
 ) : ViewModel() {
 
     private companion object {
