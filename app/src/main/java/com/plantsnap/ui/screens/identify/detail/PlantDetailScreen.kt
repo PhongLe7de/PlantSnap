@@ -24,6 +24,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
@@ -33,6 +36,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -87,6 +91,8 @@ fun PlantDetailScreen(
     val aiInfoState by viewModel.aiInfoState.collectAsState()
     val canRetry by viewModel.canRetry.collectAsState()
     val safetyAlerts by viewModel.safetyAlerts.collectAsState()
+    val isSaved by viewModel.isSaved.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
@@ -97,8 +103,12 @@ fun PlantDetailScreen(
         aiInfoState = aiInfoState,
         canRetry = canRetry,
         safetyAlerts = safetyAlerts,
+        isSaved = isSaved,
         onBack = onBack,
         onRetryAi = viewModel::retryAiInfo,
+        isFavorite = isFavorite,
+        onToggleFavorite = viewModel::toggleFavorite,
+        onToggleSaved = viewModel::toggleSaved,
     )
 }
 
@@ -109,8 +119,13 @@ fun PlantDetailScreenContent(
     canRetry: Boolean = true,
     safetyAlerts: List<SafetyAlert> = emptyList(),
     showScanMetadata: Boolean = true,
+    isSaved: Boolean = false,
+    showAddToGarden: Boolean = true,
+    isFavorite: Boolean = false,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {},
+    onToggleSaved: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -146,15 +161,17 @@ fun PlantDetailScreenContent(
                     textAlign = TextAlign.Center,
                 )
                 IconButton(
-                    onClick = { /* TODO: toggle favourite */ },
+                    onClick = onToggleFavorite,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = scheme.surfaceContainerHigh,
+                        contentColor = if (isFavorite) Color.Red else scheme.onSurfaceVariant
                     ),
                     modifier = Modifier.clip(CircleShape),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.FavoriteBorder,
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = stringResource(R.string.detail_favourite),
+                        tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
                     )
                 }
             }
@@ -195,7 +212,10 @@ fun PlantDetailScreenContent(
                     canRetry = canRetry,
                     safetyAlerts = safetyAlerts,
                     showScanMetadata = showScanMetadata,
+                    isSaved = isSaved,
+                    showAddToGarden = showAddToGarden,
                     onRetryAi = onRetryAi,
+                    onToggleSaved = onToggleSaved,
                     contentPadding = innerPadding,
                 )
             }
@@ -210,7 +230,10 @@ private fun PlantDetailBody(
     canRetry: Boolean,
     safetyAlerts: List<SafetyAlert>,
     showScanMetadata: Boolean,
+    isSaved: Boolean,
+    showAddToGarden: Boolean,
     onRetryAi: () -> Unit,
+    onToggleSaved: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -220,7 +243,15 @@ private fun PlantDetailBody(
             bottom = contentPadding.calculateBottomPadding() + 32.dp,
         ),
     ) {
-        item { HeroSection(candidate, showScanMetadata) }
+        item {
+            HeroSection(
+                candidate = candidate,
+                showScanMetadata = showScanMetadata,
+                isSaved = isSaved,
+                showAddToGarden = showAddToGarden,
+                onToggleSaved = onToggleSaved,
+            )
+        }
         item { Spacer(Modifier.height(24.dp)) }
         item { AiInsightsSection(candidate, aiInfoState, canRetry, onRetryAi) }
         item { Spacer(Modifier.height(24.dp)) }
@@ -235,7 +266,13 @@ private fun PlantDetailBody(
 }
 
 @Composable
-private fun HeroSection(candidate: Candidate, showScanMetadata: Boolean = true) {
+private fun HeroSection(
+    candidate: Candidate,
+    showScanMetadata: Boolean = true,
+    isSaved: Boolean = false,
+    showAddToGarden: Boolean = true,
+    onToggleSaved: () -> Unit = {},
+) {
     val scheme = MaterialTheme.colorScheme
 
     Box(
@@ -317,6 +354,41 @@ private fun HeroSection(candidate: Candidate, showScanMetadata: Boolean = true) 
                     color = Color.White.copy(alpha = 0.65f),
                     modifier = Modifier.padding(top = 6.dp),
                 )
+            }
+
+            if (showAddToGarden) {
+                Spacer(Modifier.height(14.dp))
+                Button(
+                    onClick = onToggleSaved,
+                    shape = RoundedCornerShape(50),
+                    colors = if (isSaved) {
+                        ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = scheme.primary,
+                        )
+                    } else {
+                        ButtonDefaults.buttonColors(
+                            containerColor = scheme.primary,
+                            contentColor = scheme.onPrimary,
+                        )
+                    },
+                    modifier = Modifier.height(48.dp),
+                ) {
+                    Icon(
+                        imageVector = if (isSaved) Icons.Filled.Check else Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(
+                            if (isSaved) R.string.detail_saved_to_garden
+                            else R.string.detail_add_to_garden
+                        ),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }

@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Icon
@@ -38,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
@@ -63,6 +66,7 @@ import com.plantsnap.ui.screens.profile.AuthUiState
 
 enum class PlantCategory(val label: String) {
     ALL("All scans"),
+    FAVORITES("Favorites"),
     INDOOR("Indoor"),
     OUTDOOR("Outdoor"),
     SUCCULENT("Succulents"),
@@ -203,8 +207,11 @@ fun HistoryScreenContent(
             is UiState.Success -> {
                 val filtered = state.data
                     .filter { scan ->
-                        selectedCategory == PlantCategory.ALL ||
-                                scan.inferCategory() == selectedCategory
+                        when (selectedCategory) {
+                            PlantCategory.ALL -> true
+                            PlantCategory.FAVORITES -> scan.isFavorite
+                            else -> scan.inferCategory() == selectedCategory
+                        }
                     }
                     .filter { scan ->
                         searchQuery.isBlank() ||
@@ -383,6 +390,21 @@ fun HistoryScanCard(
                             letterSpacing = 0.8.sp,
                         )
                     }
+                }
+
+                if (scan.isFavorite) {
+                    Icon(
+                        Icons.Filled.Favorite,
+                        contentDescription = null,
+                        tint = scheme.primary,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(22.dp),
+                    )
+                    Icon(
+                        Icons.Filled.FavoriteBorder,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(22.dp),
+                    )
                 }
             }
             

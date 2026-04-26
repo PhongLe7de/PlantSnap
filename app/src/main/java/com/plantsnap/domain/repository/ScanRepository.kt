@@ -16,4 +16,6 @@ interface ScanRepository {
     // Aggregate stats
     fun observeTotalScanCount(): Flow<Int>
     fun observeFirstScanTimestamp(): Flow<Long?>
+
+    suspend fun setFavorite(id: String, isFavorite: Boolean)
 }

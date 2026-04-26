@@ -15,6 +15,7 @@ data class ScanEntity(
     val rawResponseJson: String?,
     val plantGbifId: String?,
     val identificationScore: Double?,
+    val isFavorite: Boolean = false,
 )
 
 fun ScanResult.toEntity() = ScanEntity(
@@ -27,4 +28,5 @@ fun ScanResult.toEntity() = ScanEntity(
     rawResponseJson = rawResponseJson,
     plantGbifId = plantGbifId,
     identificationScore = identificationScore,
+    isFavorite = isFavorite,
 )
