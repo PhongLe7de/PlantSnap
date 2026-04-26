@@ -1,6 +1,5 @@
 package com.plantsnap.domain.models
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonArray
