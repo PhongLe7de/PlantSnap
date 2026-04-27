@@ -1,6 +1,8 @@
 package com.plantsnap.domain.services
 
 import android.util.Log
+import com.plantsnap.data.local.PlantOfTheDayDao
+import com.plantsnap.data.local.model.PlantOfTheDayEntity
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.toCandidates
 import com.plantsnap.data.sync.ScanSyncManager
@@ -21,6 +23,7 @@ class PlantService @Inject constructor(
     private val geminiRepo: GeminiRepository,
     private val scanRepo: ScanRepository,
     private val scanSyncManager: ScanSyncManager,
+    private val plantOfTheDayDao: PlantOfTheDayDao,
     private val json: Json,
 ) {
 
@@ -70,9 +73,37 @@ class PlantService @Inject constructor(
         return info
     }
 
-    //TODO: add caching and handle image search
     suspend fun getPlantOfTheDay(): PlantOfTheDay {
-        return geminiRepo.getPlantOfTheDay()
+        val today = java.time.LocalDate.now().toString()
+
+        val cached = plantOfTheDayDao.getForDate(today)
+
+        if (cached != null) {
+            Log.d(TAG, "getPlantOfTheDay: cache hit for $today")
+            return runCatching {
+                json.decodeFromString(PlantOfTheDay.serializer(), cached.plantJson)
+            }.getOrElse {
+                Log.w(TAG, "getPlantOfTheDay: cache parse failed, fetching fresh", it)
+                null
+            } ?: fetchAndCache(today)
+        }
+
+        Log.d(TAG, "getPlantOfTheDay: cache miss for $today, fetching from Gemini")
+        return fetchAndCache(today)
+
     }
+
+    private suspend fun fetchAndCache(date: String): PlantOfTheDay {
+        val plant = geminiRepo.getPlantOfTheDay()
+        try {
+            val plantJson = json.encodeToString(PlantOfTheDay.serializer(), plant)
+            plantOfTheDayDao.upsert(PlantOfTheDayEntity(cachedDate = date, plantJson = plantJson))
+            Log.d(TAG, "getPlantOfTheDay: cached ${plant.scientificName} for $date")
+        } catch (e: Exception) {
+            Log.w(TAG, "getPlantOfTheDay: failed to write cache", e)
+        }
+        return plant
+    }
+
     fun getPlantsFromLocal(): Flow<List<ScanResult>> = scanRepo.getAll()
 }
