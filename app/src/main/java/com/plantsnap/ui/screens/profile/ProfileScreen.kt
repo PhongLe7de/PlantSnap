@@ -41,6 +41,7 @@ import java.util.Locale
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
@@ -61,6 +62,7 @@ fun ProfileScreen(
     statsState: ProfileStatsState,
     onSignOut: () -> Unit,
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToHistory: () -> Unit = {},
     isSynced: Boolean = false,
     onSyncNow: () -> Unit = {},
 ) {
@@ -125,6 +127,7 @@ fun ProfileScreen(
 
         SettingsSection(
             onNavigateToSettings = onNavigateToSettings,
+            onNavigateToHistory = onNavigateToHistory,
             modifier = Modifier.padding(horizontal = 20.dp)
         )
 
@@ -167,6 +170,7 @@ fun ProfileScreen(
 fun SettingsSection(
     modifier: Modifier,
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToHistory: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -187,7 +191,8 @@ fun SettingsSection(
                 .background(scheme.surfaceContainerLow),
         ) {
             Column {
-                SettingsRow(icon = Icons.Filled.Settings, label = stringResource(R.string.profile_settings), isLast = true, onClick = onNavigateToSettings)
+                SettingsRow(icon = Icons.Filled.Settings, label = stringResource(R.string.profile_settings), onClick = onNavigateToSettings)
+                SettingsRow(icon = Icons.AutoMirrored.Filled.List, label = stringResource(R.string.profile_history), isLast = true, onClick = onNavigateToHistory)
             }
         }
     }
@@ -221,7 +226,7 @@ fun SettingsRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
 
-        ) {
+            ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -444,7 +449,7 @@ fun StatsBentoGrid(
                         color = scheme.onPrimaryContainer,
                         fontSize = 35.sp,
 
-                    )
+                        )
                     Text(
                         text = stringResource(R.string.profile_total_scans),
                         style = MaterialTheme.typography.headlineSmall,
@@ -466,7 +471,7 @@ fun ProfileHero(
     modifier: Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally

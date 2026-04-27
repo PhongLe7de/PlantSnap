@@ -64,6 +64,8 @@
     <string name="profile_plant_care">Plant Care Reminders</string>
     <string name="profile_privacy_security"><![CDATA[Privacy & Security]]></string>
     <string name="profile_appearance">Appearance</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_history">Scan History</string>
 
     <!-- Plant Detail Screen -->
     <string name="detail_topbar_title">Details</string>
@@ -169,7 +171,5 @@
     <string name="onboarding_interests_option_succulents">Succulents</string>
     <string name="onboarding_interests_option_flowers">Flowers</string>
     <string name="onboarding_interests_option_trees">Trees &amp; shrubs</string>
-    <string name="profile_settings">Settings</string>
-
 
 </resources>
