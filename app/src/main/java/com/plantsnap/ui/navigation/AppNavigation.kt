@@ -66,10 +66,14 @@ enum class BottomNavItem(
 }
 
 private const val ROUTE_HOME_MAIN = "home_main"
+const val ROUTE_HOME_PLANT_DETAILS = "home_plant_details"
+private const val ROUTE_PROFILE_MAIN = "profile_main"
+const val ROUTE_PROFILE_PLANT_DETAILS = "profile_plant_details"
 private const val ROUTE_HISTORY = "history"
 private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
-
 private const val ROUTE_SETTINGS = "settings"
+private const val ROUTE_ONBOARDING = "onboarding"
+
 
 enum class IdentifyNavItem(
     val route: String,
@@ -79,8 +83,6 @@ enum class IdentifyNavItem(
     IDENTIFICATION("identification"),
     PLANT_DETAILS("plant_details")
 }
-
-private const val ROUTE_ONBOARDING = "onboarding"
 
 @Composable
 fun AppNavigation() {
@@ -101,17 +103,12 @@ fun AppNavigation() {
     val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
 
     val navigateToProfile = {
-        val profileRoute = BottomNavItem.PROFILE.route
-        val alreadyOnProfile = currentDestination?.hierarchy?.any { it.route == profileRoute } == true
-
-        if (!alreadyOnProfile) {
-            navController.navigate(profileRoute) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
-                }
-                launchSingleTop = true
-                restoreState = true
+        navController.navigate(BottomNavItem.PROFILE.route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
             }
+            launchSingleTop = true
+            restoreState = true
         }
     }
 
@@ -166,19 +163,6 @@ fun AppNavigation() {
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(ROUTE_SETTINGS) {
-                SettingsScreen(
-                    settings = settings,
-                    onBack = { navController.popBackStack() },
-                    onThemeChange = settingsViewModel::setTheme,
-                    onTemperatureUnitChange = settingsViewModel::setTemperatureUnit,
-                    onLanguageChange = settingsViewModel::setLanguage,
-                    onNotificationsChange = settingsViewModel::setNotificationsEnabled,
-                    onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
-                    profilePhotoUrl = authState.profilePhotoUrl,
-                    onProfileSelected = navigateToProfile,
-                )
-            }
             composable(ROUTE_ONBOARDING) {
                 OnboardingScreen(
                     onFinished = {
@@ -211,7 +195,7 @@ fun AppNavigation() {
                                 }
                             },
                             onScanSelected = { plantId, candidateIndex ->
-                                navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
+                                navController.navigate("$ROUTE_HOME_PLANT_DETAILS/$plantId/$candidateIndex")
                             },
                             onLearnMorePlantOfTheDay = {
                                 navController.navigate(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
@@ -228,6 +212,14 @@ fun AppNavigation() {
                 composable(ROUTE_PLANT_OF_THE_DAY_DETAIL) {
                     PlantOfTheDayDetailScreen(
                         onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable("$ROUTE_HOME_PLANT_DETAILS/{plantId}/{candidateIndex}") { backStackEntry ->
+                    PlantDetailScreen(
+                        plantId = backStackEntry.arguments?.getString("plantId") ?: "",
+                        candidateIndex = backStackEntry.arguments?.getString("candidateIndex")?.toIntOrNull() ?: 0,
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }
@@ -283,61 +275,88 @@ fun AppNavigation() {
                 }
             }
 
-            composable(ROUTE_HISTORY) {
-                HistoryScreen(
-                    authState = authState,
-                    profilePhotoUrl = authState.profilePhotoUrl,
-                    onScanSelected = { plantId, candidateIndex ->
-                        navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
-                    },
-                    onBack = { navController.popBackStack() },
-                    onProfileSelected = navigateToProfile,
-                )
+            navigation(
+                startDestination = ROUTE_PROFILE_MAIN,
+                route = BottomNavItem.PROFILE.route
+            ) {
+                composable(ROUTE_PROFILE_MAIN) {
+                    val profileViewModel: ProfileViewModel = hiltViewModel()
+                    val statsState by profileViewModel.statsState.collectAsState()
+
+                    Column(
+                        modifier = Modifier.testTag("screen_profile")
+                    ) {
+                        when {
+                            authState.isLoading -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+
+                            authState.isLoggedIn -> {
+                                ProfileScreen(
+                                    authState = authState,
+                                    statsState = statsState,
+                                    onSignOut = authViewModel::signOut,
+                                    onNavigateToSettings = { navController.navigate("settings") },
+                                    onNavigateToHistory = { navController.navigate(ROUTE_HISTORY) },
+                                    onProfileSelected = navigateToProfile,
+                                )
+                            }
+
+                            else -> {
+                                AuthenticationScreen(
+                                    supabaseClient = authViewModel.supabaseClient,
+                                    isLoading = false,
+                                    errorMessage = authState.errorMessage,
+                                    onClearError = authViewModel::clearError,
+                                    onError = authViewModel::setError
+                                )
+                            }
+                        }
+                    }
+                }
+
+                composable(ROUTE_HISTORY) {
+                    HistoryScreen(
+                        authState = authState,
+                        profilePhotoUrl = authState.profilePhotoUrl,
+                        onScanSelected = { plantId, candidateIndex ->
+                            navController.navigate("$ROUTE_PROFILE_PLANT_DETAILS/$plantId/$candidateIndex")
+                        },
+                        onBack = { navController.popBackStack() },
+                        onProfileSelected = navigateToProfile,
+                    )
+                }
+
+                composable(ROUTE_SETTINGS) {
+                    SettingsScreen(
+                        settings = settings,
+                        onBack = { navController.popBackStack() },
+                        onThemeChange = settingsViewModel::setTheme,
+                        onTemperatureUnitChange = settingsViewModel::setTemperatureUnit,
+                        onLanguageChange = settingsViewModel::setLanguage,
+                        onNotificationsChange = settingsViewModel::setNotificationsEnabled,
+                        onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
+                        profilePhotoUrl = authState.profilePhotoUrl,
+                        onProfileSelected = navigateToProfile,
+                    )
+                }
+
+                composable("$ROUTE_PROFILE_PLANT_DETAILS/{plantId}/{candidateIndex}") { backStackEntry ->
+                    PlantDetailScreen(
+                        plantId = backStackEntry.arguments?.getString("plantId") ?: "",
+                        candidateIndex = backStackEntry.arguments?.getString("candidateIndex")?.toIntOrNull() ?: 0,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
 
             composable(BottomNavItem.FAVORITE.route) {
                 MyGardenScreen()
-            }
-
-            composable(BottomNavItem.PROFILE.route) {
-                val profileViewModel: ProfileViewModel = hiltViewModel()
-                val statsState by profileViewModel.statsState.collectAsState()
-
-                Column(
-                    modifier = Modifier.testTag("screen_profile")
-                ) {
-                    when {
-                        authState.isLoading -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-
-                        authState.isLoggedIn -> {
-                            ProfileScreen(
-                                authState = authState,
-                                statsState = statsState,
-                                onSignOut = authViewModel::signOut,
-                                onNavigateToSettings = { navController.navigate("settings") },
-                                onNavigateToHistory = { navController.navigate(ROUTE_HISTORY) },
-                                onProfileSelected = navigateToProfile,
-                            )
-                        }
-
-                        else -> {
-                            AuthenticationScreen(
-                                supabaseClient = authViewModel.supabaseClient,
-                                isLoading = false,
-                                errorMessage = authState.errorMessage,
-                                onClearError = authViewModel::clearError,
-                                onError = authViewModel::setError
-                            )
-                        }
-                    }
-                }
             }
         }
     }
