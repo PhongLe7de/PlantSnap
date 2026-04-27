@@ -20,10 +20,22 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_settings")
+
+@Serializable
+private data class SettingsUpsert(
+    @SerialName("user_id") val userId: String,
+    @SerialName("theme") val theme: String,
+    @SerialName("temperature_unit") val temperatureUnit: String,
+    @SerialName("language") val language: String,
+    @SerialName("notifications_enabled") val notificationsEnabled: Boolean,
+    @SerialName("plant_care_reminders") val plantCareReminders: Boolean,
+)
 
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
@@ -66,13 +78,13 @@ class SettingsRepositoryImpl @Inject constructor(
         try {
             supabase.postgrest.from(TABLE)
                 .upsert(
-                    mapOf(
-                        "user_id" to userId,
-                        "theme" to settings.theme.name,
-                        "temperature_unit" to settings.temperatureUnit,
-                        "language" to settings.language,
-                        "notifications_enabled" to settings.notificationsEnabled,
-                        "plant_care_reminders" to settings.plantCareReminders
+                    SettingsUpsert(
+                        userId = userId,
+                        theme = settings.theme.name,
+                        temperatureUnit = settings.temperatureUnit.name,
+                        language = settings.language,
+                        notificationsEnabled = settings.notificationsEnabled,
+                        plantCareReminders = settings.plantCareReminders,
                     )
                 )
             Log.d(TAG, "settings synced to Supabase for $userId")

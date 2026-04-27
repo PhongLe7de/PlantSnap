@@ -4,7 +4,10 @@ import android.util.Log
 import com.plantsnap.data.repository.GeminiRepositoryImpl
 import com.plantsnap.data.wikipedia.WikipediaApi
 import com.plantsnap.domain.models.SupabaseProfile
+import com.plantsnap.domain.models.TemperatureUnit
+import com.plantsnap.domain.models.UserSettings
 import com.plantsnap.domain.repository.ProfileRepository
+import com.plantsnap.domain.repository.SettingsRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -31,6 +34,7 @@ class GeminiRepositoryImplTest {
     private val json = Json { ignoreUnknownKeys }
 
     private lateinit var profileRepository: ProfileRepository
+    private lateinit var settingsRepository: SettingsRepository
     private lateinit var repository: TestableGeminiRepository
     private lateinit var wikipediaApi: WikipediaApi
 
@@ -86,9 +90,10 @@ class GeminiRepositoryImplTest {
 
     class TestableGeminiRepository(
         profileRepository: ProfileRepository,
+        settingsRepository: SettingsRepository,
         wikipediaApi: WikipediaApi,
         json: Json,
-    ) : GeminiRepositoryImpl(mockk(relaxed = true), profileRepository, wikipediaApi, json) {
+    ) : GeminiRepositoryImpl(mockk(relaxed = true), profileRepository, settingsRepository, wikipediaApi, json) {
 
         var nextResponse: String = ""
         var lastPrompt: String = ""
@@ -107,10 +112,11 @@ class GeminiRepositoryImplTest {
         every { Log.w(any<String>(), any<String>()) } returns 0
         every { Log.w(any<String>(), any<String>(), any()) } returns 0
         profileRepository = mockk()
+        settingsRepository = mockk()
         wikipediaApi = mockk(relaxed = true)
         coEvery { profileRepository.getProfile() } returns makeProfile()
         coEvery { wikipediaApi.summary(any()) } returns mockk(relaxed = true)
-        repository = TestableGeminiRepository(profileRepository,wikipediaApi, json)
+        repository = TestableGeminiRepository(profileRepository,settingsRepository,wikipediaApi, json)
     }
 
     @After
@@ -456,5 +462,41 @@ class GeminiRepositoryImplTest {
         advanceUntilIdle()
 
         assertEquals("https://wiki.img/fiddle.jpg", result.imageUrl)
+    }
+
+    @Test
+    fun `getPlantInfo prompt requests Celsius only when unit is CELSIUS`() = runTest {
+        coEvery { settingsRepository.getSettings() } returns UserSettings(temperatureUnit = TemperatureUnit.CELSIUS)
+        repository.nextResponse = validAiInfoJson
+
+        repository.getPlantInfo("Monstera deliciosa")
+        advanceUntilIdle()
+
+        assertTrue("Prompt should request °C", repository.lastPrompt.contains("°C"))
+        assertTrue("Prompt should not request °F", !repository.lastPrompt.contains("°F"))
+    }
+
+    @Test
+    fun `getPlantInfo prompt requests Fahrenheit only when unit is FAHRENHEIT`() = runTest {
+        coEvery { settingsRepository.getSettings() } returns UserSettings(temperatureUnit = TemperatureUnit.FAHRENHEIT)
+        repository.nextResponse = validAiInfoJson
+
+        repository.getPlantInfo("Monstera deliciosa")
+        advanceUntilIdle()
+
+        assertTrue("Prompt should request °F", repository.lastPrompt.contains("°F"))
+        assertTrue("Prompt should not request °C", !repository.lastPrompt.contains("°C"))
+    }
+
+    @Test
+    fun `getPlantOfTheDay prompt requests Fahrenheit when unit is FAHRENHEIT`() = runTest {
+        coEvery { settingsRepository.getSettings() } returns UserSettings(temperatureUnit = TemperatureUnit.FAHRENHEIT)
+        repository.nextResponse = validPlantOfDayJson
+
+        repository.getPlantOfTheDay()
+        advanceUntilIdle()
+
+        assertTrue("Prompt should request °F", repository.lastPrompt.contains("°F"))
+        assertTrue("Prompt should not request °C", !repository.lastPrompt.contains("°C"))
     }
 }

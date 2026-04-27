@@ -122,7 +122,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            SettingsSection(title = "Plant Care Reminders") {
+            /**SettingsSection(title = "Plant Care Reminders") {
                 SettingsToggleRow(
                     icon = Icons.Filled.Notifications,
                     label = "Push Notifications",
@@ -139,7 +139,7 @@ fun SettingsScreen(
                     enabled = settings.notificationsEnabled,
                     onCheckedChange = onPlantCareRemindersChange,
                 )
-            }
+            }**/
         }
     }
 

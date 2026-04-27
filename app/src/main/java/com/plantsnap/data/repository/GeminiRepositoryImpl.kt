@@ -6,8 +6,10 @@ import com.plantsnap.data.wikipedia.WikipediaApi
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.SupabaseProfile
+import com.plantsnap.domain.models.TemperatureUnit
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.ProfileRepository
+import com.plantsnap.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -20,6 +22,7 @@ import javax.inject.Singleton
 open class GeminiRepositoryImpl @Inject constructor(
     private val client: Client,
     private val profileRepository: ProfileRepository,
+    private val settingsRepository: SettingsRepository,
     private val wikipediaApi: WikipediaApi,
     private val json: Json,
 ) : GeminiRepository {
@@ -56,6 +59,7 @@ open class GeminiRepositoryImpl @Inject constructor(
         plantName: String,
     ): PlantAiInfo = withContext(Dispatchers.IO) {
         val profile = getCachedProfile()
+        val settings = settingsRepository.getSettings()
         val petType = profile?.petType ?: "NONE"
         val plantInterests = profile?.plantInterests?.toSet() ?: emptySet()
         val experienceLevel = profile?.experienceLevel ?: "NOT SPECIFIED"
@@ -63,10 +67,11 @@ open class GeminiRepositoryImpl @Inject constructor(
         val toxicity = buildToxicityInstruction(petType)
         val care = buildCareInstruction(experienceLevel, plantInterests)
         val tone = buildToneInstruction(experienceLevel)
+        val tempUnit = buildTemperatureInstruction(settings.temperatureUnit.name)
 
         val prompt = """
             Return a JSON object describing the plant "$plantName" with exactly these fields:
-            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (a numeric percentage range like "40-60%", not a descriptive phrase), "soil" (short phrase).$care
+            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" ($tempUnit), "humidity" (a numeric percentage range like "40-60%", not a descriptive phrase), "soil" (short phrase).$care
             - "toxicity": a single plain JSON string (NOT a nested object or array) of 1-2 sentences summarizing toxicity risks to humans, dogs, and cats. Every sentence MUST begin with the exposure route that triggers the risk (e.g. "If ingested,", "On skin contact,", "If inhaled,", "If the sap contacts skin,"). $toxicity
             - "safety": object with keys:
                 "dog": { "level": "NONE|MILD|MODERATE|SEVERE|UNKNOWN", "symptoms": "1 sentence that MUST start with the exposure route (e.g. \"If ingested,\", \"On contact,\", \"If chewed,\") followed by the symptoms observed in dogs, or null if level is NONE/UNKNOWN" },
@@ -90,6 +95,7 @@ open class GeminiRepositoryImpl @Inject constructor(
 
     override suspend fun getPlantOfTheDay(): PlantOfTheDay = withContext(Dispatchers.IO) {
         val profile = getCachedProfile()
+        val settings = settingsRepository.getSettings()
         val petType = profile?.petType
         val plantInterests = profile?.plantInterests?.toSet() ?: emptySet()
         val experienceLevel = profile?.experienceLevel
@@ -97,6 +103,8 @@ open class GeminiRepositoryImpl @Inject constructor(
         val toxicity = buildToxicityInstruction(petType)
         val care = buildCareInstruction(experienceLevel, plantInterests)
         val tone = buildToneInstruction(experienceLevel)
+        val tempUnit = buildTemperatureInstruction(settings.temperatureUnit.name)
+
 
         val interestHint = if (plantInterests.isNotEmpty()) {
             "Pick a plant that fits these interests: ${plantInterests.joinToString(", ").lowercase().replace("_", " ")}."
@@ -109,7 +117,7 @@ open class GeminiRepositoryImpl @Inject constructor(
             Return a JSON object with exactly these fields:
             - "scientificName": the plant's scientific name
             - "commonName": the most popular common name
-            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" (include both °C and °F), "humidity" (a numeric percentage range like "40-60%", not a descriptive phrase), "soil" (short phrase).$care
+            - "care": object with keys: "light" (short phrase), "water" (short phrase), "temperature" ($tempUnit), "humidity" (a numeric percentage range like "40-60%", not a descriptive phrase), "soil" (short phrase).$care
             - "toxicity": a single plain JSON string (NOT a nested object or array). Possible toxicity to humans and $toxicity
             - "habitat": array of 2 objects, each with "title" (short label), "body" (1 sentence), and "imageUrl" (direct URL to a representative Wikimedia Commons photo, omit if unsure).
             - "description": 1-2 sentences about the plant's characteristics and history.
@@ -146,6 +154,11 @@ open class GeminiRepositoryImpl @Inject constructor(
         }.onFailure { error ->
             Log.w(TAG, "Wikipedia lookup failed for '$trimmed'", error)
         }.getOrNull()
+    }
+
+    private fun buildTemperatureInstruction(temperatureUnit: String): String = when (temperatureUnit) {
+        "FAHRENHEIT" -> "temperature in °F only (e.g. \"65-85°F\")"
+        else -> "temperature in °C only (e.g. \"18-30°C\")"
     }
 
     private fun buildToxicityInstruction(petType: String?): String = when (petType) {
