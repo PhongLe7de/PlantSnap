@@ -169,6 +169,7 @@
     <string name="onboarding_interests_option_succulents">Succulents</string>
     <string name="onboarding_interests_option_flowers">Flowers</string>
     <string name="onboarding_interests_option_trees">Trees &amp; shrubs</string>
+    <string name="profile_settings">Settings</string>
 
 
 </resources>
