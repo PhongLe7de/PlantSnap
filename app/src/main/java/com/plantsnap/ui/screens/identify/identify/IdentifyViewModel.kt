@@ -1,18 +1,14 @@
 package com.plantsnap.ui.screens.identify.identify
 
-import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.screens.identify.camera.CapturedPhotosHolder
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +21,6 @@ import java.io.File
 class IdentifyViewModel @Inject constructor(
     private val plantService: PlantService,
     private val photosHolder: CapturedPhotosHolder,
-    @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
     private companion object {
@@ -34,9 +29,6 @@ class IdentifyViewModel @Inject constructor(
 
     val photos: StateFlow<List<Uri>> = photosHolder.photos
     val organByPhoto: StateFlow<Map<Uri, String>> = photosHolder.organByPhoto
-    val locationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(
-        appContext
-    )
     private val _uiState = MutableStateFlow<UiState<ScanResult>>(UiState.Idle)
     val uiState: StateFlow<UiState<ScanResult>> = _uiState.asStateFlow()
 

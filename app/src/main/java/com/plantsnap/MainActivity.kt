@@ -8,8 +8,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.plantsnap.ui.navigation.AppNavigation
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import com.plantsnap.ui.theme.PlantSnapTheme
@@ -17,6 +19,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.handleDeeplinks
 import javax.inject.Inject
+import com.plantsnap.ui.screens.settings.SettingsViewModel
+import com.plantsnap.domain.models.AppTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -25,6 +29,8 @@ class MainActivity : ComponentActivity() {
     lateinit var supabaseClient: SupabaseClient
 
     private val authViewModel: AuthViewModel by viewModels()
+
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
@@ -56,7 +62,8 @@ class MainActivity : ComponentActivity() {
         supabaseClient.handleDeeplinks(intent)
         enableEdgeToEdge()
         setContent {
-            PlantSnapTheme {
+            val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+            PlantSnapTheme(appTheme = settings.theme) {
                 AppNavigation()
             }
         }

@@ -493,11 +493,6 @@ private fun CandidateCard(
                 }
             }
 
-            Icon(
-                Icons.Filled.ChevronRight,
-                contentDescription = null,
-                tint = scheme.primary.copy(alpha = 0.4f),
-            )
         }
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.testTag
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -34,6 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
+import com.plantsnap.ui.screens.garden.MyGardenScreen
 import com.plantsnap.ui.screens.home.HomeCallbacks
 import com.plantsnap.ui.screens.home.HomeScreen
 import com.plantsnap.ui.screens.home.PlantOfTheDayDetailScreen
@@ -47,6 +50,8 @@ import com.plantsnap.ui.screens.identify.camera.CameraViewModel
 import com.plantsnap.ui.screens.identify.identify.IdentificationScreen
 import com.plantsnap.ui.screens.identify.detail.PlantDetailScreen
 import com.plantsnap.ui.screens.identify.preview.ImagePreviewScreen
+import com.plantsnap.ui.screens.settings.SettingsScreen
+import com.plantsnap.ui.screens.settings.SettingsViewModel
 
 enum class BottomNavItem(
     val route: String,
@@ -56,11 +61,14 @@ enum class BottomNavItem(
     HOME("home", "Home", Icons.Filled.Home),
     IDENTIFY("identify", "Identify", Icons.Filled.CameraAlt),
     HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
+    FAVORITE("favorite", "My Garden", Icons.Filled.Favorite),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
 
 private const val ROUTE_HOME_MAIN = "home_main"
 private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
+
+private const val SETTINGS = "settings"
 
 enum class IdentifyNavItem(
     val route: String,
@@ -87,6 +95,9 @@ fun AppNavigation() {
     val startDestination = if (hasCompletedOnboarding == true) BottomNavItem.HOME.route else ROUTE_ONBOARDING
 
     val showBottomBar = currentDestination?.route != ROUTE_ONBOARDING
+
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
 
     Scaffold(
         bottomBar = {
@@ -139,6 +150,17 @@ fun AppNavigation() {
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(SETTINGS) {
+                SettingsScreen(
+                    settings = settings,
+                    onBack = { navController.popBackStack() },
+                    onThemeChange = settingsViewModel::setTheme,
+                    onTemperatureUnitChange = settingsViewModel::setTemperatureUnit,
+                    onLanguageChange = settingsViewModel::setLanguage,
+                    onNotificationsChange = settingsViewModel::setNotificationsEnabled,
+                    onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
+                )
+            }
             composable(ROUTE_ONBOARDING) {
                 OnboardingScreen(
                     onFinished = {
@@ -244,11 +266,15 @@ fun AppNavigation() {
 
             composable(BottomNavItem.HISTORY.route) {
                 HistoryScreen(
-                    profilePhotoUrl = authState.profilePhotoUrl,
+                    authState = authState,
                     onScanSelected = { plantId, candidateIndex ->
                         navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                     }
                 )
+            }
+
+            composable(BottomNavItem.FAVORITE.route) {
+                MyGardenScreen()
             }
 
             composable(BottomNavItem.PROFILE.route) {
@@ -273,6 +299,7 @@ fun AppNavigation() {
                                 authState = authState,
                                 statsState = statsState,
                                 onSignOut = authViewModel::signOut,
+                                onNavigateToSettings = { navController.navigate("settings") },
                             )
                         }
 

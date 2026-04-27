@@ -1,5 +1,8 @@
 package com.plantsnap.domain.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Candidate(
     /** Clean scientific name without authorship (species.scientificNameWithoutAuthor). */
     val scientificName: String,
