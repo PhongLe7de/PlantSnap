@@ -102,6 +102,7 @@ fun HistoryScreen(
     profilePhotoUrl: String? = null,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
     onBack: () -> Unit = {},
+    onProfileSelected: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -111,6 +112,7 @@ fun HistoryScreen(
         onScanSelected = onScanSelected,
         authState = authState,
         onBack = onBack,
+        onProfileSelected = onProfileSelected
     )
 }
 
@@ -121,6 +123,7 @@ fun HistoryScreenContent(
     profilePhotoUrl: String?,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
+    onProfileSelected: () -> Unit = {},
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(PlantCategory.ALL) }
@@ -134,7 +137,10 @@ fun HistoryScreenContent(
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         item {
-            TopBar(profilePhotoUrl = authState.profilePhotoUrl)
+            TopBar(
+                profilePhotoUrl = profilePhotoUrl,
+                onProfileSelected = onProfileSelected,
+            )
         }
 
         item {

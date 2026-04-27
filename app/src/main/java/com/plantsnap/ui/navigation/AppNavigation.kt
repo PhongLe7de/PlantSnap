@@ -100,6 +100,21 @@ fun AppNavigation() {
     val settingsViewModel: SettingsViewModel = hiltViewModel()
     val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
 
+    val navigateToProfile = {
+        val profileRoute = BottomNavItem.PROFILE.route
+        val alreadyOnProfile = currentDestination?.hierarchy?.any { it.route == profileRoute } == true
+
+        if (!alreadyOnProfile) {
+            navController.navigate(profileRoute) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             if (showBottomBar) NavigationBar(
@@ -161,6 +176,7 @@ fun AppNavigation() {
                     onNotificationsChange = settingsViewModel::setNotificationsEnabled,
                     onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
                     profilePhotoUrl = authState.profilePhotoUrl,
+                    onProfileSelected = navigateToProfile,
                 )
             }
             composable(ROUTE_ONBOARDING) {
@@ -202,6 +218,7 @@ fun AppNavigation() {
                                     launchSingleTop = true
                                 }
                             },
+                            onProfileSelected = navigateToProfile,
                         ),
                         profilePhotoUrl = authState.profilePhotoUrl,
                         authState = authState,
@@ -274,6 +291,7 @@ fun AppNavigation() {
                         navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                     },
                     onBack = { navController.popBackStack() },
+                    onProfileSelected = navigateToProfile,
                 )
             }
 
@@ -304,7 +322,8 @@ fun AppNavigation() {
                                 statsState = statsState,
                                 onSignOut = authViewModel::signOut,
                                 onNavigateToSettings = { navController.navigate("settings") },
-                                onNavigateToHistory = { navController.navigate(ROUTE_HISTORY)}
+                                onNavigateToHistory = { navController.navigate(ROUTE_HISTORY) },
+                                onProfileSelected = navigateToProfile,
                             )
                         }
 
