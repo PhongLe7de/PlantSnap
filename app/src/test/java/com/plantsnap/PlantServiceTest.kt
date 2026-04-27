@@ -1,6 +1,7 @@
 package com.plantsnap
 
 import android.util.Log
+import com.plantsnap.data.local.PlantOfTheDayDao
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.Iucn
 import com.plantsnap.data.plantnet.PredictedOrgan
@@ -37,6 +38,7 @@ class PlantServiceTest {
     private lateinit var scanRepo: ScanRepository
     private lateinit var geminiRepo: GeminiRepository
     private lateinit var scanSyncManager: ScanSyncManager
+    private lateinit var plantOfTheDayDao: PlantOfTheDayDao
     private val json = Json { ignoreUnknownKeys = true }
     private lateinit var service: PlantService
 
@@ -48,8 +50,9 @@ class PlantServiceTest {
         plantNetRepo = mockk()
         scanRepo = mockk()
         geminiRepo = mockk()
+        plantOfTheDayDao = mockk()
         scanSyncManager = mockk(relaxed = true)
-        service = PlantService(plantNetRepo, geminiRepo, scanRepo, scanSyncManager, json)
+        service = PlantService(plantNetRepo, geminiRepo, scanRepo, scanSyncManager,plantOfTheDayDao, json)
     }
 
     @After
