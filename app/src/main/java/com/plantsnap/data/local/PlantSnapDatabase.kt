@@ -6,16 +6,19 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.plantsnap.data.local.model.CandidateEntity
 import com.plantsnap.data.local.model.SavedPlantEntity
+import com.plantsnap.data.local.model.PlantOfTheDayEntity
 import com.plantsnap.data.local.model.ScanEntity
 
 
 @Database(
-    entities = [ScanEntity::class, CandidateEntity::class, SavedPlantEntity::class],
-    version = 7,
+    entities = [ScanEntity::class, CandidateEntity::class, SavedPlantEntity::class, PlantOfTheDayEntity::class],
+    version = 8,
 )
 abstract class PlantSnapDatabase : RoomDatabase() {
     abstract fun scanDao(): ScanDao
     abstract fun savedPlantDao(): SavedPlantDao
+
+    abstract fun plantOfTheDayDao(): PlantOfTheDayDao
 
     companion object {
         /** Adds the `isFavorite` column on `scans` shipped by PR #61. */
@@ -29,6 +32,21 @@ abstract class PlantSnapDatabase : RoomDatabase() {
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 createSavedPlantsTable(db)
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `plant_of_the_day` (
+                        `id` INTEGER NOT NULL DEFAULT 1,
+                        `cachedDate` TEXT NOT NULL,
+                        `plantJson` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent()
+                )
             }
         }
 
