@@ -33,6 +33,8 @@ fun ScanEntity.toSupabaseDto(userId: String, deviceId: String, json: Json): Supa
         identificationScore = identificationScore,
         detectedOrgan = organ,
         allResults = rawResponseJson?.let { json.parseToJsonElement(it) },
+        latitude = latitude,
+        longitude = longitude,
         scannedAt = Instant.ofEpochMilli(timestamp).toString(),
     )
 
@@ -54,5 +56,7 @@ fun SupabaseScanDto.toScanResult(json: Json): ScanResult {
         rawResponseJson = allResults?.toString(),
         plantGbifId = plantGbifId,
         identificationScore = identificationScore,
+        latitude = latitude,
+        longitude = longitude,
     )
 }

@@ -59,6 +59,9 @@ class PlantDetailViewModel @Inject constructor(
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
 
+    private val _scanLocation = MutableStateFlow<Pair<Double, Double>?>(null)
+    val scanLocation: StateFlow<Pair<Double, Double>?> = _scanLocation.asStateFlow()
+
     fun loadPlantDetail(plantId: String, candidateIndex: Int) {
         _candidateState.value = UiState.Loading
         _aiInfoState.value = UiState.Idle
@@ -74,6 +77,9 @@ class PlantDetailViewModel @Inject constructor(
             }
 
             _isFavorite.value = scanResult.isFavorite
+            _scanLocation.value = if (scanResult.latitude != null && scanResult.longitude != null) {
+                scanResult.latitude to scanResult.longitude
+            } else null
 
             val candidate = scanResult.candidates.getOrNull(candidateIndex)
             if (candidate == null) {

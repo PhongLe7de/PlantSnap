@@ -1,5 +1,6 @@
 package com.plantsnap.ui.screens.identify.identify
 
+import android.Manifest
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +38,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -70,7 +73,12 @@ fun IdentificationScreen(
     val state by viewModel.uiState.collectAsState()
     val photos by viewModel.photos.collectAsState()
 
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* result not needed - PlantService checks permission internally */ }
+
     LaunchedEffect(Unit) {
+        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         if (viewModel.uiState.value is UiState.Idle) {
             viewModel.startIdentification()
         }

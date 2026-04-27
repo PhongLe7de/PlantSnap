@@ -177,6 +177,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.ui)
+    implementation(libs.play.services.location)
     ksp(libs.androidx.room.compiler)
 
     // Hilt

@@ -26,4 +26,6 @@ fun ScanWithCandidates.toDomain() = ScanResult(
     plantGbifId = scan.plantGbifId,
     identificationScore = scan.identificationScore,
     isFavorite = scan.isFavorite,
+    latitude = scan.latitude,
+    longitude = scan.longitude,
 )

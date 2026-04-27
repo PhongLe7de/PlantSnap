@@ -96,6 +96,7 @@ fun PlantDetailScreen(
     val canRetry by viewModel.canRetry.collectAsState()
     val safetyAlerts by viewModel.safetyAlerts.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val scanLocation by viewModel.scanLocation.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
@@ -110,6 +111,7 @@ fun PlantDetailScreen(
         onRetryAi = viewModel::retryAiInfo,
         isFavorite = isFavorite,
         onToggleFavorite = viewModel::toggleFavorite,
+        scanLocation = scanLocation,
     )
 }
 
@@ -121,9 +123,10 @@ fun PlantDetailScreenContent(
     safetyAlerts: List<SafetyAlert> = emptyList(),
     showScanMetadata: Boolean = true,
     isFavorite: Boolean = false,
+    scanLocation: Pair<Double, Double>? = null,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
-    onToggleFavorite: () -> Unit = {}
+    onToggleFavorite: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -210,6 +213,7 @@ fun PlantDetailScreenContent(
                     canRetry = canRetry,
                     safetyAlerts = safetyAlerts,
                     showScanMetadata = showScanMetadata,
+                    scanLocation = scanLocation,
                     onRetryAi = onRetryAi,
                     contentPadding = innerPadding,
                 )
@@ -225,6 +229,7 @@ private fun PlantDetailBody(
     canRetry: Boolean,
     safetyAlerts: List<SafetyAlert>,
     showScanMetadata: Boolean,
+    scanLocation: Pair<Double, Double>?,
     onRetryAi: () -> Unit,
     contentPadding: PaddingValues,
 ) {
@@ -246,6 +251,10 @@ private fun PlantDetailBody(
         item { NativeHabitatSection(aiInfoState) }
         item { Spacer(Modifier.height(24.dp)) }
         item { CareRoutineSection(aiInfoState) }
+        if (scanLocation != null) {
+            item { Spacer(Modifier.height(24.dp)) }
+            item { ScanLocationSection(scanLocation) }
+        }
     }
 }
 
@@ -909,6 +918,53 @@ private fun RetryButton(onClick: () -> Unit) {
         )
         Spacer(Modifier.size(8.dp))
         Text(stringResource(R.string.detail_retry))
+    }
+}
+
+@SuppressLint("UnrememberedMutableState")
+@Composable
+private fun ScanLocationSection(scanLocation: Pair<Double, Double>) {
+    val scheme = MaterialTheme.colorScheme
+    val (lat, lng) = scanLocation
+    val position = LatLng(lat, lng)
+    val cameraPositionState = rememberCameraPositionState {
+        this.position = CameraPosition.fromLatLngZoom(position, 14f)
+    }
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = stringResource(R.string.detail_scan_location),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp),
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        ) {
+            GoogleMap(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(24.dp)),
+                cameraPositionState = cameraPositionState,
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = false,
+                    scrollGesturesEnabled = true,
+                    zoomGesturesEnabled = true,
+                    tiltGesturesEnabled = false,
+                    rotationGesturesEnabled = false,
+                ),
+            ) {
+                Marker(
+                    state = MarkerState(position = position),
+                    title = stringResource(R.string.detail_scanned_here),
+                )
+            }
+        }
     }
 }
 
