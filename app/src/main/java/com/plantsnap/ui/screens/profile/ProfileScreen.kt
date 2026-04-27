@@ -65,6 +65,7 @@ fun ProfileScreen(
     onNavigateToHistory: () -> Unit = {},
     isSynced: Boolean = false,
     onSyncNow: () -> Unit = {},
+    onProfileSelected: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -73,7 +74,10 @@ fun ProfileScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        TopBar(profilePhotoUrl = authState.profilePhotoUrl)
+        TopBar(
+            profilePhotoUrl = authState.profilePhotoUrl,
+            onProfileSelected = onProfileSelected,
+        )
 
         if (isSynced) {
             Row(

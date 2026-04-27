@@ -61,6 +61,7 @@ fun SettingsScreen(
     onNotificationsChange: (Boolean) -> Unit,
     onPlantCareRemindersChange: (Boolean) -> Unit,
     profilePhotoUrl: String?,
+    onProfileSelected: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     var showThemePicker by remember { mutableStateOf(false) }
@@ -68,7 +69,10 @@ fun SettingsScreen(
     var showLanguagePicker by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBar(profilePhotoUrl = profilePhotoUrl)
+        TopBar(
+            profilePhotoUrl = profilePhotoUrl,
+            onProfileSelected = onProfileSelected,
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
