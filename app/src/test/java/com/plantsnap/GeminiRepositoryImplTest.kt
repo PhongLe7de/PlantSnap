@@ -112,7 +112,7 @@ class GeminiRepositoryImplTest {
         every { Log.w(any<String>(), any<String>()) } returns 0
         every { Log.w(any<String>(), any<String>(), any()) } returns 0
         profileRepository = mockk()
-        settingsRepository = mockk()
+        settingsRepository = mockk(relaxed = true)
         wikipediaApi = mockk(relaxed = true)
         coEvery { profileRepository.getProfile() } returns makeProfile()
         coEvery { wikipediaApi.summary(any()) } returns mockk(relaxed = true)
