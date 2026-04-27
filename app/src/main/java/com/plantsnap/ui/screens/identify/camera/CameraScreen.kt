@@ -289,8 +289,10 @@ fun CameraScreen(
         )
     }
     val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted -> hasCameraPermission = granted }
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        hasCameraPermission = permissions[Manifest.permission.CAMERA] == true
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS)
@@ -300,9 +302,18 @@ fun CameraScreen(
         }
     }
 
-    // Request permission on first composition if not granted
+    // Request permissions on first composition if not granted
     LaunchedEffect(Unit) {
-        if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
+        val permissionsToRequest = mutableListOf<String>()
+        if (!hasCameraPermission) {
+            permissionsToRequest.add(Manifest.permission.CAMERA)
+        }
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        if (permissionsToRequest.isNotEmpty()) {
+            permissionLauncher.launch(permissionsToRequest.toTypedArray())
+        }
     }
 
     // Camera controller, bound to this composable's lifecycle
@@ -328,7 +339,7 @@ fun CameraScreen(
         onBack = onBack,
         onReviewPhotos = onReviewPhotos,
         onNavigateToPreview = onNavigateToPreview,
-        onGrantPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+        onGrantPermission = { permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION)) },
         onDismissError = { viewModel.clearError() },
         hasCameraPermission = hasCameraPermission,
         errorMessage = (uiState as? UiState.Error)?.message,
