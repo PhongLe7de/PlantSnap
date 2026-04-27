@@ -51,16 +51,18 @@ import com.plantsnap.ui.screens.identify.detail.PlantDetailScreen
 import com.plantsnap.ui.screens.identify.preview.ImagePreviewScreen
 import com.plantsnap.ui.screens.settings.SettingsScreen
 import com.plantsnap.ui.screens.settings.SettingsViewModel
+import androidx.compose.ui.res.stringResource
+import com.plantsnap.R
 
 enum class BottomNavItem(
     val route: String,
-    val label: String,
+    val label: Int,
     val icon: ImageVector
 ) {
-    HOME("home", "Home", Icons.Filled.Home),
-    IDENTIFY("identify", "Identify", Icons.Filled.CameraAlt),
-    FAVORITE("favorite", "My Garden", Icons.Filled.Favorite),
-    PROFILE("profile", "Profile", Icons.Filled.Person)
+    HOME("home", R.string.navigation_home, Icons.Filled.Home),
+    IDENTIFY("identify", R.string.navigation_identify, Icons.Filled.CameraAlt),
+    FAVORITE("favorite", R.string.navigation_my_garden, Icons.Filled.Favorite),
+    PROFILE("profile", R.string.navigation_profile, Icons.Filled.Person)
 }
 
 private const val ROUTE_HOME_MAIN = "home_main"
@@ -127,10 +129,10 @@ fun AppNavigation() {
                         icon = {
                             Icon(
                                 imageVector = item.icon,
-                                contentDescription = item.label
+                                contentDescription = stringResource(item.label),
                             )
                         },
-                        label = { Text(item.label) },
+                        label = { Text(stringResource(item.label)) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,

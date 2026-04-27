@@ -172,4 +172,10 @@
     <string name="onboarding_interests_option_flowers">Flowers</string>
     <string name="onboarding_interests_option_trees">Trees &amp; shrubs</string>
 
+    <!-- Navigation Bar -->
+    <string name="navigation_home">Home</string>
+    <string name="navigation_identify">Identify</string>
+    <string name="navigation_my_garden">My Garden</string>
+    <string name="navigation_profile">Profile</string>
+
 </resources>
