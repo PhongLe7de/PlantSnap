@@ -67,7 +67,7 @@ private const val ROUTE_HOME_MAIN = "home_main"
 private const val ROUTE_HISTORY = "history"
 private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
 
-private const val SETTINGS = "settings"
+private const val ROUTE_SETTINGS = "settings"
 
 enum class IdentifyNavItem(
     val route: String,
@@ -149,7 +149,7 @@ fun AppNavigation() {
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(SETTINGS) {
+            composable(ROUTE_SETTINGS) {
                 SettingsScreen(
                     settings = settings,
                     onBack = { navController.popBackStack() },
@@ -158,6 +158,7 @@ fun AppNavigation() {
                     onLanguageChange = settingsViewModel::setLanguage,
                     onNotificationsChange = settingsViewModel::setNotificationsEnabled,
                     onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
+                    profilePhotoUrl = authState.profilePhotoUrl,
                 )
             }
             composable(ROUTE_ONBOARDING) {
@@ -269,7 +270,8 @@ fun AppNavigation() {
                     profilePhotoUrl = authState.profilePhotoUrl,
                     onScanSelected = { plantId, candidateIndex ->
                         navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
-                    }
+                    },
+                    onBack = { navController.popBackStack() },
                 )
             }
 
