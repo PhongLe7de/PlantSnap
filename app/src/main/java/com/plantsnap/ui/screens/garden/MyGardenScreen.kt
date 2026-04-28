@@ -1,7 +1,9 @@
 package com.plantsnap.ui.screens.garden
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +30,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocalFlorist
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.outlined.Eco
@@ -70,20 +71,29 @@ import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
 @Composable
-fun MyGardenScreen() {
+fun MyGardenScreen(onAddSpecimen: () -> Unit) {
     val viewModel: MyGardenViewModel = hiltViewModel()
     val plantsState by viewModel.plants.collectAsState()
-    MyGardenScreenContent(plantsState = plantsState)
+    MyGardenScreenContent(
+        plantsState = plantsState,
+        onAddSpecimen = {
+            viewModel.resetIdentifyFlow()
+            onAddSpecimen()
+        },
+    )
 }
 
 @Composable
-private fun MyGardenScreenContent(plantsState: UiState<List<SavedPlant>>) {
+private fun MyGardenScreenContent(
+    plantsState: UiState<List<SavedPlant>>,
+    onAddSpecimen: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
 
     Scaffold(
         modifier = Modifier.testTag("screen_garden"),
         containerColor = scheme.surface,
-        topBar = { MyGardenTopBar() },
+        topBar = { MyGardenTopBar(onAddClick = onAddSpecimen) },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -100,17 +110,23 @@ private fun MyGardenScreenContent(plantsState: UiState<List<SavedPlant>>) {
             item {
                 when (val state = plantsState) {
                     is UiState.Idle, is UiState.Loading -> CollectionLoadingSection()
-                    is UiState.Error -> CollectionEmptySection()
+                    is UiState.Error -> CollectionEmptySection(onAddSpecimen = onAddSpecimen)
                     is UiState.Success -> {
                         if (state.data.isEmpty()) {
-                            CollectionEmptySection()
+                            CollectionEmptySection(onAddSpecimen = onAddSpecimen)
                         } else {
-                            CollectionSectionFromSaved(saved = state.data)
+                            CollectionSectionFromSaved(
+                                saved = state.data,
+                                onAddSpecimen = onAddSpecimen,
+                            )
                         }
                     }
                 }
             }
-            item { RecentProgressSection(entries = PREVIEW_PROGRESS) }
+            item {
+                val saved = (plantsState as? UiState.Success)?.data.orEmpty()
+                if (saved.isNotEmpty()) RecentAdditionsSection(saved = saved)
+            }
         }
     }
 }
@@ -118,7 +134,7 @@ private fun MyGardenScreenContent(plantsState: UiState<List<SavedPlant>>) {
 // ─── Top bar ──────────────────────────────────────────────────────────────────
 
 @Composable
-private fun MyGardenTopBar() {
+private fun MyGardenTopBar(onAddClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
 
     Row(
@@ -136,17 +152,25 @@ private fun MyGardenTopBar() {
                 tint = scheme.primary,
                 modifier = Modifier.size(28.dp),
             )
+//            Text(
+//                text = stringResource(R.string.garden_topbar_title),
+//                fontSize = 22.sp,
+//                fontWeight = FontWeight.ExtraBold,
+//                color = scheme.primary,
+//                letterSpacing = (-0.5).sp,
+//            )
             Text(
-                text = stringResource(R.string.garden_topbar_title),
-                fontSize = 22.sp,
+                text = stringResource(R.string.garden_section_title),
+                fontSize = 40.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = scheme.primary,
-                letterSpacing = (-0.5).sp,
+                letterSpacing = (-1).sp,
+                lineHeight = 44.sp,
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconButton(
-                onClick = { /* no-op */ },
+                onClick = onAddClick,
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
@@ -189,14 +213,6 @@ private fun GardenHeader(thrivingCount: Int) {
             verticalAlignment = Alignment.Bottom,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.garden_section_title),
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = scheme.primary,
-                    letterSpacing = (-1).sp,
-                    lineHeight = 44.sp,
-                )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = stringResource(R.string.garden_section_subtitle, thrivingCount),
@@ -423,32 +439,10 @@ private fun TaskTypeLabel(type: TaskType, detail: String) {
 // ─── Collection ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun CollectionSection(hero: GardenPlant, others: List<GardenPlant>) {
-    val scheme = MaterialTheme.colorScheme
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        SectionHeader(
-            title = stringResource(R.string.garden_collection_title),
-            trailing = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SmallCircleButton(icon = Icons.Filled.FilterList)
-                    SmallCircleButton(icon = Icons.Outlined.GridView)
-                }
-            },
-        )
-        Spacer(Modifier.height(16.dp))
-        HeroPlantCard(plant = hero)
-        Spacer(Modifier.height(16.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            others.forEach { plant -> PlantCard(plant = plant) }
-            AddSpecimenCard()
-        }
-    }
-}
-
-@Composable
-private fun CollectionSectionFromSaved(saved: List<SavedPlant>) {
-    val scheme = MaterialTheme.colorScheme
+private fun CollectionSectionFromSaved(
+    saved: List<SavedPlant>,
+    onAddSpecimen: () -> Unit,
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(
             title = stringResource(R.string.garden_collection_title),
@@ -467,17 +461,17 @@ private fun CollectionSectionFromSaved(saved: List<SavedPlant>) {
             Spacer(Modifier.height(16.dp))
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 others.forEach { plant -> PlantCard(plant = plant) }
-                AddSpecimenCard()
+                AddSpecimenCard(onClick = onAddSpecimen)
             }
         } else {
             Spacer(Modifier.height(16.dp))
-            AddSpecimenCard()
+            AddSpecimenCard(onClick = onAddSpecimen)
         }
     }
 }
 
 @Composable
-private fun CollectionEmptySection() {
+private fun CollectionEmptySection(onAddSpecimen: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(
@@ -515,7 +509,7 @@ private fun CollectionEmptySection() {
             }
         }
         Spacer(Modifier.height(16.dp))
-        AddSpecimenCard()
+        AddSpecimenCard(onClick = onAddSpecimen)
     }
 }
 
@@ -774,7 +768,7 @@ private fun PlantStat(icon: ImageVector, label: String) {
 }
 
 @Composable
-private fun AddSpecimenCard() {
+private fun AddSpecimenCard(onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
@@ -787,6 +781,7 @@ private fun AddSpecimenCard() {
                 shape = RoundedCornerShape(20.dp),
             )
             .background(scheme.surfaceContainerLow.copy(alpha = 0.4f))
+            .clickable(onClick = onClick)
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -820,21 +815,41 @@ private fun AddSpecimenCard() {
     }
 }
 
-// ─── Recent Progress ──────────────────────────────────────────────────────────
+// ─── Recent Additions ─────────────────────────────────────────────────────────
 
 @Composable
-private fun RecentProgressSection(entries: List<ProgressEntry>) {
+private fun RecentAdditionsSection(saved: List<SavedPlant>) {
+    val now = System.currentTimeMillis()
+    val entries = saved
+        .sortedByDescending { it.savedAt }
+        .take(5)
+        .map { it.toProgressEntry(now) }
+
     Column(modifier = Modifier.fillMaxWidth()) {
-        SectionHeader(title = stringResource(R.string.garden_recent_progress), trailing = {})
+        SectionHeader(title = stringResource(R.string.garden_recent_additions), trailing = {})
         Spacer(Modifier.height(12.dp))
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             entries.forEach { ProgressItem(entry = it) }
-            LogGrowthCard()
         }
     }
+}
+
+private fun SavedPlant.toProgressEntry(now: Long): ProgressEntry {
+    val nickname = plant.commonNames.firstOrNull() ?: plant.scientificName
+    val timeAgo = DateUtils.getRelativeTimeSpanString(
+        savedAt,
+        now,
+        DateUtils.MINUTE_IN_MILLIS,
+    ).toString()
+    return ProgressEntry(
+        caption = nickname,
+        timeAgoLabel = timeAgo,
+        imageUrl = plant.imageUrl
+            ?: "https://picsum.photos/seed/${plant.scientificName.hashCode()}/400/250",
+    )
 }
 
 @Composable
@@ -881,45 +896,6 @@ private fun ProgressItem(entry: ProgressEntry) {
                 .height(120.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(scheme.surfaceContainerLow),
-        )
-    }
-}
-
-@Composable
-private fun LogGrowthCard() {
-    val scheme = MaterialTheme.colorScheme
-    Column(
-        modifier = Modifier
-            .width(240.dp)
-            .height(180.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .border(
-                width = 1.dp,
-                color = scheme.outlineVariant,
-                shape = RoundedCornerShape(20.dp),
-            ),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(scheme.surfaceContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PhotoCamera,
-                contentDescription = null,
-                tint = scheme.primary,
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.garden_log_growth),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = scheme.primary,
         )
     }
 }
@@ -1001,53 +977,13 @@ private val PREVIEW_TASKS = listOf(
     ),
 )
 
-private val PREVIEW_HERO = GardenPlant(
-    nickname = "Monty",
-    species = "Monstera Deliciosa",
-    imageUrl = "https://picsum.photos/seed/montyhero/800/500",
-    status = PlantStatus.THRIVING,
-    acquiredLabel = "Oct '22",
-)
-
-private val PREVIEW_OTHERS = listOf(
-    GardenPlant(
-        nickname = "Rapunzel",
-        species = "Golden Pothos",
-        imageUrl = "https://picsum.photos/seed/rapunzel/400/400",
-        status = PlantStatus.THRIVING,
-        wateredAgoLabel = "3d",
-        heightCm = 120,
-    ),
-    GardenPlant(
-        nickname = "Spike",
-        species = "Sansevieria",
-        imageUrl = "https://picsum.photos/seed/spike/400/400",
-        status = PlantStatus.OK,
-        wateredAgoLabel = "14d",
-        lightHint = "Low Light",
-    ),
-)
-
-private val PREVIEW_PROGRESS = listOf(
-    ProgressEntry(
-        caption = "Monstera Leaf Unfurling",
-        timeAgoLabel = "2 days ago",
-        imageUrl = "https://picsum.photos/seed/progress1/400/250",
-    ),
-    ProgressEntry(
-        caption = "Pothos Length Check",
-        timeAgoLabel = "1 week ago",
-        imageUrl = "https://picsum.photos/seed/progress2/400/250",
-    ),
-)
-
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
 @Preview(showBackground = true, showSystemUi = true, name = "My Garden – Light")
 @Composable
 private fun MyGardenScreenPreviewLight() {
     PlantSnapTheme {
-        MyGardenScreenContent(plantsState = UiState.Success(emptyList()))
+        MyGardenScreenContent(plantsState = UiState.Success(emptyList()), onAddSpecimen = {})
     }
 }
 
@@ -1058,6 +994,6 @@ private fun MyGardenScreenPreviewLight() {
 @Composable
 private fun MyGardenScreenPreviewDark() {
     PlantSnapTheme(darkTheme = true) {
-        MyGardenScreenContent(plantsState = UiState.Success(emptyList()))
+        MyGardenScreenContent(plantsState = UiState.Success(emptyList()), onAddSpecimen = {})
     }
 }

@@ -274,7 +274,16 @@ fun AppNavigation() {
             }
 
             composable(BottomNavItem.FAVORITE.route) {
-                MyGardenScreen()
+                MyGardenScreen(
+                    onAddSpecimen = {
+                        navController.navigate(BottomNavItem.IDENTIFY.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                )
             }
 
             composable(BottomNavItem.PROFILE.route) {
