@@ -105,18 +105,21 @@ private fun MyGardenScreenContent(
             ),
             verticalArrangement = Arrangement.spacedBy(48.dp),
         ) {
-            item { GardenHeader(thrivingCount = 12) }
-            item { TodaysTasksSection(tasks = PREVIEW_TASKS) }
             item {
-                when (val state = plantsState) {
+                val thrivingCount = (plantsState as? UiState.Success)?.data?.size ?: 0
+                GardenHeader(thrivingCount = thrivingCount)
+            }
+            item { TodayTasksSection() }
+            item {
+                when (plantsState) {
                     is UiState.Idle, is UiState.Loading -> CollectionLoadingSection()
                     is UiState.Error -> CollectionEmptySection(onAddSpecimen = onAddSpecimen)
                     is UiState.Success -> {
-                        if (state.data.isEmpty()) {
+                        if (plantsState.data.isEmpty()) {
                             CollectionEmptySection(onAddSpecimen = onAddSpecimen)
                         } else {
                             CollectionSectionFromSaved(
-                                saved = state.data,
+                                saved = plantsState.data,
                                 onAddSpecimen = onAddSpecimen,
                             )
                         }
@@ -152,20 +155,12 @@ private fun MyGardenTopBar(onAddClick: () -> Unit) {
                 tint = scheme.primary,
                 modifier = Modifier.size(28.dp),
             )
-//            Text(
-//                text = stringResource(R.string.garden_topbar_title),
-//                fontSize = 22.sp,
-//                fontWeight = FontWeight.ExtraBold,
-//                color = scheme.primary,
-//                letterSpacing = (-0.5).sp,
-//            )
             Text(
-                text = stringResource(R.string.garden_section_title),
-                fontSize = 40.sp,
+                text = stringResource(R.string.garden_topbar_title),
+                fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = scheme.primary,
-                letterSpacing = (-1).sp,
-                lineHeight = 44.sp,
+                letterSpacing = (-0.5).sp,
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -250,8 +245,9 @@ private fun GardenHeader(thrivingCount: Int) {
 // ─── Today's Tasks ────────────────────────────────────────────────────────────
 
 @Composable
-private fun TodaysTasksSection(tasks: List<TodaysTask>) {
+private fun TodayTasksSection() {
     val scheme = MaterialTheme.colorScheme
+    val tasks = PREVIEW_TASKS
 
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(
@@ -275,7 +271,7 @@ private fun TodaysTasksSection(tasks: List<TodaysTask>) {
 }
 
 @Composable
-private fun TaskCard(task: TodaysTask) {
+private fun TaskCard(task: TodayTask) {
     val scheme = MaterialTheme.colorScheme
 
     Box(
@@ -601,7 +597,7 @@ private fun HeroPlantCard(plant: GardenPlant) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    StatusPill(status = plant.status)
+                    StatusPill()
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = plant.nickname,
@@ -638,7 +634,7 @@ private fun HeroPlantCard(plant: GardenPlant) {
 }
 
 @Composable
-private fun StatusPill(status: PlantStatus) {
+private fun StatusPill() {
     val scheme = MaterialTheme.colorScheme
     Surface(
         shape = RoundedCornerShape(50),
@@ -782,6 +778,7 @@ private fun AddSpecimenCard(onClick: () -> Unit) {
             )
             .background(scheme.surfaceContainerLow.copy(alpha = 0.4f))
             .clickable(onClick = onClick)
+            .testTag("btn_garden_add_specimen")
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -926,7 +923,7 @@ private enum class TaskType { WATER, FERTILIZE, MIST }
 
 private enum class PlantStatus { THRIVING, OK, NEEDS_ATTENTION }
 
-private data class TodaysTask(
+private data class TodayTask(
     val nickname: String,
     val species: String,
     val imageUrl: String,
@@ -953,21 +950,21 @@ private data class ProgressEntry(
 )
 
 private val PREVIEW_TASKS = listOf(
-    TodaysTask(
+    TodayTask(
         nickname = "Monty",
         species = "Monstera Deliciosa",
         imageUrl = "https://picsum.photos/seed/monty/200/200",
         type = TaskType.WATER,
         detail = "250ml",
     ),
-    TodaysTask(
+    TodayTask(
         nickname = "Figgy Smalls",
         species = "Fiddle Leaf Fig",
         imageUrl = "https://picsum.photos/seed/figgy/200/200",
         type = TaskType.FERTILIZE,
         detail = "Diluted",
     ),
-    TodaysTask(
+    TodayTask(
         nickname = "Callie",
         species = "Calathea Ornata",
         imageUrl = "https://picsum.photos/seed/callie/200/200",

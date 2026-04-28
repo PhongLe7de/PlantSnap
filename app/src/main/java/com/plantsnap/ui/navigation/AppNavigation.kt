@@ -61,7 +61,7 @@ enum class BottomNavItem(
     HOME("home", "Home", Icons.Filled.Home),
     IDENTIFY("identify", "Identify", Icons.Filled.CameraAlt),
     HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
-    FAVORITE("favorite", "My Garden", Icons.Filled.Favorite),
+    GARDEN("garden", "My Garden", Icons.Filled.Favorite),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
 
@@ -273,7 +273,7 @@ fun AppNavigation() {
                 )
             }
 
-            composable(BottomNavItem.FAVORITE.route) {
+            composable(BottomNavItem.GARDEN.route) {
                 MyGardenScreen(
                     onAddSpecimen = {
                         navController.navigate(BottomNavItem.IDENTIFY.route) {
