@@ -80,14 +80,6 @@ class NavigationTest {
     }
 
     @Test
-    fun tapping_my_garden_tab() {
-        composeRule.onNodeWithTag("nav_favorite").performClick()
-
-        composeRule.onNodeWithTag("screen_favorite").assertIsDisplayed()
-        composeRule.onNodeWithTag("nav_favorite").assertIsSelected()
-    }
-
-    @Test
     fun tapping_profile_tab() {
         composeRule.onNodeWithTag("nav_profile").performClick()
 
@@ -146,13 +138,13 @@ class NavigationTest {
     @Test
     fun rapid_tab_switching() {
         composeRule.onNodeWithTag("nav_identify").performClick()
-        composeRule.onNodeWithTag("nav_favorite").performClick()
+        composeRule.onNodeWithTag("nav_garden").performClick()
         composeRule.onNodeWithTag("nav_profile").performClick()
         composeRule.onNodeWithTag("nav_identify").performClick()
         composeRule.onNodeWithTag("nav_home").performClick()
-        composeRule.onNodeWithTag("nav_favorite").performClick()
+        composeRule.onNodeWithTag("nav_garden").performClick()
 
-        composeRule.onNodeWithTag("screen_favorite").assertIsDisplayed()
+        composeRule.onNodeWithTag("screen_garden").assertIsDisplayed()
     }
 
     /**
