@@ -5,7 +5,6 @@ import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -54,7 +53,7 @@ class NavigationTest {
     fun bottom_nav_displays_all_tabs(){
         composeRule.onNodeWithTag("nav_home").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_identify").assertIsDisplayed()
-        composeRule.onNodeWithTag("nav_history").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav_favorite").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_profile").assertIsDisplayed()
 
     }
@@ -78,11 +77,11 @@ class NavigationTest {
     }
 
     @Test
-    fun tapping_history_tab() {
-        composeRule.onNodeWithTag("nav_history").performClick()
+    fun tapping_my_garden_tab() {
+        composeRule.onNodeWithTag("nav_favorite").performClick()
 
-        composeRule.onNodeWithTag("screen_history").assertIsDisplayed()
-        composeRule.onNodeWithTag("nav_history").assertIsSelected()
+        composeRule.onNodeWithTag("screen_favorite").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav_favorite").assertIsSelected()
     }
 
     @Test
@@ -117,7 +116,7 @@ class NavigationTest {
 
         composeRule.onNodeWithTag("nav_identify").assertIsSelected()
         composeRule.onNodeWithTag("nav_home").assertIsNotSelected()
-        composeRule.onNodeWithTag("nav_history").assertIsNotSelected()
+        composeRule.onNodeWithTag("nav_favorite").assertIsNotSelected()
         composeRule.onNodeWithTag("nav_profile").assertIsNotSelected()
     }
 
@@ -136,13 +135,13 @@ class NavigationTest {
     @Test
     fun rapid_tab_switching() {
         composeRule.onNodeWithTag("nav_identify").performClick()
-        composeRule.onNodeWithTag("nav_history").performClick()
+        composeRule.onNodeWithTag("nav_favorite").performClick()
         composeRule.onNodeWithTag("nav_profile").performClick()
         composeRule.onNodeWithTag("nav_identify").performClick()
         composeRule.onNodeWithTag("nav_home").performClick()
-        composeRule.onNodeWithTag("nav_history").performClick()
+        composeRule.onNodeWithTag("nav_favorite").performClick()
 
-        composeRule.onNodeWithTag("screen_history").assertIsDisplayed()
+        composeRule.onNodeWithTag("screen_favorite").assertIsDisplayed()
     }
 
     /**
