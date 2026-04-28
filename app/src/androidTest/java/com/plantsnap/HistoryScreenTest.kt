@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.plantsnap.data.local.PlantSnapDatabase
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
@@ -14,6 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import androidx.test.rule.GrantPermissionRule
 import org.junit.After
+import javax.inject.Inject
 
 
 @HiltAndroidTest
@@ -23,6 +25,9 @@ class HistoryScreenTest {
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
 
+    @Inject
+    lateinit var db: PlantSnapDatabase
+
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
@@ -30,12 +35,15 @@ class HistoryScreenTest {
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         android.Manifest.permission.CAMERA,
         android.Manifest.permission.READ_MEDIA_IMAGES,
-        android.Manifest.permission.READ_EXTERNAL_STORAGE
+        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        android.Manifest.permission.ACCESS_FINE_LOCATION,
+        android.Manifest.permission.ACCESS_COARSE_LOCATION
     )
 
     @Before
     fun setUp() {
         hiltRule.inject()
+        db.clearAllTables()
         composeRule.onNodeWithTag("nav_history").performClick()
         composeRule.waitForIdle()
     }

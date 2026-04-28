@@ -1,6 +1,11 @@
 package com.plantsnap
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.Iucn
 import com.plantsnap.data.plantnet.PredictedOrgan
@@ -33,6 +38,7 @@ import java.io.File
 
 class PlantServiceTest {
 
+    private lateinit var context: Context
     private lateinit var plantNetRepo: PlantNetRepository
     private lateinit var scanRepo: ScanRepository
     private lateinit var geminiRepo: GeminiRepository
@@ -44,17 +50,27 @@ class PlantServiceTest {
     fun setUp() {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
+        every { Log.w(any(), any<String>(), any()) } returns 0
 
+        mockkStatic(LocationServices::class)
+        every { LocationServices.getFusedLocationProviderClient(any<Context>()) } returns mockk(relaxed = true)
+
+        mockkStatic(ContextCompat::class)
+        every { ContextCompat.checkSelfPermission(any(), any()) } returns PackageManager.PERMISSION_DENIED
+
+        context = mockk(relaxed = true)
         plantNetRepo = mockk()
         scanRepo = mockk()
         geminiRepo = mockk()
         scanSyncManager = mockk(relaxed = true)
-        service = PlantService(plantNetRepo, geminiRepo, scanRepo, scanSyncManager, json)
+        service = PlantService(context, plantNetRepo, geminiRepo, scanRepo, scanSyncManager, json)
     }
 
     @After
     fun tearDown() {
         unmockkStatic(Log::class)
+        unmockkStatic(LocationServices::class)
+        unmockkStatic(ContextCompat::class)
     }
 
     private fun mockFile(path: String = "/test/photo.jpg", exists: Boolean = true) = mockk<File> {
