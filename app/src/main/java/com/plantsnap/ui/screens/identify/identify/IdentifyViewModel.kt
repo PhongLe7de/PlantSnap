@@ -29,7 +29,6 @@ class IdentifyViewModel @Inject constructor(
 
     val photos: StateFlow<List<Uri>> = photosHolder.photos
     val organByPhoto: StateFlow<Map<Uri, String>> = photosHolder.organByPhoto
-
     private val _uiState = MutableStateFlow<UiState<ScanResult>>(UiState.Idle)
     val uiState: StateFlow<UiState<ScanResult>> = _uiState.asStateFlow()
 

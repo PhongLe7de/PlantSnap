@@ -29,7 +29,9 @@ class NavigationTest {
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         android.Manifest.permission.CAMERA,
         android.Manifest.permission.READ_MEDIA_IMAGES,
-        android.Manifest.permission.READ_EXTERNAL_STORAGE
+        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        android.Manifest.permission.ACCESS_FINE_LOCATION,
+        android.Manifest.permission.ACCESS_COARSE_LOCATION
     )
 
     @Before

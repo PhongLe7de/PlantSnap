@@ -78,7 +78,8 @@ data class CareInfo(
 data class HabitatInfo(
     val title: String? = null,
     val body: String? = null,
-    val imageUrl: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 @Serializable

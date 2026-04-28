@@ -34,6 +34,8 @@ android {
         buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"${localProperties.getProperty("GOOGLE_SERVER_CLIENT_ID") ?: ""}\"")
         buildConfigField("String", "PLANTNET_API_KEY", "\"${localProperties.getProperty("PLANTNET_API_KEY") ?: ""}\"")
         buildConfigField("String", "GOOGLE_API_KEY", "\"${localProperties.getProperty("GOOGLE_API_KEY") ?: ""}\"")
+
+        manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("MAPS_API_KEY") ?: ""
     }
 
     buildTypes {
@@ -176,6 +178,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.ui)
+    implementation(libs.play.services.location)
     ksp(libs.androidx.room.compiler)
 
     // Hilt
@@ -224,4 +227,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.text.google.fonts)
     //Splash screen api
     implementation("androidx.core:core-splashscreen:1.0.0")
+    // Maps SDK
+    implementation(libs.maps.compose)
 }

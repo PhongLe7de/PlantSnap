@@ -86,6 +86,8 @@
     <string name="detail_retry">Retry</string>
     <string name="detail_back">Back</string>
     <string name="detail_favourite">Add to favourites</string>
+    <string name="detail_scan_location">Scan Location</string>
+    <string name="detail_scanned_here">Scanned here</string>
     <string name="detail_add_to_garden">Add to My Garden</string>
     <string name="detail_saved_to_garden">Saved to Garden</string>
 
