@@ -18,10 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Thermostat
-import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,6 +60,8 @@ fun SettingsScreen(
     onLanguageChange: (String) -> Unit,
     onNotificationsChange: (Boolean) -> Unit,
     onPlantCareRemindersChange: (Boolean) -> Unit,
+    profilePhotoUrl: String?,
+    onProfileSelected: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     var showThemePicker by remember { mutableStateOf(false) }
@@ -69,7 +69,10 @@ fun SettingsScreen(
     var showLanguagePicker by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBar(profilePhotoUrl = null)
+        TopBar(
+            profilePhotoUrl = profilePhotoUrl,
+            onProfileSelected = onProfileSelected,
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -392,7 +395,8 @@ private fun SettingsScreenPreview() {
             onTemperatureUnitChange = {},
             onLanguageChange = {},
             onNotificationsChange = {},
-            onPlantCareRemindersChange = {}
+            onPlantCareRemindersChange = {},
+            profilePhotoUrl = null,
         )
     }
 }
