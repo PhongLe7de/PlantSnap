@@ -22,4 +22,6 @@ data class ScanResult(
     val isFavorite: Boolean = false,
     val latitude: Double? = null,
     val longitude: Double? = null,
+    /** Storage bucket path of the captured image for this scan. */
+    val imageUrl: String? = null,
 )

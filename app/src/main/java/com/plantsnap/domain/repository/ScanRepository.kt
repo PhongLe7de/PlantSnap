@@ -18,4 +18,7 @@ interface ScanRepository {
     fun observeFirstScanTimestamp(): Flow<Long?>
 
     suspend fun setFavorite(id: String, isFavorite: Boolean)
+
+    suspend fun setImageUrl(id: String, url: String?)
+    suspend fun getImageUrl(id: String): String?
 }

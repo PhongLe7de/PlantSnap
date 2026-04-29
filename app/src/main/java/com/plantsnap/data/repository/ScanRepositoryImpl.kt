@@ -53,4 +53,8 @@ class ScanRepositoryImpl @Inject constructor(
     override fun observeFirstScanTimestamp(): Flow<Long?> = dao.observeFirstScanTimestamp()
 
     override suspend fun setFavorite(id: String, isFavorite: Boolean) = dao.setFavorite(id, isFavorite)
+
+    override suspend fun setImageUrl(id: String, url: String?) = dao.setImageUrl(id, url)
+
+    override suspend fun getImageUrl(id: String): String? = dao.getImageUrl(id)
 }
