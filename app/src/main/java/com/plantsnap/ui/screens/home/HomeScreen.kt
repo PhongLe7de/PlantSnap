@@ -67,6 +67,7 @@ data class HomeCallbacks(
     val onLearnMorePlantOfTheDay: () -> Unit = {},
     val onViewAllScans: () -> Unit = {},
     val onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
+    val onProfileSelected: () -> Unit = {},
 )
 
 @Composable
@@ -105,7 +106,12 @@ fun HomeScreenContent(
     Scaffold(
         modifier = Modifier.testTag("screen_home"),
         containerColor = scheme.surface,
-        topBar = { TopBar(profilePhotoUrl = profilePhotoUrl) },
+        topBar = {
+            TopBar(
+                profilePhotoUrl = profilePhotoUrl,
+                onProfileSelected = callbacks.onProfileSelected,
+            )
+         },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

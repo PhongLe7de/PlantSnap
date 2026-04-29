@@ -1,6 +1,7 @@
 package com.plantsnap.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 fun TopBar(
     modifier: Modifier = Modifier,
     profilePhotoUrl: String? = null,
+    onProfileSelected: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -65,21 +67,21 @@ fun TopBar(
                 )
             }
 
+            val profileModifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onProfileSelected)
+
             if (profilePhotoUrl != null) {
                 AsyncImage(
                     model = profilePhotoUrl,
                     contentDescription = "Profile photo",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
+                    modifier = profileModifier,
                 )
             } else {
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(scheme.surfaceContainerHigh),
+                    modifier = profileModifier.background(scheme.surfaceContainerHigh),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
