@@ -17,4 +17,6 @@ data class Candidate(
     val imageUrl: String? = null,
     /** Cached PlantAiInfo serialized as JSON. Null until fetched from Gemini. */
     val aiInfo: String? = null,
+    /** GBIF id (numeric) for this candidate, when PlantNet returns one. */
+    val gbifId: Long? = null,
 )
