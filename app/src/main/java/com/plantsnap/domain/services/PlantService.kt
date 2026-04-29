@@ -13,11 +13,13 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.toCandidates
+import com.plantsnap.data.storage.PlantImageUploader
 import com.plantsnap.data.sync.ScanSyncManager
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.repository.GeminiRepository
+import com.plantsnap.domain.repository.PlantDetailsRepository
 import com.plantsnap.domain.repository.PlantNetRepository
 import com.plantsnap.domain.repository.ScanRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,6 +35,8 @@ class PlantService @Inject constructor(
     private val geminiRepo: GeminiRepository,
     private val scanRepo: ScanRepository,
     private val scanSyncManager: ScanSyncManager,
+    private val plantDetailsRepository: PlantDetailsRepository,
+    private val plantImageUploader: PlantImageUploader,
     private val json: Json,
 ) {
     private val locationClient: FusedLocationProviderClient =
@@ -84,6 +88,16 @@ class PlantService @Inject constructor(
             Log.w(TAG, "Post-save sync failed (will retry later)", e)
         }
 
+        try {
+            val storagePath = plantImageUploader.uploadScanImage(scanResult.imagePath, scanResult.id)
+            if (storagePath != null) {
+                scanRepo.setImageUrl(scanResult.id, storagePath)
+                Log.d(TAG, "Uploaded scan image to $storagePath")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Scan image upload failed (will retry on next save)", e)
+        }
+
         return scanResult
     }
 
@@ -92,6 +106,7 @@ class PlantService @Inject constructor(
         val info = geminiRepo.getPlantInfo(scientificName)
         val infoJson = json.encodeToString(PlantAiInfo.serializer(), info)
         scanRepo.updateCandidateAiInfo(scanId, scientificName, infoJson)
+        plantDetailsRepository.upsertIfHasGbif(scanId, scientificName, info)
         return info
     }
 

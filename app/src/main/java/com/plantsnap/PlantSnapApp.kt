@@ -5,6 +5,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import com.plantsnap.data.sync.SavedPlantSyncObserver
 import com.plantsnap.data.sync.ScanSyncObserver
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -17,12 +18,14 @@ import javax.inject.Inject
 class PlantSnapApp : Application(), SingletonImageLoader.Factory {
 
     @Inject lateinit var scanSyncObserver: ScanSyncObserver
+    @Inject lateinit var savedPlantSyncObserver: SavedPlantSyncObserver
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
         scanSyncObserver.start(appScope)
+        savedPlantSyncObserver.start(appScope)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =
