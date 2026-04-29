@@ -30,17 +30,12 @@ class PlantImageUrlResolver @Inject constructor(
 ) {
     private companion object {
         const val TAG = "PlantImageUrlResolver"
-        const val BUCKET = "plant_images"
         val DEFAULT_TTL: Duration = 1.hours
     }
 
     suspend fun resolve(value: String?): String? {
         if (value.isNullOrBlank()) return null
-        if (isAbsoluteUrl(value)) return value
-        if (supabase.auth.currentUserOrNull() == null) return null
-        return runCatching {
-            supabase.storage.from(BUCKET).createSignedUrl(value, expiresIn = DEFAULT_TTL)
-        }.onFailure { Log.w(TAG, "createSignedUrl failed for $value", it) }.getOrNull()
+        return resolveAll(listOf(value))[value]
     }
 
     /**
@@ -65,7 +60,7 @@ class PlantImageUrlResolver @Inject constructor(
             paths.map { path ->
                 async {
                     runCatching {
-                        path to supabase.storage.from(BUCKET)
+                        path to supabase.storage.from(PLANT_IMAGES_BUCKET)
                             .createSignedUrl(path, expiresIn = DEFAULT_TTL)
                     }.onFailure {
                         Log.w(TAG, "createSignedUrl failed for $path", it)

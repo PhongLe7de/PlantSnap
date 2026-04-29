@@ -5,6 +5,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,7 +22,9 @@ class SavedPlantSyncObserver @Inject constructor(
     fun start(scope: CoroutineScope) {
         Log.d(TAG, "start: collecting sessionStatus")
         scope.launch {
-            supabase.auth.sessionStatus.collect { status ->
+            supabase.auth.sessionStatus
+                .distinctUntilChangedBy { it::class }
+                .collect { status ->
                 Log.d(TAG, "sessionStatus = ${status::class.simpleName}")
                 if (status is SessionStatus.Authenticated) {
                     Log.d(TAG, "session authenticated — syncing saved plants (pull + push)")

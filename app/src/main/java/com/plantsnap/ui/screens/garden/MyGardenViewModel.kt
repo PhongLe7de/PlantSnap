@@ -12,8 +12,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 
 data class SavedPlantUi(
@@ -31,16 +30,14 @@ class MyGardenViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val plants: StateFlow<UiState<List<SavedPlantUi>>> =
         repo.observeAll()
-            .flatMapLatest { saved ->
-                flow {
-                    val resolved = imageUrlResolver.resolveAll(saved.map { it.plant.imageUrl })
-                    emit(UiState.Success(saved.map { sp ->
-                        SavedPlantUi(
-                            plant = sp,
-                            displayImageUrl = sp.plant.imageUrl?.let { resolved[it] },
-                        )
-                    }))
-                }
+            .mapLatest { saved ->
+                val resolved = imageUrlResolver.resolveAll(saved.map { it.plant.imageUrl })
+                UiState.Success(saved.map { sp ->
+                    SavedPlantUi(
+                        plant = sp,
+                        displayImageUrl = sp.plant.imageUrl?.let { resolved[it] },
+                    )
+                })
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState.Loading)
 

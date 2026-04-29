@@ -157,14 +157,6 @@ abstract class PlantSnapDatabase : RoomDatabase() {
                     """.trimIndent()
                 )
 
-                // Backfill plant_details from rows that already have a gbifId.
-                db.execSQL(
-                    """
-                    INSERT OR IGNORE INTO plant_details (plantGbifId, scientificName)
-                    SELECT plantGbifId, scientificName FROM saved_plants WHERE plantGbifId IS NOT NULL
-                    """.trimIndent()
-                )
-
                 // Try to resolve null gbifIds from the matching candidate row.
                 db.execSQL(
                     """
@@ -180,7 +172,7 @@ abstract class PlantSnapDatabase : RoomDatabase() {
                     """.trimIndent()
                 )
 
-                // Re-run backfill for rows that just got resolved.
+                // Backfill plant_details from every row we have a gbifId for.
                 db.execSQL(
                     """
                     INSERT OR IGNORE INTO plant_details (plantGbifId, scientificName)

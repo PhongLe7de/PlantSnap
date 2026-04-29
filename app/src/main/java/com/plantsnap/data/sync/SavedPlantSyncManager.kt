@@ -13,6 +13,8 @@ import com.plantsnap.domain.services.PlantService
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -33,15 +35,18 @@ class SavedPlantSyncManager @Inject constructor(
 
     private val mutex = Mutex()
 
-    /** Pull remote → local, then push local → remote. Use for any full-refresh trigger. */
+    /** Pull remote → local and push local → remote in parallel. They touch disjoint
+     *  rows (pull writes synced=true; push reads synced=0), so concurrency is safe. */
     suspend fun sync() = mutex.withLock {
         val userId = supabase.auth.currentUserOrNull()?.id
         if (userId == null) {
             Log.d(TAG, "sync: not authenticated, skipping")
             return@withLock
         }
-        pullFromRemoteInternal(userId)
-        pushPendingInternal(userId)
+        coroutineScope {
+            launch { pullFromRemoteInternal(userId) }
+            launch { pushPendingInternal(userId) }
+        }
     }
 
     /** Push-only path used right after a local save, before the pull trigger fires. */
