@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
-import com.plantsnap.domain.models.SavedPlant
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
@@ -77,7 +76,7 @@ fun MyGardenScreen() {
 }
 
 @Composable
-private fun MyGardenScreenContent(plantsState: UiState<List<SavedPlant>>) {
+private fun MyGardenScreenContent(plantsState: UiState<List<SavedPlantUi>>) {
     val scheme = MaterialTheme.colorScheme
 
     Scaffold(
@@ -447,7 +446,7 @@ private fun CollectionSection(hero: GardenPlant, others: List<GardenPlant>) {
 }
 
 @Composable
-private fun CollectionSectionFromSaved(saved: List<SavedPlant>) {
+private fun CollectionSectionFromSaved(saved: List<SavedPlantUi>) {
     val scheme = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(
@@ -534,10 +533,10 @@ private fun CollectionLoadingSection() {
     }
 }
 
-private fun SavedPlant.toGardenPlant(): GardenPlant = GardenPlant(
-    nickname = plant.commonNames.firstOrNull() ?: plant.scientificName,
-    species = plant.scientificName,
-    imageUrl = plant.imageUrl ?: "https://picsum.photos/seed/${plant.scientificName.hashCode()}/600/400",
+private fun SavedPlantUi.toGardenPlant(): GardenPlant = GardenPlant(
+    nickname = plant.plant.commonNames.firstOrNull() ?: plant.plant.scientificName,
+    species = plant.plant.scientificName,
+    imageUrl = displayImageUrl ?: "https://picsum.photos/seed/${plant.plant.scientificName.hashCode()}/600/400",
     status = PlantStatus.THRIVING,
     acquiredLabel = null,
     wateredAgoLabel = null,
