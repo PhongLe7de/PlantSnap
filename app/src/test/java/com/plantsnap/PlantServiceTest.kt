@@ -66,7 +66,7 @@ class PlantServiceTest {
         geminiRepo = mockk()
         plantOfTheDayDao = mockk()
         scanSyncManager = mockk(relaxed = true)
-        service = PlantService(plantNetRepo, geminiRepo, scanRepo, scanSyncManager,plantOfTheDayDao, json)
+        service = PlantService(context, plantNetRepo, geminiRepo, scanRepo,scanSyncManager,plantOfTheDayDao, json)
     }
 
     @After
