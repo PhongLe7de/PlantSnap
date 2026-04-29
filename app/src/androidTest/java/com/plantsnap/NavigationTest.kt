@@ -31,9 +31,7 @@ class NavigationTest {
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         android.Manifest.permission.CAMERA,
         android.Manifest.permission.READ_MEDIA_IMAGES,
-        android.Manifest.permission.READ_EXTERNAL_STORAGE,
-        android.Manifest.permission.ACCESS_FINE_LOCATION,
-        android.Manifest.permission.ACCESS_COARSE_LOCATION
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
     )
 
     @Before
@@ -51,6 +49,9 @@ class NavigationTest {
             .assertIsDisplayed()
     }
 
+    /**
+     * All four nav items visible
+     */
     @Test
     fun bottom_nav_displays_all_tabs(){
         composeRule.onNodeWithTag("nav_home").assertIsDisplayed()

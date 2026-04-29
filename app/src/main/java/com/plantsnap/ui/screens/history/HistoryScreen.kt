@@ -22,12 +22,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -99,6 +101,8 @@ fun HistoryScreen(
     viewModel: HistoryViewModel = hiltViewModel(),
     profilePhotoUrl: String? = null,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
+    onBack: () -> Unit = {},
+    onProfileSelected: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -106,7 +110,9 @@ fun HistoryScreen(
         state = state,
         profilePhotoUrl = profilePhotoUrl,
         onScanSelected = onScanSelected,
-        authState = authState
+        authState = authState,
+        onBack = onBack,
+        onProfileSelected = onProfileSelected
     )
 }
 
@@ -116,6 +122,8 @@ fun HistoryScreenContent(
     authState: AuthUiState,
     profilePhotoUrl: String?,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
+    onBack: () -> Unit = {},
+    onProfileSelected: () -> Unit = {},
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(PlantCategory.ALL) }
@@ -129,29 +137,49 @@ fun HistoryScreenContent(
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         item {
-            TopBar(profilePhotoUrl = authState.profilePhotoUrl)
+            TopBar(
+                profilePhotoUrl = profilePhotoUrl,
+                onProfileSelected = onProfileSelected,
+            )
         }
-        item {
-            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                Text(
-                    text = stringResource(R.string.history_title),
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = scheme.primary
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.history_subtitle),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = scheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(20.dp))
 
-                HistorySearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                )
-                Spacer(Modifier.height(16.dp))
+        item {
+            Column(modifier = Modifier.padding(top = 4.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 4.dp, end = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = scheme.secondary,
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.history_title),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = scheme.primary
+                    )
+                }
+
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = stringResource(R.string.history_subtitle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = scheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(20.dp))
+
+                    HistorySearchBar(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
             }
         }
 
@@ -397,13 +425,19 @@ fun HistoryScanCard(
                         Icons.Filled.Favorite,
                         contentDescription = null,
                         tint = scheme.primary,
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(22.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(4.dp)
+                            .size(22.dp),
                     )
                     Icon(
                         Icons.Filled.FavoriteBorder,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(22.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(4.dp)
+                            .size(22.dp),
                     )
                 }
             }

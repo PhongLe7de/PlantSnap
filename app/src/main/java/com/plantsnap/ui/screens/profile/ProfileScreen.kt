@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.plantsnap.R
+import com.plantsnap.ui.components.TopBar
 import com.plantsnap.ui.screens.profile.model.PlantRank
 import com.plantsnap.ui.theme.PlantSnapTheme
 import java.text.SimpleDateFormat
@@ -63,6 +64,7 @@ fun ProfileScreen(
     onNavigateToHistory: () -> Unit = {},
     isSynced: Boolean = false,
     onSyncNow: () -> Unit = {},
+    onProfileSelected: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -71,6 +73,11 @@ fun ProfileScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+        TopBar(
+            profilePhotoUrl = authState.profilePhotoUrl,
+            onProfileSelected = onProfileSelected,
+        )
+
         if (isSynced) {
             Row(
                 modifier = Modifier
@@ -187,17 +194,8 @@ fun SettingsSection(
                 .background(scheme.surfaceContainerLow),
         ) {
             Column {
-                SettingsRow(
-                    icon = Icons.Filled.Settings,
-                    label = stringResource(R.string.profile_settings),
-                    onClick = onNavigateToSettings,
-                )
-                SettingsRow(
-                    icon = Icons.AutoMirrored.Filled.List,
-                    label = stringResource(R.string.profile_history),
-                    isLast = true,
-                    onClick = onNavigateToHistory,
-                )
+                SettingsRow(icon = Icons.Filled.Settings, label = stringResource(R.string.profile_settings), onClick = onNavigateToSettings)
+                SettingsRow(icon = Icons.AutoMirrored.Filled.List, label = stringResource(R.string.profile_history), isLast = true, onClick = onNavigateToHistory)
             }
         }
     }
@@ -231,7 +229,7 @@ fun SettingsRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
 
-        ) {
+            ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -454,7 +452,7 @@ fun StatsBentoGrid(
                         color = scheme.onPrimaryContainer,
                         fontSize = 35.sp,
 
-                    )
+                        )
                     Text(
                         text = stringResource(R.string.profile_total_scans),
                         style = MaterialTheme.typography.headlineSmall,
@@ -476,7 +474,7 @@ fun ProfileHero(
     modifier: Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
