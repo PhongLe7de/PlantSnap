@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.SupabaseProfile
+import com.plantsnap.data.sync.SavedPlantSyncManager
 import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.repository.ScanRepository
@@ -34,6 +35,7 @@ class PlantDetailViewModel @Inject constructor(
     private val plantService: PlantService,
     private val profileRepository: ProfileRepository,
     private val savedPlantRepo: SavedPlantRepository,
+    private val savedPlantSyncManager: SavedPlantSyncManager,
     private val json: Json,
 ) : ViewModel() {
 
@@ -67,8 +69,9 @@ class PlantDetailViewModel @Inject constructor(
         .flatMapLatest { state ->
             val c = (state as? UiState.Success)?.data
             val scanId = currentScanId
-            if (c == null || scanId == null) flowOf(false)
-            else savedPlantRepo.observeIsSaved(scanId, c.scientificName)
+            val gbifId = c?.gbifId
+            if (c == null || scanId == null || gbifId == null) flowOf(false)
+            else savedPlantRepo.observeIsSaved(scanId, gbifId)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
@@ -171,14 +174,37 @@ class PlantDetailViewModel @Inject constructor(
     }
 
     fun toggleSaved() {
-        val c = (candidateState.value as? UiState.Success)?.data ?: return
-        val scanId = currentScanId ?: return
+        val c = (candidateState.value as? UiState.Success)?.data ?: run {
+            Log.w(TAG, "toggleSaved: ignored, candidateState is not Success")
+            return
+        }
+        val scanId = currentScanId ?: run {
+            Log.w(TAG, "toggleSaved: ignored, currentScanId is null")
+            return
+        }
+        Log.d(TAG, "toggleSaved: name=${c.scientificName} gbif=${c.gbifId} scanId=$scanId currentlySaved=${isSaved.value}")
+        val gbifId = c.gbifId ?: run {
+            Log.w(TAG, "toggleSaved: ignored, candidate has no gbifId (name=${c.scientificName})")
+            return
+        }
         viewModelScope.launch {
             if (isSaved.value) {
-                val existing = savedPlantRepo.findExisting(scanId, c.scientificName) ?: return@launch
+                val existing = savedPlantRepo.findExisting(scanId, gbifId) ?: run {
+                    Log.w(TAG, "toggleSaved: cannot unsave, no existing row for scanId=$scanId gbif=$gbifId")
+                    return@launch
+                }
                 savedPlantRepo.unsave(existing.id)
+                Log.d(TAG, "toggleSaved: marked archived id=${existing.id}")
             } else {
-                savedPlantRepo.save(c, scanId)
+                val saved = savedPlantRepo.save(c, scanId)
+                Log.d(TAG, "toggleSaved: saved locally id=${saved.id}")
+            }
+            Log.d(TAG, "toggleSaved: triggering syncPending")
+            try {
+                savedPlantSyncManager.syncPending()
+                Log.d(TAG, "toggleSaved: syncPending returned")
+            } catch (e: Exception) {
+                Log.w(TAG, "toggleSaved: syncPending threw ${e::class.simpleName}: ${e.message}", e)
             }
         }
     }
