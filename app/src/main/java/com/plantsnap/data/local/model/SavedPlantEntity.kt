@@ -6,32 +6,56 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.SavedPlant
-import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "saved_plants",
-    foreignKeys = [ForeignKey(
-        entity = ScanEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["sourceScanId"],
-        onDelete = ForeignKey.SET_NULL,
-    )],
+    foreignKeys = [
+        ForeignKey(
+            entity = ScanEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["originalScanId"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
+        ForeignKey(
+            entity = PlantDetailsEntity::class,
+            parentColumns = ["plantGbifId"],
+            childColumns = ["plantGbifId"],
+            onDelete = ForeignKey.RESTRICT,
+        ),
+    ],
     indices = [
-        Index("sourceScanId"),
-        Index(value = ["sourceScanId", "scientificName"], unique = true),
+        Index("originalScanId"),
+        Index(value = ["originalScanId", "plantGbifId"], unique = true),
+        Index("plantGbifId"),
+        Index("synced"),
     ],
 )
 data class SavedPlantEntity(
     @PrimaryKey val id: String,
-    val candidateJson: String,
-    val scientificName: String,
-    val sourceScanId: String?,
-    val savedAt: Long,
+    val userId: String?,
+    val plantGbifId: Long,
+    val originalScanId: String?,
+    val nickname: String,
+    val imageUrl: String?,
+    val isArchived: Boolean,
+    val isFavourite: Boolean,
+    val lastWateredAt: Long?,
+    val createdAt: Long,
+    val synced: Boolean,
 )
 
-fun SavedPlantEntity.toDomain(json: Json): SavedPlant = SavedPlant(
+fun SavedPlantEntity.toDomain(scientificName: String): SavedPlant = SavedPlant(
     id = id,
-    plant = json.decodeFromString(Candidate.serializer(), candidateJson),
-    sourceScanId = sourceScanId,
-    savedAt = savedAt,
+    plant = Candidate(
+        scientificName = scientificName,
+        commonNames = if (nickname == scientificName) emptyList() else listOf(nickname),
+        family = "",
+        score = 0f,
+        iucnCategory = null,
+        imageUrl = imageUrl,
+        aiInfo = null,
+        gbifId = plantGbifId,
+    ),
+    originalScanId = originalScanId,
+    createdAt = createdAt,
 )
