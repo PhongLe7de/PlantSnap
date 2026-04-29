@@ -3,6 +3,7 @@ package com.plantsnap.data
 import android.content.Context
 import androidx.room.Room
 import com.plantsnap.data.local.PlantDetailsDao
+import com.plantsnap.data.local.PlantOfTheDayDao
 import com.plantsnap.data.local.PlantSnapDatabase
 import com.plantsnap.data.local.SavedPlantDao
 import com.plantsnap.data.local.ScanDao
@@ -45,6 +46,7 @@ abstract class DatabaseModule {
                     PlantSnapDatabase.MIGRATION_7_8,
                     PlantSnapDatabase.MIGRATION_8_9,
                     PlantSnapDatabase.MIGRATION_9_10,
+                    PlantSnapDatabase.MIGRATION_10_11,
                 )
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
@@ -60,5 +62,9 @@ abstract class DatabaseModule {
         @Provides
         @Singleton
         fun providePlantDetailsDao(db: PlantSnapDatabase): PlantDetailsDao = db.plantDetailsDao()
+
+        @Provides
+        @Singleton
+        fun providePlantOfTheDayDao(db: PlantSnapDatabase): PlantOfTheDayDao = db.plantOfTheDayDao()
     }
 }

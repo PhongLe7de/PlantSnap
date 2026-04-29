@@ -6,18 +6,26 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.plantsnap.data.local.model.CandidateEntity
 import com.plantsnap.data.local.model.PlantDetailsEntity
+import com.plantsnap.data.local.model.PlantOfTheDayEntity
 import com.plantsnap.data.local.model.SavedPlantEntity
 import com.plantsnap.data.local.model.ScanEntity
 
 
 @Database(
-    entities = [ScanEntity::class, CandidateEntity::class, SavedPlantEntity::class, PlantDetailsEntity::class],
-    version = 10,
+    entities = [
+        ScanEntity::class,
+        CandidateEntity::class,
+        SavedPlantEntity::class,
+        PlantDetailsEntity::class,
+        PlantOfTheDayEntity::class,
+    ],
+    version = 11,
 )
 abstract class PlantSnapDatabase : RoomDatabase() {
     abstract fun scanDao(): ScanDao
     abstract fun savedPlantDao(): SavedPlantDao
     abstract fun plantDetailsDao(): PlantDetailsDao
+    abstract fun plantOfTheDayDao(): PlantOfTheDayDao
 
     companion object {
         /** Adds the `isFavorite` column on `scans` shipped by PR #61. */
@@ -236,6 +244,22 @@ abstract class PlantSnapDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_saved_plants_synced` " +
                         "ON `saved_plants` (`synced`)"
+                )
+            }
+        }
+
+        /** Adds the `plant_of_the_day` single-row cache table. */
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `plant_of_the_day` (
+                        `id` INTEGER NOT NULL,
+                        `cachedDate` TEXT NOT NULL,
+                        `plantJson` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent()
                 )
             }
         }
