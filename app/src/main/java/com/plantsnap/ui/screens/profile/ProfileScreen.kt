@@ -53,8 +53,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.plantsnap.ui.components.TopBar
-
 @Composable
 fun ProfileScreen(
     authState: AuthUiState,
@@ -71,8 +69,6 @@ fun ProfileScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        TopBar(profilePhotoUrl = authState.profilePhotoUrl)
-
         if (isSynced) {
             Row(
                 modifier = Modifier
@@ -426,7 +422,7 @@ fun StatsBentoGrid(
                     .weight(1f)
                     .clip(RoundedCornerShape(28.dp))
                     .background(scheme.primaryContainer)
-                    .padding(10.dp),
+                    .padding(20.dp),
             ) {
                 Icon(
                     Icons.Filled.CameraAlt,

@@ -48,7 +48,6 @@ import com.plantsnap.domain.models.AppTheme
 import com.plantsnap.domain.models.TemperatureUnit
 import com.plantsnap.domain.models.UserSettings
 import com.plantsnap.ui.theme.PlantSnapTheme
-import com.plantsnap.ui.components.TopBar
 
 
 
@@ -69,7 +68,6 @@ fun SettingsScreen(
     var showLanguagePicker by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBar(profilePhotoUrl = null)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
