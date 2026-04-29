@@ -16,6 +16,8 @@ data class ScanEntity(
     val plantGbifId: String?,
     val identificationScore: Double?,
     val isFavorite: Boolean = false,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 fun ScanResult.toEntity() = ScanEntity(
@@ -29,4 +31,6 @@ fun ScanResult.toEntity() = ScanEntity(
     plantGbifId = plantGbifId,
     identificationScore = identificationScore,
     isFavorite = isFavorite,
+    latitude = latitude,
+    longitude = longitude,
 )

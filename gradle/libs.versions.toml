@@ -27,9 +27,11 @@ navigationCompose = "2.9.7"
 credentials = "1.5.0-rc01"
 googleid = "1.1.1"
 sonarqube = "5.1.0.4882"
+mapsCompose = "8.3.0"
 uiTextGoogleFonts = "<version>"
 rules = "1.7.0"
 ui = "1.10.6"
+playServicesLocation = "21.3.0"
 
 [libraries]
 androidx-test-rules = { group = "androidx.test", name = "rules", version = "1.6.1" }
@@ -92,6 +94,9 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 # Kotlinx Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
+# Google Maps Compose
+maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
+
 # Credentials (for Google Sign-In)
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
@@ -100,6 +105,7 @@ androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

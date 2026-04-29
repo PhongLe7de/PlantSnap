@@ -20,4 +20,6 @@ data class ScanResult(
     /** Top candidate's confidence score (0..1). */
     val identificationScore: Double? = null,
     val isFavorite: Boolean = false,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )

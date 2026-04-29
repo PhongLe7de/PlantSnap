@@ -1,8 +1,18 @@
 package com.plantsnap.domain.services
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import com.plantsnap.data.local.PlantOfTheDayDao
 import com.plantsnap.data.local.model.PlantOfTheDayEntity
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.toCandidates
 import com.plantsnap.data.sync.ScanSyncManager
@@ -12,6 +22,7 @@ import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.PlantNetRepository
 import com.plantsnap.domain.repository.ScanRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -19,6 +30,7 @@ import javax.inject.Inject
 
 
 class PlantService @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val plantNetRepo: PlantNetRepository,
     private val geminiRepo: GeminiRepository,
     private val scanRepo: ScanRepository,
@@ -26,12 +38,19 @@ class PlantService @Inject constructor(
     private val plantOfTheDayDao: PlantOfTheDayDao,
     private val json: Json,
 ) {
+    private val locationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(
+            appContext
+        )
 
     private companion object {
         const val TAG = "PlantService"
     }
 
-    suspend fun identifyPlantAndSaveToLocal(imageFiles: List<File>, organs: List<String>): ScanResult {
+    suspend fun identifyPlantAndSaveToLocal(
+        imageFiles: List<File>,
+        organs: List<String>
+    ): ScanResult {
         require(imageFiles.isNotEmpty()) { "imageFiles must not be empty" }
         require(imageFiles.size == organs.size) { "imageFiles and organs must have the same size" }
 
@@ -43,6 +62,10 @@ class PlantService @Inject constructor(
         val plants = plantNetRepo.identifyPlantFromMultipleImages(imageFiles, organs)
 
         val topResult = plants.results.firstOrNull()
+
+        val location = getCurrentLocation()
+        Log.d(TAG, "Captured location: lat=${location?.first}, lng=${location?.second}")
+
         val scanResult = ScanResult(
             imagePath = imageFiles.first().absolutePath,
             organ = plants.predictedOrgans.firstOrNull()?.organ ?: "auto",
@@ -51,6 +74,8 @@ class PlantService @Inject constructor(
             rawResponseJson = json.encodeToString(IdentifyPlantResponse.serializer(), plants),
             plantGbifId = topResult?.gbif?.id?.toString(),
             identificationScore = topResult?.score,
+            latitude = location?.first,
+            longitude = location?.second,
         )
 
         scanRepo.save(scanResult)
@@ -105,5 +130,42 @@ class PlantService @Inject constructor(
         return plant
     }
 
+
     fun getPlantsFromLocal(): Flow<List<ScanResult>> = scanRepo.getAll()
+
+    private suspend fun getCurrentLocation(): Pair<Double, Double>? {
+        val hasFine = ContextCompat.checkSelfPermission(
+            appContext,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasCoarse = ContextCompat.checkSelfPermission(
+            appContext,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!hasFine && !hasCoarse) {
+            Log.d(TAG, "Location permission not granted")
+            return null
+        }
+
+        return try {
+            suspendCancellableCoroutine { cont ->
+                locationClient.getCurrentLocation(
+                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                    CancellationTokenSource().token,
+                ).addOnSuccessListener { location ->
+                    if (location != null) {
+                        cont.resume(location.latitude to location.longitude)
+                    } else {
+                        cont.resume(null)
+                    }
+                }.addOnFailureListener { e ->
+                    Log.w(TAG, "Failed to get location", e)
+                    cont.resume(null)
+                }
+            }
+        } catch (e: SecurityException) {
+            Log.w(TAG, "SecurityException getting location", e)
+            null
+        }
+    }
 }
