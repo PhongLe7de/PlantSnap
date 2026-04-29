@@ -47,6 +47,7 @@ abstract class DatabaseModule {
                     PlantSnapDatabase.MIGRATION_8_9,
                     PlantSnapDatabase.MIGRATION_9_10,
                     PlantSnapDatabase.MIGRATION_10_11,
+                    PlantSnapDatabase.MIGRATION_11_12,
                 )
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()

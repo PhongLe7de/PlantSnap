@@ -19,7 +19,7 @@ import com.plantsnap.data.local.model.ScanEntity
         PlantDetailsEntity::class,
         PlantOfTheDayEntity::class,
     ],
-    version = 11,
+    version = 12,
 )
 abstract class PlantSnapDatabase : RoomDatabase() {
     abstract fun scanDao(): ScanDao
@@ -261,6 +261,60 @@ abstract class PlantSnapDatabase : RoomDatabase() {
                     )
                     """.trimIndent()
                 )
+            }
+        }
+
+        /**
+         * Recreates `scans` to the canonical shape: drops the lingering `DEFAULT 0`
+         * on `isFavorite` (baked in by MIGRATION_5_6's `ADD COLUMN ... DEFAULT 0`)
+         * and renames the legacy `thumbnailUrl` column to `imageUrl`
+         */
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                val hasImageUrl = db.query(
+                    "SELECT 1 FROM pragma_table_info('scans') WHERE name = 'imageUrl'"
+                ).use { it.moveToFirst() }
+                val hasThumbnailUrl = db.query(
+                    "SELECT 1 FROM pragma_table_info('scans') WHERE name = 'thumbnailUrl'"
+                ).use { it.moveToFirst() }
+                val sourceImageColumn = when {
+                    hasImageUrl -> "imageUrl"
+                    hasThumbnailUrl -> "thumbnailUrl"
+                    else -> "NULL"
+                }
+
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `scans_new` (
+                        `id` TEXT NOT NULL,
+                        `imagePath` TEXT NOT NULL,
+                        `organ` TEXT NOT NULL,
+                        `bestMatch` TEXT NOT NULL,
+                        `timestamp` INTEGER NOT NULL,
+                        `synced` INTEGER NOT NULL,
+                        `rawResponseJson` TEXT,
+                        `plantGbifId` TEXT,
+                        `identificationScore` REAL,
+                        `isFavorite` INTEGER NOT NULL,
+                        `latitude` REAL,
+                        `longitude` REAL,
+                        `imageUrl` TEXT,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO scans_new
+                        (id, imagePath, organ, bestMatch, timestamp, synced, rawResponseJson,
+                         plantGbifId, identificationScore, isFavorite, latitude, longitude, imageUrl)
+                    SELECT id, imagePath, organ, bestMatch, timestamp, synced, rawResponseJson,
+                           plantGbifId, identificationScore, isFavorite, latitude, longitude, $sourceImageColumn
+                    FROM scans
+                    """.trimIndent()
+                )
+                db.execSQL("DROP TABLE scans")
+                db.execSQL("ALTER TABLE scans_new RENAME TO scans")
             }
         }
     }
