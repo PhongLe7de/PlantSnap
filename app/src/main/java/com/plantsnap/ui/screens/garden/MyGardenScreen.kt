@@ -156,7 +156,7 @@ private fun MyGardenTopBar(onAddClick: () -> Unit) {
                 modifier = Modifier.size(28.dp),
             )
             Text(
-                text = stringResource(R.string.garden_topbar_title),
+                text = stringResource(R.string.garden_section_title),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = scheme.primary,
