@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -60,12 +59,12 @@ enum class BottomNavItem(
 ) {
     HOME("home", "Home", Icons.Filled.Home),
     IDENTIFY("identify", "Identify", Icons.Filled.CameraAlt),
-    HISTORY("history", "History", Icons.AutoMirrored.Filled.List),
     GARDEN("garden", "My Garden", Icons.Filled.Favorite),
     PROFILE("profile", "Profile", Icons.Filled.Person)
 }
 
 private const val ROUTE_HOME_MAIN = "home_main"
+private const val ROUTE_HISTORY = "history"
 private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
 
 private const val SETTINGS = "settings"
@@ -184,7 +183,7 @@ fun AppNavigation() {
                                 }
                             },
                             onViewAllScans = {
-                                navController.navigate(BottomNavItem.HISTORY.route) {
+                                navController.navigate(ROUTE_HISTORY) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
@@ -264,7 +263,7 @@ fun AppNavigation() {
                 }
             }
 
-            composable(BottomNavItem.HISTORY.route) {
+            composable(ROUTE_HISTORY) {
                 HistoryScreen(
                     authState = authState,
                     onScanSelected = { plantId, candidateIndex ->
@@ -309,6 +308,7 @@ fun AppNavigation() {
                                 statsState = statsState,
                                 onSignOut = authViewModel::signOut,
                                 onNavigateToSettings = { navController.navigate("settings") },
+                                onNavigateToHistory = { navController.navigate(ROUTE_HISTORY) },
                             )
                         }
 

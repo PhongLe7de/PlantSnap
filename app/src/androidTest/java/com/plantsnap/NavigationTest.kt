@@ -51,17 +51,12 @@ class NavigationTest {
             .assertIsDisplayed()
     }
 
-    /**
-     * All five nav items visible
-     */
     @Test
     fun bottom_nav_displays_all_tabs(){
         composeRule.onNodeWithTag("nav_home").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_identify").assertIsDisplayed()
-        composeRule.onNodeWithTag("nav_history").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_garden").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_profile").assertIsDisplayed()
-
     }
 
     /**
@@ -80,14 +75,6 @@ class NavigationTest {
 
         composeRule.onNodeWithTag("screen_camera").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_identify").assertIsSelected()
-    }
-
-    @Test
-    fun tapping_history_tab() {
-        composeRule.onNodeWithTag("nav_history").performClick()
-
-        composeRule.onNodeWithTag("screen_history").assertIsDisplayed()
-        composeRule.onNodeWithTag("nav_history").assertIsSelected()
     }
 
     @Test
@@ -130,7 +117,6 @@ class NavigationTest {
 
         composeRule.onNodeWithTag("nav_identify").assertIsSelected()
         composeRule.onNodeWithTag("nav_home").assertIsNotSelected()
-        composeRule.onNodeWithTag("nav_history").assertIsNotSelected()
         composeRule.onNodeWithTag("nav_garden").assertIsNotSelected()
         composeRule.onNodeWithTag("nav_profile").assertIsNotSelected()
     }
@@ -150,13 +136,13 @@ class NavigationTest {
     @Test
     fun rapid_tab_switching() {
         composeRule.onNodeWithTag("nav_identify").performClick()
-        composeRule.onNodeWithTag("nav_history").performClick()
+        composeRule.onNodeWithTag("nav_garden").performClick()
         composeRule.onNodeWithTag("nav_profile").performClick()
         composeRule.onNodeWithTag("nav_identify").performClick()
         composeRule.onNodeWithTag("nav_home").performClick()
-        composeRule.onNodeWithTag("nav_history").performClick()
+        composeRule.onNodeWithTag("nav_garden").performClick()
 
-        composeRule.onNodeWithTag("screen_history").assertIsDisplayed()
+        composeRule.onNodeWithTag("screen_garden").assertIsDisplayed()
     }
 
     /**
