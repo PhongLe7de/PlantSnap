@@ -11,4 +11,5 @@ fun Result.toCandidate(): Candidate = Candidate(
     score = score.toFloat(),
     iucnCategory = iucn?.category,
     imageUrl = images?.firstOrNull()?.url?.m,
+    gbifId = gbif?.id?.toLong(),
 )
