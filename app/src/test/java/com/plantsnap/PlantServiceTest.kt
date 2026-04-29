@@ -3,6 +3,7 @@ package com.plantsnap
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import com.plantsnap.data.local.PlantOfTheDayDao
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -43,6 +44,7 @@ class PlantServiceTest {
     private lateinit var scanRepo: ScanRepository
     private lateinit var geminiRepo: GeminiRepository
     private lateinit var scanSyncManager: ScanSyncManager
+    private lateinit var plantOfTheDayDao: PlantOfTheDayDao
     private val json = Json { ignoreUnknownKeys = true }
     private lateinit var service: PlantService
 
@@ -62,8 +64,9 @@ class PlantServiceTest {
         plantNetRepo = mockk()
         scanRepo = mockk()
         geminiRepo = mockk()
+        plantOfTheDayDao = mockk()
         scanSyncManager = mockk(relaxed = true)
-        service = PlantService(context, plantNetRepo, geminiRepo, scanRepo, scanSyncManager, json)
+        service = PlantService(context, plantNetRepo, geminiRepo, scanRepo,scanSyncManager,plantOfTheDayDao, json)
     }
 
     @After
