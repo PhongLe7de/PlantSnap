@@ -19,7 +19,6 @@ data class SupabaseSavedPlantDto(
     @SerialName("image_url") val imageUrl: String? = null,
 )
 
-/** Returns null when `originalScanId` is missing — caller should skip the push. */
 fun SavedPlantEntity.toSupabaseDto(userId: String): SupabaseSavedPlantDto? {
     val scanId = originalScanId ?: return null
     return SupabaseSavedPlantDto(
@@ -36,8 +35,6 @@ fun SavedPlantEntity.toSupabaseDto(userId: String): SupabaseSavedPlantDto? {
     )
 }
 
-/** Caller must ensure the matching `plant_details` row is upserted locally first
- *  so the FK on `saved_plants.plantGbifId` resolves. */
 fun SupabaseSavedPlantDto.toEntity(): SavedPlantEntity = SavedPlantEntity(
     id = id,
     userId = userId,

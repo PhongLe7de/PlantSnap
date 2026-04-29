@@ -2,16 +2,11 @@ package com.plantsnap.domain.repository
 
 import com.plantsnap.domain.models.PlantAiInfo
 
-/**
- * Writes to the Supabase `plant_details` table — a per-species cross-device cache keyed
- * by `plant_gbif_id`. Both methods are best-effort: they skip silently when the user
- * isn't authenticated and never propagate Postgrest exceptions.
- */
 interface PlantDetailsRepository {
     /**
      * Resolves the gbif id from the local candidate cache, then inserts the full
      * Gemini payload. Insert-only with `ON CONFLICT DO NOTHING` so existing rows
-     * are never overwritten — `plant_details` is generated once per species.
+     * are never overwritten, `plant_details` is generated once per species.
      * Called from `PlantService.requestAdditionalInfo` after the Gemini response
      * is cached locally. No-op when the candidate has no gbif id.
      */

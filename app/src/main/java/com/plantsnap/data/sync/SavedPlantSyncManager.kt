@@ -133,13 +133,6 @@ class SavedPlantSyncManager @Inject constructor(
         }
     }
 
-    /**
-     * `saved_plants.plant_gbif_id` has an FK to `plant_details.plant_gbif_id`. If the
-     * row isn't there yet (user saved before opening PlantDetail, so Gemini hasn't
-     * run for this species), trigger the Gemini fetch which inserts `plant_details`
-     * as a side effect. Best-effort: if Gemini fails the saved_plants upsert below
-     * will FK-fail, get caught by the outer try/catch, and retry next sync.
-     */
     private suspend fun ensurePlantDetailsExists(gbif: Long, saved: SavedPlantEntity) {
         val exists = plantDetailsRepository.exists(gbif)
         Log.d(TAG, "push: plant_details exists check for gbif=$gbif → $exists")

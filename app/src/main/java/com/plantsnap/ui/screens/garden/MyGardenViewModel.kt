@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 
-/** Pairs a saved plant with its display-ready (already-signed-or-passthrough) image URL. */
 data class SavedPlantUi(
     val plant: SavedPlant,
     val displayImageUrl: String?,

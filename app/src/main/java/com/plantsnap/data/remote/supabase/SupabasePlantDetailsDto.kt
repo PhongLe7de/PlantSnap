@@ -4,10 +4,6 @@ import com.plantsnap.domain.models.PlantAiInfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * Full Gemini-derived payload. Used by `PlantDetailsRepository.upsertIfHasGbif` after
- * `requestAdditionalInfo` succeeds. Sends every column we know about.
- */
 @Serializable
 data class SupabasePlantDetailsDto(
     @SerialName("plant_gbif_id") val plantGbifId: Long,
@@ -25,10 +21,6 @@ data class SupabasePlantDetailsDto(
     @SerialName("foraging_notes") val foragingNotes: String? = null,
 )
 
-/**
- * Used to decode targeted lookup queries (gbif → scientific name and existence checks)
- * in `SavedPlantSyncManager` and `PlantDetailsRepository.exists`.
- */
 @Serializable
 data class PlantDetailsNameRow(
     @SerialName("plant_gbif_id") val plantGbifId: Long,
