@@ -1,8 +1,10 @@
 package com.plantsnap.data.remote.supabase
 
 import com.plantsnap.BuildConfig
+import com.plantsnap.data.repository.PlantDetailsRepositoryImpl
 import com.plantsnap.data.repository.ProfileRepositoryImpl
 import com.plantsnap.data.repository.SettingsRepositoryImpl
+import com.plantsnap.domain.repository.PlantDetailsRepository
 import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.domain.repository.SettingsRepository
 import dagger.Binds
@@ -17,6 +19,7 @@ import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.storage.Storage
 import javax.inject.Singleton
 
 @Module
@@ -30,6 +33,10 @@ abstract class SupabaseModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPlantDetailsRepository(impl: PlantDetailsRepositoryImpl): PlantDetailsRepository
 
     companion object {
         @Provides
@@ -51,6 +58,7 @@ abstract class SupabaseModule {
                     googleNativeLogin(serverClientId = BuildConfig.GOOGLE_SERVER_CLIENT_ID)
                 }
                 install(Postgrest)
+                install(Storage)
             }
         }
     }
