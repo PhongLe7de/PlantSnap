@@ -1,8 +1,14 @@
 package com.plantsnap.ui.screens.history
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -32,11 +40,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.state.UiState
@@ -110,6 +123,7 @@ fun HistoryScreen(
         state = state,
         profilePhotoUrl = profilePhotoUrl,
         onScanSelected = onScanSelected,
+        onDeleteScan = viewModel::deleteScan,
         authState = authState,
         onBack = onBack,
         onProfileSelected = onProfileSelected
@@ -122,6 +136,7 @@ fun HistoryScreenContent(
     authState: AuthUiState,
     profilePhotoUrl: String?,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
+    onDeleteScan: (String) -> Unit = {},
     onBack: () -> Unit = {},
     onProfileSelected: () -> Unit = {},
 ) {
@@ -257,12 +272,19 @@ fun HistoryScreenContent(
                         )
                     }
                 } else {
-                    items(filtered, key = { it.id }) {scan ->
-                        HistoryScanCard(
-                            scan = scan,
-                            onClick = { onScanSelected(scan.id, 0) },
+                    items(filtered, key = { it.id }) { scan ->
+                        SwipeToRevealDelete(
+                            onDelete = { onDeleteScan(scan.id) },
                             modifier = Modifier.padding(horizontal = 20.dp),
-                        )
+                        ) { revealed, closeReveal ->
+                            HistoryScanCard(
+                                scan = scan,
+                                onClick = {
+                                    if (revealed) closeReveal() else onScanSelected(scan.id, 0)
+                                },
+                                modifier = Modifier,
+                            )
+                        }
                         Spacer(Modifier.height(12.dp))
                     }
                 }
@@ -345,6 +367,74 @@ fun HistorySearchBar(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+        }
+    }
+}
+
+private enum class SwipeRevealValue { Closed, Revealed }
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SwipeToRevealDelete(
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (revealed: Boolean, closeReveal: () -> Unit) -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    val buttonWidth = 88.dp
+    val buttonWidthPx = with(density) { buttonWidth.toPx() }
+
+    val state = remember {
+        AnchoredDraggableState(
+            initialValue = SwipeRevealValue.Closed,
+            anchors = DraggableAnchors {
+                SwipeRevealValue.Closed at 0f
+                SwipeRevealValue.Revealed at -buttonWidthPx
+            },
+        )
+    }
+
+    val revealed = state.currentValue == SwipeRevealValue.Revealed
+    val closeReveal: () -> Unit = {
+        scope.launch { state.animateTo(SwipeRevealValue.Closed) }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp)),
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(scheme.errorContainer),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            IconButton(
+                onClick = onDelete,
+                enabled = revealed,
+                modifier = Modifier.width(buttonWidth),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.history_delete_scan),
+                    tint = scheme.onErrorContainer,
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        state.offset.takeIf { it.isFinite() }?.roundToInt() ?: 0,
+                        0,
+                    )
+                }
+                .anchoredDraggable(state, Orientation.Horizontal),
+        ) {
+            content(revealed, closeReveal)
         }
     }
 }

@@ -138,6 +138,7 @@
     <string name="history_no_scans">No scans yet</string>
     <string name="history_try_different_filter">Try a different search or filter</string>
     <string name="history_your_scans_appear_here">Your identified plants will appear here</string>
+    <string name="history_delete_scan">Delete scan</string>
 
     <!-- Onboarding: Pet Safety -->
     <string name="onboarding_pets_title">Do you have pets?</string>

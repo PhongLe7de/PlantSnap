@@ -1,5 +1,6 @@
 package com.plantsnap.ui.screens.history
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.plantsnap.domain.models.ScanResult
@@ -32,6 +33,13 @@ class HistoryViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Failed to load history", e)
             }
+        }
+    }
+
+    fun deleteScan(id: String) {
+        viewModelScope.launch {
+            runCatching { plantService.deletePlantFromLocal(id) }
+                .onFailure { Log.w("HistoryViewModel", "deleteScan failed for $id", it) }
         }
     }
 
