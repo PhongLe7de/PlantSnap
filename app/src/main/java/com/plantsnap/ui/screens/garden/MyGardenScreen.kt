@@ -66,7 +66,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
-import com.plantsnap.domain.models.SavedPlant
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
@@ -85,7 +84,7 @@ fun MyGardenScreen(onAddSpecimen: () -> Unit) {
 
 @Composable
 private fun MyGardenScreenContent(
-    plantsState: UiState<List<SavedPlant>>,
+    plantsState: UiState<List<SavedPlantUi>>,
     onAddSpecimen: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -436,7 +435,7 @@ private fun TaskTypeLabel(type: TaskType, detail: String) {
 
 @Composable
 private fun CollectionSectionFromSaved(
-    saved: List<SavedPlant>,
+    saved: List<SavedPlantUi>,
     onAddSpecimen: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -524,10 +523,10 @@ private fun CollectionLoadingSection() {
     }
 }
 
-private fun SavedPlant.toGardenPlant(): GardenPlant = GardenPlant(
-    nickname = plant.commonNames.firstOrNull() ?: plant.scientificName,
-    species = plant.scientificName,
-    imageUrl = plant.imageUrl ?: "https://picsum.photos/seed/${plant.scientificName.hashCode()}/600/400",
+private fun SavedPlantUi.toGardenPlant(): GardenPlant = GardenPlant(
+    nickname = plant.plant.commonNames.firstOrNull() ?: plant.plant.scientificName,
+    species = plant.plant.scientificName,
+    imageUrl = displayImageUrl ?: "https://picsum.photos/seed/${plant.plant.scientificName.hashCode()}/600/400",
     status = PlantStatus.THRIVING,
     acquiredLabel = null,
     wateredAgoLabel = null,
@@ -815,10 +814,10 @@ private fun AddSpecimenCard(onClick: () -> Unit) {
 // ─── Recent Additions ─────────────────────────────────────────────────────────
 
 @Composable
-private fun RecentAdditionsSection(saved: List<SavedPlant>) {
+private fun RecentAdditionsSection(saved: List<SavedPlantUi>) {
     val now = System.currentTimeMillis()
     val entries = saved
-        .sortedByDescending { it.savedAt }
+        .sortedByDescending { it.plant.createdAt }
         .take(5)
         .map { it.toProgressEntry(now) }
 
@@ -834,18 +833,19 @@ private fun RecentAdditionsSection(saved: List<SavedPlant>) {
     }
 }
 
-private fun SavedPlant.toProgressEntry(now: Long): ProgressEntry {
-    val nickname = plant.commonNames.firstOrNull() ?: plant.scientificName
+private fun SavedPlantUi.toProgressEntry(now: Long): ProgressEntry {
+    val candidate = plant.plant
+    val nickname = candidate.commonNames.firstOrNull() ?: candidate.scientificName
     val timeAgo = DateUtils.getRelativeTimeSpanString(
-        savedAt,
+        plant.createdAt,
         now,
         DateUtils.MINUTE_IN_MILLIS,
     ).toString()
     return ProgressEntry(
         caption = nickname,
         timeAgoLabel = timeAgo,
-        imageUrl = plant.imageUrl
-            ?: "https://picsum.photos/seed/${plant.scientificName.hashCode()}/400/250",
+        imageUrl = displayImageUrl
+            ?: "https://picsum.photos/seed/${candidate.scientificName.hashCode()}/400/250",
     )
 }
 

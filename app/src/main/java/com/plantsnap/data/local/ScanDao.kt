@@ -55,4 +55,13 @@ interface ScanDao {
 
     @Query("UPDATE scans SET isFavorite = :isFavorite WHERE id = :id")
     suspend fun setFavorite(id: String, isFavorite: Boolean)
+
+    @Query("SELECT gbifId FROM candidates WHERE scanId = :scanId AND scientificName = :scientificName LIMIT 1")
+    suspend fun getCandidateGbifId(scanId: String, scientificName: String): Long?
+
+    @Query("UPDATE scans SET imageUrl = :url WHERE id = :id")
+    suspend fun setImageUrl(id: String, url: String?)
+
+    @Query("SELECT imageUrl FROM scans WHERE id = :id LIMIT 1")
+    suspend fun getImageUrl(id: String): String?
 }

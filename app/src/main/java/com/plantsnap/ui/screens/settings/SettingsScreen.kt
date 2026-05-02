@@ -45,8 +45,8 @@ import androidx.compose.ui.unit.sp
 import com.plantsnap.domain.models.AppTheme
 import com.plantsnap.domain.models.TemperatureUnit
 import com.plantsnap.domain.models.UserSettings
-import com.plantsnap.ui.theme.PlantSnapTheme
 import com.plantsnap.ui.components.TopBar
+import com.plantsnap.ui.theme.PlantSnapTheme
 
 
 

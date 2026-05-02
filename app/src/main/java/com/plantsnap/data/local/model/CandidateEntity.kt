@@ -27,6 +27,7 @@ data class CandidateEntity(
     val iucnCategory: String?,
     val imageUrl: String?,
     val aiInfo: String?,
+    val gbifId: Long? = null,
 )
 
 fun Candidate.toEntity(scanId: String) = CandidateEntity(
@@ -38,6 +39,7 @@ fun Candidate.toEntity(scanId: String) = CandidateEntity(
     iucnCategory = iucnCategory,
     imageUrl = imageUrl,
     aiInfo = aiInfo,
+    gbifId = gbifId,
 )
 
 fun CandidateEntity.toDomain() = Candidate(
@@ -48,4 +50,5 @@ fun CandidateEntity.toDomain() = Candidate(
     iucnCategory = iucnCategory,
     imageUrl = imageUrl,
     aiInfo = aiInfo,
+    gbifId = gbifId,
 )

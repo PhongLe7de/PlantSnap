@@ -14,8 +14,10 @@ import com.plantsnap.data.plantnet.Query
 import com.plantsnap.data.plantnet.Result
 import com.plantsnap.data.plantnet.Species
 import com.plantsnap.data.plantnet.Taxon
+import com.plantsnap.data.storage.PlantImageUploader
 import com.plantsnap.data.sync.ScanSyncManager
 import com.plantsnap.domain.repository.GeminiRepository
+import com.plantsnap.domain.repository.PlantDetailsRepository
 import com.plantsnap.domain.repository.PlantNetRepository
 import com.plantsnap.domain.repository.ScanRepository
 import com.plantsnap.domain.services.PlantService
@@ -44,6 +46,8 @@ class PlantServiceTest {
     private lateinit var scanRepo: ScanRepository
     private lateinit var geminiRepo: GeminiRepository
     private lateinit var scanSyncManager: ScanSyncManager
+    private lateinit var plantDetailsRepository: PlantDetailsRepository
+    private lateinit var plantImageUploader: PlantImageUploader
     private lateinit var plantOfTheDayDao: PlantOfTheDayDao
     private val json = Json { ignoreUnknownKeys = true }
     private lateinit var service: PlantService
@@ -66,7 +70,19 @@ class PlantServiceTest {
         geminiRepo = mockk()
         plantOfTheDayDao = mockk()
         scanSyncManager = mockk(relaxed = true)
-        service = PlantService(context, plantNetRepo, geminiRepo, scanRepo,scanSyncManager,plantOfTheDayDao, json)
+        plantDetailsRepository = mockk(relaxed = true)
+        plantImageUploader = mockk(relaxed = true)
+        service = PlantService(
+            context,
+            plantNetRepo,
+            geminiRepo,
+            scanRepo,
+            scanSyncManager,
+            plantDetailsRepository,
+            plantImageUploader,
+            plantOfTheDayDao,
+            json,
+        )
     }
 
     @After

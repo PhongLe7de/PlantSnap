@@ -18,6 +18,9 @@ data class ScanEntity(
     val isFavorite: Boolean = false,
     val latitude: Double? = null,
     val longitude: Double? = null,
+    /** Storage bucket path of the captured image, `{userId}/{id}.jpg`. Resolved to a
+     *  signed URL at display time by `PlantImageUrlResolver`. */
+    val imageUrl: String? = null,
 )
 
 fun ScanResult.toEntity() = ScanEntity(
@@ -33,4 +36,5 @@ fun ScanResult.toEntity() = ScanEntity(
     isFavorite = isFavorite,
     latitude = latitude,
     longitude = longitude,
+    imageUrl = imageUrl,
 )

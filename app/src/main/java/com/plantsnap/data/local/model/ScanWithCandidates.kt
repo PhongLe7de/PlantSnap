@@ -28,4 +28,5 @@ fun ScanWithCandidates.toDomain() = ScanResult(
     isFavorite = scan.isFavorite,
     latitude = scan.latitude,
     longitude = scan.longitude,
+    imageUrl = scan.imageUrl,
 )

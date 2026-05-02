@@ -421,7 +421,7 @@ private fun PlantOfTheDaySection(
                 }
                 is UiState.Success -> {
                     val data = state.data
-                    Column(modifier = Modifier.padding(4.dp)) {
+                    Column(modifier = Modifier.padding(20.dp)) {
                         AsyncImage(
                             model = data.imageUrl.validImageUrlOrNull() ?: FALLBACK_IMAGE_URL,
                             contentDescription = data.commonName,

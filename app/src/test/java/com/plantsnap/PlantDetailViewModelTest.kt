@@ -5,6 +5,7 @@ import com.plantsnap.domain.models.CareInfo
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.HabitatInfo
 import com.plantsnap.domain.models.PlantAiInfo
+import com.plantsnap.data.sync.SavedPlantSyncManager
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
@@ -46,6 +47,7 @@ class PlantDetailViewModelTest {
     private val savedPlantRepo: SavedPlantRepository = mockk(relaxed = true) {
         every { observeIsSaved(any(), any()) } returns flowOf(false)
     }
+    private val savedPlantSyncManager: SavedPlantSyncManager = mockk(relaxed = true)
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -98,7 +100,7 @@ class PlantDetailViewModelTest {
         every { Log.w(any<String>(), any<String>()) } returns 0
         every { Log.w(any<String>(), any<String>(), any()) } returns 0
         coEvery { profileRepository.getProfile() } returns null
-        viewModel = PlantDetailViewModel(scanRepository, plantService, profileRepository, savedPlantRepo, json)
+        viewModel = PlantDetailViewModel(scanRepository, plantService, profileRepository, savedPlantRepo, savedPlantSyncManager, json)
     }
 
     @After

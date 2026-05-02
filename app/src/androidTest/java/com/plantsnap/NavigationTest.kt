@@ -58,7 +58,6 @@ class NavigationTest {
         composeRule.onNodeWithTag("nav_identify").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_garden").assertIsDisplayed()
         composeRule.onNodeWithTag("nav_profile").assertIsDisplayed()
-
     }
 
     /**

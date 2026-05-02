@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.plantsnap.R
+import com.plantsnap.ui.components.TopBar
 import com.plantsnap.ui.screens.profile.model.PlantRank
 import com.plantsnap.ui.theme.PlantSnapTheme
 import java.text.SimpleDateFormat
@@ -54,8 +55,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.plantsnap.ui.components.TopBar
-
 @Composable
 fun ProfileScreen(
     authState: AuthUiState,
@@ -435,7 +434,7 @@ fun StatsBentoGrid(
                     .weight(1f)
                     .clip(RoundedCornerShape(28.dp))
                     .background(scheme.primaryContainer)
-                    .padding(10.dp),
+                    .padding(20.dp),
             ) {
                 Icon(
                     Icons.Filled.CameraAlt,
