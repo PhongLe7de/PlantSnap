@@ -163,9 +163,9 @@ fun CameraScreenContent(
                 IconButton(
                     onClick = onFlashToggle,
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 16.dp, end = if (photoCount > 0) 96.dp else 16.dp)
-                        .size(48.dp),
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 58.dp, end = 32.dp)
+                        .size(56.dp),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Black.copy(alpha = 0.4f),
                         contentColor = Color.White
