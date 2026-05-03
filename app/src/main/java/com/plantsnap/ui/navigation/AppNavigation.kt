@@ -324,13 +324,10 @@ fun AppNavigation() {
 
                 composable(ROUTE_HISTORY) {
                     HistoryScreen(
-                        authState = authState,
-                        profilePhotoUrl = authState.profilePhotoUrl,
                         onScanSelected = { plantId, candidateIndex ->
                             navController.navigate("$ROUTE_PROFILE_PLANT_DETAILS/$plantId/$candidateIndex")
                         },
                         onBack = { navController.popBackStack() },
-                        onProfileSelected = navigateToProfile,
                     )
                 }
 
@@ -343,8 +340,6 @@ fun AppNavigation() {
                         onLanguageChange = settingsViewModel::setLanguage,
                         onNotificationsChange = settingsViewModel::setNotificationsEnabled,
                         onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
-                        profilePhotoUrl = authState.profilePhotoUrl,
-                        onProfileSelected = navigateToProfile,
                     )
                 }
 

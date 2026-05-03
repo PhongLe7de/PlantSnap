@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.sp
 import com.plantsnap.domain.models.AppTheme
 import com.plantsnap.domain.models.TemperatureUnit
 import com.plantsnap.domain.models.UserSettings
-import com.plantsnap.ui.components.TopBar
 import com.plantsnap.ui.theme.PlantSnapTheme
 
 
@@ -60,8 +59,6 @@ fun SettingsScreen(
     onLanguageChange: (String) -> Unit,
     onNotificationsChange: (Boolean) -> Unit,
     onPlantCareRemindersChange: (Boolean) -> Unit,
-    profilePhotoUrl: String?,
-    onProfileSelected: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     var showThemePicker by remember { mutableStateOf(false) }
@@ -69,14 +66,10 @@ fun SettingsScreen(
     var showLanguagePicker by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBar(
-            profilePhotoUrl = profilePhotoUrl,
-            onProfileSelected = onProfileSelected,
-        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
+                .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
@@ -396,7 +389,6 @@ private fun SettingsScreenPreview() {
             onLanguageChange = {},
             onNotificationsChange = {},
             onPlantCareRemindersChange = {},
-            profilePhotoUrl = null,
         )
     }
 }

@@ -76,8 +76,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.plantsnap.R
-import com.plantsnap.ui.components.TopBar
-import com.plantsnap.ui.screens.profile.AuthUiState
 
 enum class PlantCategory(val label: String) {
     ALL("All scans"),
@@ -110,35 +108,26 @@ fun ScanResult.inferCategory(): PlantCategory {
 
 @Composable
 fun HistoryScreen(
-    authState: AuthUiState,
     viewModel: HistoryViewModel = hiltViewModel(),
-    profilePhotoUrl: String? = null,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
     onBack: () -> Unit = {},
-    onProfileSelected: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
     HistoryScreenContent(
         state = state,
-        profilePhotoUrl = profilePhotoUrl,
         onScanSelected = onScanSelected,
         onDeleteScan = viewModel::deleteScan,
-        authState = authState,
         onBack = onBack,
-        onProfileSelected = onProfileSelected
     )
 }
 
 @Composable
 fun HistoryScreenContent(
     state: UiState<List<ScanResult>>,
-    authState: AuthUiState,
-    profilePhotoUrl: String?,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
     onDeleteScan: (String) -> Unit = {},
     onBack: () -> Unit = {},
-    onProfileSelected: () -> Unit = {},
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(PlantCategory.ALL) }
@@ -152,18 +141,11 @@ fun HistoryScreenContent(
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         item {
-            TopBar(
-                profilePhotoUrl = profilePhotoUrl,
-                onProfileSelected = onProfileSelected,
-            )
-        }
-
-        item {
             Column(modifier = Modifier.padding(top = 4.dp)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 4.dp, end = 20.dp),
+                        .padding(start = 4.dp, end = 20.dp, top = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
@@ -175,7 +157,7 @@ fun HistoryScreenContent(
                     }
                     Text(
                         text = stringResource(R.string.history_title),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = scheme.primary
                     )
@@ -662,21 +644,12 @@ private val previewScans = listOf(
     ),
 )
 
-private val previewAuthState = AuthUiState(
-    isLoggedIn = true,
-    userEmail = "user@example.com",
-    displayName = "Jane Doe",
-    profilePhotoUrl = null,
-)
-
 @Preview(showBackground = true, showSystemUi = true, name = "History - items")
 @Composable
 private fun HistoryScreenPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Success(previewScans),
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }
@@ -687,8 +660,6 @@ private fun HistoryScreenEmptyPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Success(emptyList()),
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }
@@ -699,8 +670,6 @@ private fun HistoryScreenLoadingPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Loading,
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }
