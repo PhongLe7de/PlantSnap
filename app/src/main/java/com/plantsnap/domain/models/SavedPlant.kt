@@ -5,7 +5,7 @@ data class SavedPlant(
     val plant: Candidate,
     val originalScanId: String?,
     val createdAt: Long,
-    val nickname: String = plant.scientificName,
+    val nickname: String,
     val isFavourite: Boolean = false,
     val lastWateredAt: Long? = null,
 )

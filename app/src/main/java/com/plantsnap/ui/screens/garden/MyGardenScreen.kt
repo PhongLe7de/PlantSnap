@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.LocalFlorist
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.GridView
@@ -116,64 +115,94 @@ private fun MyGardenScreenContent(
             ),
             verticalArrangement = Arrangement.spacedBy(48.dp),
         ) {
+            val saved = (plantsState as? UiState.Success)?.data.orEmpty()
+            item { GardenHeaderItem(saved = saved, onSetAllWateredToday = onSetAllWateredToday) }
+            if (saved.isNotEmpty()) {
+                item { TodayTasksItem(saved = saved, onSetWateredToday = onSetWateredToday) }
+            }
             item {
-                val savedForHeader = (plantsState as? UiState.Success)?.data.orEmpty()
-                val allWatered = savedForHeader.isNotEmpty() &&
-                    savedForHeader.all { it.plant.lastWateredAt?.let(DateUtils::isToday) == true }
-                GardenHeader(
-                    thrivingCount = savedForHeader.size,
-                    showWaterAll = savedForHeader.isNotEmpty(),
-                    allWatered = allWatered,
-                    onToggleAllWatered = {
-                        onSetAllWateredToday(savedForHeader.map { it.plant.id }, !allWatered)
-                    },
+                CollectionItem(
+                    plantsState = plantsState,
+                    onAddSpecimen = onAddSpecimen,
+                    onPlantClick = onPlantClick,
                 )
             }
-            val saved = (plantsState as? UiState.Success)?.data.orEmpty()
             if (saved.isNotEmpty()) {
-                item {
-                    TodayTasksSection(
-                        tasks = saved.map { it.toWaterTask() },
-                        onSetWateredToday = onSetWateredToday,
-                    )
-                }
-            }
-            item {
-                when (plantsState) {
-                    is UiState.Idle, is UiState.Loading -> CollectionLoadingSection()
-                    is UiState.Error -> CollectionEmptySection(onAddSpecimen = onAddSpecimen)
-                    is UiState.Success -> {
-                        if (plantsState.data.isEmpty()) {
-                            CollectionEmptySection(onAddSpecimen = onAddSpecimen)
-                        } else {
-                            var viewMode by remember { mutableStateOf(CollectionViewMode.GRID) }
-                            CollectionSectionFromSaved(
-                                saved = plantsState.data,
-                                viewMode = viewMode,
-                                onToggleViewMode = {
-                                    viewMode = when (viewMode) {
-                                        CollectionViewMode.HERO -> CollectionViewMode.GRID
-                                        CollectionViewMode.GRID -> CollectionViewMode.HERO
-                                    }
-                                },
-                                onAddSpecimen = onAddSpecimen,
-                                onPlantClick = onPlantClick,
-                            )
-                        }
-                    }
-                }
-            }
-            item {
-                val saved = (plantsState as? UiState.Success)?.data.orEmpty()
-                if (saved.isNotEmpty()) {
-                    RecentActionsSection(saved = saved, onPlantClick = onPlantClick)
-                }
+                item { RecentActionsSection(saved = saved, onPlantClick = onPlantClick) }
             }
         }
     }
 }
 
-// ─── Top bar ──────────────────────────────────────────────────────────────────
+@Composable
+private fun GardenHeaderItem(
+    saved: List<SavedPlantUi>,
+    onSetAllWateredToday: (List<String>, Boolean) -> Unit,
+) {
+    val allWatered = saved.isNotEmpty() &&
+        saved.all { it.plant.lastWateredAt?.let(DateUtils::isToday) == true }
+    GardenHeader(
+        thrivingCount = saved.size,
+        showWaterAll = saved.isNotEmpty(),
+        allWatered = allWatered,
+        onToggleAllWatered = {
+            onSetAllWateredToday(saved.map { it.plant.id }, !allWatered)
+        },
+    )
+}
+
+@Composable
+private fun TodayTasksItem(
+    saved: List<SavedPlantUi>,
+    onSetWateredToday: (savedPlantId: String, watered: Boolean) -> Unit,
+) {
+    TodayTasksSection(
+        tasks = saved.map { it.toWaterTask() },
+        onSetWateredToday = onSetWateredToday,
+    )
+}
+
+@Composable
+private fun CollectionItem(
+    plantsState: UiState<List<SavedPlantUi>>,
+    onAddSpecimen: () -> Unit,
+    onPlantClick: (savedPlantId: String) -> Unit,
+) {
+    when (plantsState) {
+        is UiState.Idle, is UiState.Loading -> CollectionLoadingSection()
+        is UiState.Error -> CollectionEmptySection(onAddSpecimen = onAddSpecimen)
+        is UiState.Success -> CollectionSuccessItem(
+            saved = plantsState.data,
+            onAddSpecimen = onAddSpecimen,
+            onPlantClick = onPlantClick,
+        )
+    }
+}
+
+@Composable
+private fun CollectionSuccessItem(
+    saved: List<SavedPlantUi>,
+    onAddSpecimen: () -> Unit,
+    onPlantClick: (savedPlantId: String) -> Unit,
+) {
+    if (saved.isEmpty()) {
+        CollectionEmptySection(onAddSpecimen = onAddSpecimen)
+        return
+    }
+    var viewMode by remember { mutableStateOf(CollectionViewMode.GRID) }
+    CollectionSectionFromSaved(
+        saved = saved,
+        viewMode = viewMode,
+        onToggleViewMode = { viewMode = viewMode.toggled() },
+        onAddSpecimen = onAddSpecimen,
+        onPlantClick = onPlantClick,
+    )
+}
+
+private fun CollectionViewMode.toggled(): CollectionViewMode = when (this) {
+    CollectionViewMode.HERO -> CollectionViewMode.GRID
+    CollectionViewMode.GRID -> CollectionViewMode.HERO
+}
 
 @Composable
 private fun MyGardenTopBar(onAddClick: () -> Unit) {
@@ -234,8 +263,6 @@ private fun MyGardenTopBar(onAddClick: () -> Unit) {
     }
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
-
 @Composable
 private fun GardenHeader(
     thrivingCount: Int,
@@ -254,43 +281,46 @@ private fun GardenHeader(
         )
         if (showWaterAll) {
             Spacer(Modifier.height(12.dp))
-            val pillBg = if (allWatered) scheme.surfaceContainerHigh else scheme.primary
-            val pillTextColor = if (allWatered) scheme.onSurface else scheme.onPrimary
-            val pillIconTint = if (allWatered) scheme.primary else scheme.onPrimary
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = pillBg,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .clickable(onClick = onToggleAllWatered)
-                    .testTag("btn_garden_water_all"),
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.WaterDrop,
-                        contentDescription = null,
-                        tint = pillIconTint,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = stringResource(
-                            if (allWatered) R.string.garden_all_watered else R.string.garden_water_all,
-                        ),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = pillTextColor,
-                    )
-                }
-            }
+            WaterAllPill(allWatered = allWatered, onClick = onToggleAllWatered)
         }
     }
 }
 
-// ─── Today's Tasks ────────────────────────────────────────────────────────────
+@Composable
+private fun WaterAllPill(allWatered: Boolean, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val bg = if (allWatered) scheme.surfaceContainerHigh else scheme.primary
+    val textColor = if (allWatered) scheme.onSurface else scheme.onPrimary
+    val iconTint = if (allWatered) scheme.primary else scheme.onPrimary
+    val labelRes = if (allWatered) R.string.garden_all_watered else R.string.garden_water_all
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = bg,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .clickable(onClick = onClick)
+            .testTag("btn_garden_water_all"),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.WaterDrop,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = stringResource(labelRes),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = textColor,
+            )
+        }
+    }
+}
 
 @Composable
 private fun TodayTasksSection(
@@ -360,7 +390,6 @@ private fun TaskCard(task: TodayTask, onCheckClick: () -> Unit) {
             .clip(RoundedCornerShape(20.dp))
             .background(scheme.surfaceContainerLowest),
     ) {
-        // Decorative corner blob (top-right quarter circle)
         val blobTint = when (task.type) {
             TaskType.FERTILIZE -> scheme.tertiaryContainer.copy(alpha = 0.1f)
             else -> scheme.primary.copy(alpha = 0.05f)
@@ -374,7 +403,6 @@ private fun TaskCard(task: TodayTask, onCheckClick: () -> Unit) {
                 .background(blobTint),
         )
 
-        // Main content (dimmed when completed)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -421,7 +449,6 @@ private fun TaskCard(task: TodayTask, onCheckClick: () -> Unit) {
             TaskTypeLabel(type = task.type, detail = task.detail)
         }
 
-        // Centered "Completed" pill overlay
         if (task.completed) {
             Surface(
                 shape = RoundedCornerShape(50),
@@ -513,8 +540,6 @@ private fun TaskTypeLabel(type: TaskType, detail: String) {
         Text(text = label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = tint)
     }
 }
-
-// ─── Collection ───────────────────────────────────────────────────────────────
 
 @Composable
 private fun CollectionSectionFromSaved(
@@ -707,7 +732,6 @@ private fun HeroPlantCard(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
-        // bottom gradient
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -720,7 +744,6 @@ private fun HeroPlantCard(
                     ),
                 ),
         )
-        // Glass panel
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = scheme.surface.copy(alpha = 0.72f),
@@ -957,8 +980,6 @@ private fun AddSpecimenCard(onClick: () -> Unit) {
     }
 }
 
-// ─── Recent Actions ───────────────────────────────────────────────────────────
-
 @Composable
 private fun RecentActionsSection(
     saved: List<SavedPlantUi>,
@@ -1045,8 +1066,6 @@ private fun ProgressItem(entry: ProgressEntry, onClick: () -> Unit) {
     }
 }
 
-// ─── Shared bits ──────────────────────────────────────────────────────────────
-
 @Composable
 private fun SectionHeader(title: String, trailing: @Composable () -> Unit) {
     val scheme = MaterialTheme.colorScheme
@@ -1064,8 +1083,6 @@ private fun SectionHeader(title: String, trailing: @Composable () -> Unit) {
         trailing()
     }
 }
-
-// ─── Data classes + preview data ──────────────────────────────────────────────
 
 private enum class TaskType { WATER, FERTILIZE, MIST }
 
@@ -1098,8 +1115,6 @@ private data class ProgressEntry(
     val timeAgoLabel: String,
     val imageUrl: String,
 )
-
-// ─── Previews ─────────────────────────────────────────────────────────────────
 
 @Preview(showBackground = true, showSystemUi = true, name = "My Garden – Light")
 @Composable

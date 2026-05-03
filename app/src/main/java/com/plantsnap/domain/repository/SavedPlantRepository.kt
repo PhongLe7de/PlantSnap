@@ -14,4 +14,5 @@ interface SavedPlantRepository {
     suspend fun updateNickname(savedPlantId: String, nickname: String)
     suspend fun updateFavourite(savedPlantId: String, isFavourite: Boolean)
     suspend fun updateLastWatered(savedPlantId: String, timestamp: Long?)
+    suspend fun updateLastWateredBulk(savedPlantIds: List<String>, timestamp: Long?)
 }

@@ -56,12 +56,9 @@ class SavedPlantRepositoryImpl @Inject constructor(
         plantDetailsDao.upsert(PlantDetailsEntity(plantGbifId = gbifId, scientificName = candidate.scientificName))
 
         val nickname = candidate.commonNames.firstOrNull() ?: candidate.scientificName
-        // Prefer the user's actual capture (thumbnail uploaded to Storage) over the
-        // PlantNet reference image when available.
         val imageUrl = scanId?.let { scanDao.getImageUrl(it) } ?: candidate.imageUrl
         val existing = scanId?.let { dao.findExisting(it, gbifId) }
         val entity = if (existing != null) {
-            // Re-saving (e.g., after a soft delete) flips archived back off and re-queues sync.
             existing.copy(
                 isArchived = false,
                 nickname = nickname,
@@ -106,5 +103,11 @@ class SavedPlantRepositoryImpl @Inject constructor(
     override suspend fun updateLastWatered(savedPlantId: String, timestamp: Long?) {
         dao.updateLastWatered(savedPlantId, timestamp)
         Log.d(TAG, "updateLastWatered: id=$savedPlantId timestamp=$timestamp")
+    }
+
+    override suspend fun updateLastWateredBulk(savedPlantIds: List<String>, timestamp: Long?) {
+        if (savedPlantIds.isEmpty()) return
+        dao.updateLastWateredBulk(savedPlantIds, timestamp)
+        Log.d(TAG, "updateLastWateredBulk: count=${savedPlantIds.size} timestamp=$timestamp")
     }
 }

@@ -227,132 +227,190 @@ fun PlantDetailScreenContent(
         modifier = Modifier.testTag("screen_plantDetail"),
         containerColor = scheme.background,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(scheme.background)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = scheme.surfaceContainerHigh,
-                    ),
-                    modifier = Modifier.clip(CircleShape),
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.detail_back),
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.detail_topbar_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = scheme.primary,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                )
-                IconButton(
-                    onClick = onToggleFavorite,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = scheme.surfaceContainerHigh,
-                        contentColor = if (isFavorite) Color.Red else scheme.onSurfaceVariant
-                    ),
-                    modifier = Modifier.clip(CircleShape),
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = stringResource(R.string.detail_favourite),
-                        tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
-                    )
-                }
-                if (onArchive != null) {
-                    Spacer(Modifier.width(4.dp))
-                    var menuExpanded by remember { mutableStateOf(false) }
-                    Box {
-                        IconButton(
-                            onClick = { menuExpanded = true },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = scheme.surfaceContainerHigh,
-                            ),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .testTag("btn_garden_detail_overflow"),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.garden_detail_more_options),
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.garden_detail_remove_confirm)) },
-                                onClick = {
-                                    menuExpanded = false
-                                    onArchive()
-                                },
-                                modifier = Modifier.testTag("menu_garden_detail_remove"),
-                            )
-                        }
-                    }
-                }
-            }
+            PlantDetailTopBar(
+                isFavorite = isFavorite,
+                onBack = onBack,
+                onToggleFavorite = onToggleFavorite,
+                onArchive = onArchive,
+            )
         },
     ) { innerPadding ->
-        when (candidateState) {
-            is UiState.Idle,
-            is UiState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = scheme.primary)
-                }
-            }
+        PlantDetailContent(
+            candidateState = candidateState,
+            aiInfoState = aiInfoState,
+            canRetry = canRetry,
+            safetyAlerts = safetyAlerts,
+            showScanMetadata = showScanMetadata,
+            isSaved = isSaved,
+            showAddToGarden = showAddToGarden,
+            scanLocation = scanLocation,
+            displayName = displayName,
+            lastWateredAt = lastWateredAt,
+            onRetryAi = onRetryAi,
+            onToggleSaved = onToggleSaved,
+            onMarkWatered = onMarkWatered,
+            onEditNickname = onEditNickname,
+            contentPadding = innerPadding,
+        )
+    }
+}
 
-            is UiState.Error -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "Error: ${candidateState.message}",
-                        color = scheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-
-            is UiState.Success -> {
-                PlantDetailBody(
-                    candidate = candidateState.data,
-                    aiInfoState = aiInfoState,
-                    canRetry = canRetry,
-                    safetyAlerts = safetyAlerts,
-                    showScanMetadata = showScanMetadata,
-                    isSaved = isSaved,
-                    showAddToGarden = showAddToGarden,
-                    scanLocation = scanLocation,
-                    displayName = displayName,
-                    lastWateredAt = lastWateredAt,
-                    onRetryAi = onRetryAi,
-                    onToggleSaved = onToggleSaved,
-                    onMarkWatered = onMarkWatered,
-                    onEditNickname = onEditNickname,
-                    contentPadding = innerPadding,
-                )
-            }
+@Composable
+private fun PlantDetailTopBar(
+    isFavorite: Boolean,
+    onBack: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onArchive: (() -> Unit)?,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(scheme.background)
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            onClick = onBack,
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = scheme.surfaceContainerHigh,
+            ),
+            modifier = Modifier.clip(CircleShape),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.detail_back),
+            )
+        }
+        Text(
+            text = stringResource(R.string.detail_topbar_title),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = scheme.primary,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center,
+        )
+        FavoriteToggleButton(isFavorite = isFavorite, onClick = onToggleFavorite)
+        if (onArchive != null) {
+            Spacer(Modifier.width(4.dp))
+            ArchiveOverflowMenu(onArchive = onArchive)
         }
     }
+}
+
+@Composable
+private fun FavoriteToggleButton(isFavorite: Boolean, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
+    val icon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
+    IconButton(
+        onClick = onClick,
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = scheme.surfaceContainerHigh,
+            contentColor = tint,
+        ),
+        modifier = Modifier.clip(CircleShape),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = stringResource(R.string.detail_favourite),
+            tint = tint,
+        )
+    }
+}
+
+@Composable
+private fun ArchiveOverflowMenu(onArchive: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    var menuExpanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(
+            onClick = { menuExpanded = true },
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = scheme.surfaceContainerHigh,
+            ),
+            modifier = Modifier
+                .clip(CircleShape)
+                .testTag("btn_garden_detail_overflow"),
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.garden_detail_more_options),
+            )
+        }
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = { menuExpanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.garden_detail_remove_confirm)) },
+                onClick = {
+                    menuExpanded = false
+                    onArchive()
+                },
+                modifier = Modifier.testTag("menu_garden_detail_remove"),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlantDetailContent(
+    candidateState: UiState<Candidate>,
+    aiInfoState: UiState<PlantAiInfo>,
+    canRetry: Boolean,
+    safetyAlerts: List<SafetyAlert>,
+    showScanMetadata: Boolean,
+    isSaved: Boolean,
+    showAddToGarden: Boolean,
+    scanLocation: Pair<Double, Double>?,
+    displayName: String?,
+    lastWateredAt: Long?,
+    onRetryAi: () -> Unit,
+    onToggleSaved: () -> Unit,
+    onMarkWatered: (() -> Unit)?,
+    onEditNickname: (() -> Unit)?,
+    contentPadding: PaddingValues,
+) {
+    when (candidateState) {
+        is UiState.Idle, is UiState.Loading -> CenteredFill(contentPadding) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        is UiState.Error -> CenteredFill(contentPadding) {
+            Text(
+                text = "Error: ${candidateState.message}",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        is UiState.Success -> PlantDetailBody(
+            candidate = candidateState.data,
+            aiInfoState = aiInfoState,
+            canRetry = canRetry,
+            safetyAlerts = safetyAlerts,
+            showScanMetadata = showScanMetadata,
+            isSaved = isSaved,
+            showAddToGarden = showAddToGarden,
+            scanLocation = scanLocation,
+            displayName = displayName,
+            lastWateredAt = lastWateredAt,
+            onRetryAi = onRetryAi,
+            onToggleSaved = onToggleSaved,
+            onMarkWatered = onMarkWatered,
+            onEditNickname = onEditNickname,
+            contentPadding = contentPadding,
+        )
+    }
+}
+
+@Composable
+private fun CenteredFill(contentPadding: PaddingValues, content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+        contentAlignment = Alignment.Center,
+    ) { content() }
 }
 
 @Composable
@@ -381,16 +439,21 @@ private fun PlantDetailBody(
         ),
     ) {
         item {
+            val savedPlantExtras = if (onMarkWatered != null && onEditNickname != null) {
+                SavedPlantHeroExtras(
+                    displayName = displayName,
+                    lastWateredAt = lastWateredAt,
+                    onMarkWatered = onMarkWatered,
+                    onEditNickname = onEditNickname,
+                )
+            } else null
             HeroSection(
                 candidate = candidate,
                 showScanMetadata = showScanMetadata,
                 isSaved = isSaved,
                 showAddToGarden = showAddToGarden,
-                displayName = displayName,
-                lastWateredAt = lastWateredAt,
                 onToggleSaved = onToggleSaved,
-                onMarkWatered = onMarkWatered,
-                onEditNickname = onEditNickname,
+                savedPlantExtras = savedPlantExtras,
             )
         }
         item { Spacer(Modifier.height(24.dp)) }
@@ -410,18 +473,26 @@ private fun PlantDetailBody(
     }
 }
 
+internal data class SavedPlantHeroExtras(
+    val displayName: String?,
+    val lastWateredAt: Long?,
+    val onMarkWatered: () -> Unit,
+    val onEditNickname: () -> Unit,
+)
+
 @Composable
 private fun HeroSection(
     candidate: Candidate,
     showScanMetadata: Boolean = true,
     isSaved: Boolean = false,
     showAddToGarden: Boolean = true,
-    displayName: String? = null,
-    lastWateredAt: Long? = null,
     onToggleSaved: () -> Unit = {},
-    onMarkWatered: (() -> Unit)? = null,
-    onEditNickname: (() -> Unit)? = null,
+    savedPlantExtras: SavedPlantHeroExtras? = null,
 ) {
+    val displayName = savedPlantExtras?.displayName
+    val lastWateredAt = savedPlantExtras?.lastWateredAt
+    val onMarkWatered = savedPlantExtras?.onMarkWatered
+    val onEditNickname = savedPlantExtras?.onEditNickname
     val scheme = MaterialTheme.colorScheme
 
     Box(

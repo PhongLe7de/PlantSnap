@@ -182,7 +182,7 @@ class PlantDetailViewModel @Inject constructor(
             Log.w(TAG, "saveWithNickname: ignored, currentScanId is null")
             return
         }
-        val gbifId = c.gbifId ?: run {
+        if (c.gbifId == null) {
             Log.w(TAG, "saveWithNickname: ignored, candidate has no gbifId")
             return
         }

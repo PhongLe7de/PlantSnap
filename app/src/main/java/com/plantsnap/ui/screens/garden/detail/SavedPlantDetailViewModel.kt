@@ -98,8 +98,7 @@ class SavedPlantDetailViewModel @Inject constructor(
                 lastScanId = saved.originalScanId
                 lastScientificName = candidate.scientificName
 
-                if (aiInfoLoadedFor != candidate.scientificName) {
-                    aiInfoLoadedFor = candidate.scientificName
+                if (aiInfoLoadedFor != candidate.scientificName && _aiInfoState.value !is UiState.Loading) {
                     val scanId = saved.originalScanId
                     if (scanId != null) {
                         fetchAiInfo(scanId, candidate.scientificName)
@@ -127,6 +126,7 @@ class SavedPlantDetailViewModel @Inject constructor(
                 aiRetryCount = 0
                 _canRetry.value = true
                 _aiInfoState.value = UiState.Success(info)
+                aiInfoLoadedFor = scientificName
             } catch (e: Exception) {
                 aiRetryCount++
                 _canRetry.value = aiRetryCount < MAX_AI_RETRIES

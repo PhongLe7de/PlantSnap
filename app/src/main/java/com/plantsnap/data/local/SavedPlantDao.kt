@@ -66,4 +66,7 @@ interface SavedPlantDao {
 
     @Query("UPDATE saved_plants SET lastWateredAt = :timestamp, synced = 0 WHERE id = :id")
     suspend fun updateLastWatered(id: String, timestamp: Long?)
+
+    @Query("UPDATE saved_plants SET lastWateredAt = :timestamp, synced = 0 WHERE id IN (:ids)")
+    suspend fun updateLastWateredBulk(ids: List<String>, timestamp: Long?)
 }

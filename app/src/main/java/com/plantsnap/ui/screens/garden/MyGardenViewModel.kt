@@ -12,8 +12,10 @@ import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -35,6 +37,9 @@ class MyGardenViewModel @Inject constructor(
     private companion object {
         const val TAG = "MyGardenVM"
     }
+
+    private val _isWateringAll = MutableStateFlow(false)
+    val isWateringAll: StateFlow<Boolean> = _isWateringAll.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val plants: StateFlow<UiState<List<SavedPlantUi>>> =
@@ -71,17 +76,18 @@ class MyGardenViewModel @Inject constructor(
 
     fun setAllWateredToday(savedPlantIds: List<String>, watered: Boolean) {
         if (savedPlantIds.isEmpty()) return
+        if (!_isWateringAll.compareAndSet(expect = false, update = true)) return
         viewModelScope.launch {
-            val ts: Long? = if (watered) System.currentTimeMillis() else null
-            savedPlantIds.forEach { id ->
-                try {
-                    repo.updateLastWatered(id, ts)
-                } catch (e: Exception) {
-                    Log.w(TAG, "setAllWateredToday failed id=$id", e)
-                }
+            try {
+                val ts: Long? = if (watered) System.currentTimeMillis() else null
+                repo.updateLastWateredBulk(savedPlantIds, ts)
+                runCatching { syncManager.syncPending() }
+                    .onFailure { Log.w(TAG, "setAllWateredToday syncPending failed", it) }
+            } catch (e: Exception) {
+                Log.w(TAG, "setAllWateredToday failed", e)
+            } finally {
+                _isWateringAll.value = false
             }
-            runCatching { syncManager.syncPending() }
-                .onFailure { Log.w(TAG, "setAllWateredToday syncPending failed", it) }
         }
     }
 }
