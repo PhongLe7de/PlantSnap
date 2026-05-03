@@ -3,11 +3,13 @@ package com.plantsnap.ui.screens.identify.disease
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -52,7 +54,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import coil3.compose.AsyncImage
+import com.plantsnap.R
 import com.plantsnap.domain.models.DiseaseAiInfo
 import com.plantsnap.domain.models.DiseaseCandidate
 import com.plantsnap.ui.state.UiState
@@ -110,11 +114,11 @@ private fun DiseaseDetailContent(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.detail_back),
                     )
                 }
                 Text(
-                    text = "Disease Detail",
+                    text = stringResource(R.string.disease_detail_topbar_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = scheme.primary,
@@ -274,7 +278,7 @@ private fun DiseaseHeroSection(candidate: DiseaseCandidate) {
                     letterSpacing = 1.sp,
                 )
                 Text(
-                    text = "${(candidate.score * 100).toInt()}% match",
+                    text = stringResource(R.string.detail_match, (candidate.score * 100).toInt()),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White.copy(alpha = 0.75f),
                 )
@@ -313,7 +317,7 @@ private fun DiseaseOverviewSection(
                             color = scheme.primary,
                         )
                         Text(
-                            text = "Loading disease info…",
+                            text = stringResource(R.string.disease_detail_loading),
                             style = MaterialTheme.typography.bodyMedium,
                             color = scheme.onSurfaceVariant,
                         )
@@ -330,7 +334,7 @@ private fun DiseaseOverviewSection(
                     }
                 } else {
                     Text(
-                        text = aiInfo?.description ?: "No information available",
+                        text = aiInfo?.description ?: stringResource(R.string.detail_info_unavailable),
                         style = MaterialTheme.typography.bodyLarge,
                         color = scheme.onSurfaceVariant,
                         lineHeight = 26.sp,
@@ -344,7 +348,7 @@ private fun DiseaseOverviewSection(
 @Composable
 private fun DiseaseSymptomsSection(aiInfoState: UiState<DiseaseAiInfo>) {
     DiseaseInfoCard(
-        title = "Symptoms",
+        title = stringResource(R.string.disease_detail_symptoms),
         body = (aiInfoState as? UiState.Success)?.data?.symptoms,
         icon = Icons.Filled.Eco,
         isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading,
@@ -354,7 +358,7 @@ private fun DiseaseSymptomsSection(aiInfoState: UiState<DiseaseAiInfo>) {
 @Composable
 private fun DiseaseCausesSection(aiInfoState: UiState<DiseaseAiInfo>) {
     DiseaseInfoCard(
-        title = "Causes",
+        title = stringResource(R.string.disease_detail_causes),
         body = (aiInfoState as? UiState.Success)?.data?.causes,
         icon = Icons.Filled.Science,
         isLoading = aiInfoState is UiState.Idle || aiInfoState is UiState.Loading,
@@ -408,7 +412,7 @@ private fun DiseaseInfoCard(
                         SmallLoadingIndicator()
                     } else {
                         Text(
-                            text = body ?: "No information available",
+                            text = body ?: stringResource(R.string.detail_info_unavailable),
                             style = MaterialTheme.typography.bodyMedium,
                             color = scheme.onSurfaceVariant,
                             lineHeight = 22.sp,
@@ -428,29 +432,31 @@ private fun DiseaseManagementBento(aiInfoState: UiState<DiseaseAiInfo>) {
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Management",
+            text = stringResource(R.string.disease_detail_management),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp),
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ManagementCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
                 icon = Icons.Filled.Spa,
-                title = "Treatment",
-                body = aiInfo?.treatment ?: "No information available",
+                title = stringResource(R.string.disease_detail_treatment),
+                body = aiInfo?.treatment ?: stringResource(R.string.detail_info_unavailable),
                 isLoading = isLoading,
                 iconBackground = scheme.errorContainer.copy(alpha = 0.4f),
                 iconTint = scheme.error,
             )
             ManagementCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
                 icon = Icons.Filled.Shield,
-                title = "Prevention",
-                body = aiInfo?.prevention ?: "No information available",
+                title = stringResource(R.string.disease_detail_prevention),
+                body = aiInfo?.prevention ?: stringResource(R.string.detail_info_unavailable),
                 isLoading = isLoading,
                 iconBackground = scheme.primaryContainer.copy(alpha = 0.4f),
                 iconTint = scheme.primary,
@@ -472,7 +478,7 @@ private fun ManagementCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = modifier.aspectRatio(0.8f),
+        modifier = modifier,
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -481,7 +487,7 @@ private fun ManagementCard(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -512,7 +518,6 @@ private fun ManagementCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp),
-                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -540,6 +545,6 @@ private fun RetryButton(onClick: () -> Unit) {
             modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
-        Text("Retry")
+        Text(stringResource(R.string.detail_retry))
     }
 }

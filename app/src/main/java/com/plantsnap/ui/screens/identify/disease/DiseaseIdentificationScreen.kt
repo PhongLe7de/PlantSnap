@@ -49,7 +49,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import coil3.compose.AsyncImage
+import com.plantsnap.R
 import com.plantsnap.domain.models.DiseaseCandidate
 import com.plantsnap.domain.models.DiseaseScanResult
 import com.plantsnap.ui.state.UiState
@@ -115,7 +118,7 @@ private fun DiseaseLoadingContent() {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "Analyzing for diseases…",
+                text = stringResource(R.string.disease_id_analyzing),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -146,7 +149,7 @@ private fun DiseaseErrorContent(
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "Identification error: $message",
+                text = stringResource(R.string.disease_id_error, message),
                 style = MaterialTheme.typography.bodyLarge,
                 color = scheme.onSurface,
             )
@@ -156,7 +159,7 @@ private fun DiseaseErrorContent(
                 colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                 shape = RoundedCornerShape(50),
             ) {
-                Text(text = "Retake Photo", fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.id_retake_photo), fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -209,7 +212,7 @@ private fun DiseaseSuccessContent(
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
                 Text(
-                    text = "ANALYSIS COMPLETE",
+                    text = stringResource(R.string.disease_id_analysis_complete),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 1.5.sp,
@@ -282,7 +285,7 @@ internal fun DiseaseDisclaimerBanner(modifier: Modifier = Modifier) {
             )
             Column {
                 Text(
-                    text = "IMPORTANT",
+                    text = stringResource(R.string.disease_id_disclaimer_title),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -290,8 +293,7 @@ internal fun DiseaseDisclaimerBanner(modifier: Modifier = Modifier) {
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Results are AI-generated and for informational purposes only. " +
-                            "Consult a plant pathologist or agronomist before treating your plant.",
+                    text = stringResource(R.string.disease_id_disclaimer_body),
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium,
                     color = scheme.onErrorContainer,
@@ -315,7 +317,7 @@ private fun DiseaseImagePreview(
 
     Column(modifier = modifier) {
         Text(
-            text = "Disease Results",
+            text = stringResource(R.string.disease_id_results_title),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.ExtraBold,
             color = scheme.primary,
@@ -325,7 +327,7 @@ private fun DiseaseImagePreview(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "$candidateCount potential disease${if (candidateCount != 1) "s" else ""} found",
+            text = pluralStringResource(R.plurals.disease_id_candidates_found, candidateCount, candidateCount),
             style = MaterialTheme.typography.bodyLarge,
             color = scheme.onSurfaceVariant,
         )
@@ -342,7 +344,7 @@ private fun DiseaseImagePreview(
             ) {
                 AsyncImage(
                     model = imageModel,
-                    contentDescription = "Uploaded photo",
+                    contentDescription = stringResource(R.string.disease_id_uploaded_photo),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -372,7 +374,7 @@ private fun DiseaseImagePreview(
                 }
                 Column {
                     Text(
-                        text = "CONFIDENCE",
+                        text = stringResource(R.string.disease_id_confidence),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp,
@@ -446,7 +448,7 @@ private fun DiseaseCandidateCard(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = scheme.primary,
-                        maxLines = 2,
+                        maxLines = 4,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
                     )
@@ -503,14 +505,14 @@ private fun DiseaseRetakeCTA(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Not what you expected?",
+                text = stringResource(R.string.disease_id_retake_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onPrimary,
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Try a closer photo focusing on the affected area — leaves, stems, or spots.",
+                text = stringResource(R.string.disease_id_retake_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onPrimaryContainer,
             )
@@ -524,7 +526,7 @@ private fun DiseaseRetakeCTA(
                 shape = RoundedCornerShape(50),
             ) {
                 Text(
-                    text = "RETAKE PHOTO",
+                    text = stringResource(R.string.id_retake_photo).uppercase(Locale.getDefault()),
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp,
                     fontSize = 12.sp,
