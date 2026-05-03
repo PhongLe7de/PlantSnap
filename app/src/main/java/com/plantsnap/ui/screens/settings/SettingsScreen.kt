@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,7 @@ import com.plantsnap.domain.models.AppTheme
 import com.plantsnap.domain.models.TemperatureUnit
 import com.plantsnap.domain.models.UserSettings
 import com.plantsnap.ui.theme.PlantSnapTheme
-
+import com.plantsnap.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +81,7 @@ fun SettingsScreen(
                 )
             }
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = scheme.primary
@@ -93,24 +94,24 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = (8.dp)),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingsSection(title = "Appearance") {
+            SettingsSection(title = stringResource(R.string.settings_appearance)) {
                 SettingsRow(
                     icon = Icons.Filled.Palette,
-                    label = "Theme",
+                    label = stringResource(R.string.settings_theme),
                     value = settings.theme.displayName,
                     onClick = { showThemePicker = true },
                 )
                 SettingsDivider()
                 SettingsRow(
                     icon = Icons.Filled.Thermostat,
-                    label = "Temperature",
+                    label = stringResource(R.string.settings_temperature),
                     value = settings.temperatureUnit.displayName,
                     onClick = { showUnitPicker = true},
                 )
                 SettingsDivider()
                 SettingsRow(
                     icon = Icons.Filled.Language,
-                    label = "Language",
+                    label = stringResource(R.string.settings_language),
                     value = languageDisplayName(settings.language),
                     onClick = { showLanguagePicker = true},
                 )
