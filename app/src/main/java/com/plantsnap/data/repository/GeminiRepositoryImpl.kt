@@ -3,6 +3,7 @@ package com.plantsnap.data.repository
 import android.util.Log
 import com.google.genai.Client
 import com.plantsnap.data.wikipedia.WikipediaApi
+import com.plantsnap.domain.models.DiseaseAiInfo
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.SupabaseProfile
@@ -144,6 +145,27 @@ open class GeminiRepositoryImpl @Inject constructor(
         )
         potd.copy(imageUrl = finalImageUrl)
     }
+
+    override suspend fun getDiseaseInfo(commonName: String, eppoCode: String): DiseaseAiInfo =
+        withContext(Dispatchers.IO) {
+            val prompt = """
+                Return a JSON object describing the plant disease "$commonName" (EPPO code: $eppoCode) with exactly these fields:
+                - "description": 1-2 sentences on the disease, its causal organism, and global prevalence.
+                - "symptoms": 2-3 sentences describing visual symptoms on leaves, stems, roots, or fruit.
+                - "causes": 1 sentence identifying the causal agent (fungus, bacterium, virus, nematode, or pest) and environmental conditions that favour spread.
+                - "treatment": 2-3 sentences on treatment options (fungicides, bactericides, biological controls, or plant removal).
+                - "prevention": 1-2 sentences on preventive measures and cultural practices.
+                Respond with ONLY the JSON object. No markdown fences, no commentary.
+            """.trimIndent()
+
+            val raw = callGemini(prompt)
+            val cleaned = raw.trim()
+                .removePrefix("```json")
+                .removePrefix("```")
+                .removeSuffix("```")
+                .trim()
+            json.decodeFromString(DiseaseAiInfo.serializer(), cleaned)
+        }
 
     private suspend fun fetchWikipediaImage(title: String): String? {
         val trimmed = title.trim()

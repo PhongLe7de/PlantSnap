@@ -77,6 +77,7 @@ interface PlantNetApi {
         @Query("api-key") apiKey: String = BuildConfig.PLANTNET_API_KEY,
         @Part images: List<MultipartBody.Part>,
         @Part organs: List<MultipartBody.Part>,
+        @Query("include-related-images") includeRelatedImages: Boolean = false,
         @Query("no-reject") noReject: Boolean = false,
         @Query("nb-results") nbResults: Int = 5,
         @Query("lang") lang: String = "en"

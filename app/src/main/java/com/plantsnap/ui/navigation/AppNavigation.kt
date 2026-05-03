@@ -46,6 +46,8 @@ import com.plantsnap.ui.screens.profile.ProfileScreen
 import com.plantsnap.ui.screens.profile.ProfileViewModel
 import com.plantsnap.ui.screens.identify.camera.CameraScreen
 import com.plantsnap.ui.screens.identify.camera.CameraViewModel
+import com.plantsnap.ui.screens.identify.disease.DiseaseDetailScreen
+import com.plantsnap.ui.screens.identify.disease.DiseaseIdentificationScreen
 import com.plantsnap.ui.screens.identify.identify.IdentificationScreen
 import com.plantsnap.ui.screens.identify.detail.PlantDetailScreen
 import com.plantsnap.ui.screens.identify.preview.ImagePreviewScreen
@@ -81,6 +83,8 @@ enum class IdentifyNavItem(
     CAMERA("camera"),
     PREVIEW("preview"),
     IDENTIFICATION("identification"),
+    DISEASE("disease_identification"),
+    DISEASE_DETAIL("disease_detail"),
     PLANT_DETAILS("plant_details")
 }
 
@@ -246,8 +250,11 @@ fun AppNavigation() {
                     ImagePreviewScreen(
                         initialPage = initialPage,
                         onRetake = { navController.popBackStack() },
-                        onUsePhotos = {
+                        onIdentifyPlant = {
                             navController.navigate(IdentifyNavItem.IDENTIFICATION.route)
+                        },
+                        onIdentifyDisease = {
+                            navController.navigate(IdentifyNavItem.DISEASE.route)
                         },
                         photosHolder = cameraViewModel.photosHolder
                     )
@@ -263,6 +270,25 @@ fun AppNavigation() {
                         onPlantSelected = { plantId, candidateIndex ->
                             navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                         }
+                    )
+                }
+                composable(IdentifyNavItem.DISEASE.route) {
+                    DiseaseIdentificationScreen(
+                        onBack = {
+                            navController.popBackStack(
+                                route = IdentifyNavItem.CAMERA.route,
+                                inclusive = false,
+                            )
+                        },
+                        onCandidateSelected = { index ->
+                            navController.navigate("${IdentifyNavItem.DISEASE_DETAIL.route}/$index")
+                        },
+                    )
+                }
+                composable("${IdentifyNavItem.DISEASE_DETAIL.route}/{candidateIndex}") { backStackEntry ->
+                    DiseaseDetailScreen(
+                        candidateIndex = backStackEntry.arguments?.getString("candidateIndex")?.toIntOrNull() ?: 0,
+                        onBack = { navController.popBackStack() },
                     )
                 }
                 composable("${IdentifyNavItem.PLANT_DETAILS.route}/{plantId}/{candidateIndex}") { backStackEntry ->
