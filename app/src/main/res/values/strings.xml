@@ -201,4 +201,10 @@
     <string name="navigation_my_garden">My Garden</string>
     <string name="navigation_profile">Profile</string>
 
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_temperature">Temperature</string>
+    <string name="settings_language">Language</string>
+
 </resources>
