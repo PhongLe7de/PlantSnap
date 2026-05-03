@@ -65,5 +65,5 @@ interface SavedPlantDao {
     suspend fun updateFavourite(id: String, isFavourite: Boolean)
 
     @Query("UPDATE saved_plants SET lastWateredAt = :timestamp, synced = 0 WHERE id = :id")
-    suspend fun updateLastWatered(id: String, timestamp: Long)
+    suspend fun updateLastWatered(id: String, timestamp: Long?)
 }

@@ -43,9 +43,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -114,6 +117,10 @@ fun PlantDetailScreen(
         viewModel.loadPlantDetail(plantId, candidateIndex)
     }
 
+    var showAddDialog by remember { mutableStateOf(false) }
+    val candidate = (candidateState as? UiState.Success)?.data
+    val defaultNickname = candidate?.let { it.commonNames.firstOrNull() ?: it.scientificName }.orEmpty()
+
     PlantDetailScreenContent(
         candidateState = candidateState,
         aiInfoState = aiInfoState,
@@ -124,8 +131,72 @@ fun PlantDetailScreen(
         onRetryAi = viewModel::retryAiInfo,
         isFavorite = isFavorite,
         onToggleFavorite = viewModel::toggleFavorite,
-        onToggleSaved = viewModel::toggleSaved,
+        onToggleSaved = {
+            if (isSaved) viewModel.toggleSaved() else showAddDialog = true
+        },
         scanLocation = scanLocation,
+    )
+
+    if (showAddDialog) {
+        AddToGardenDialog(
+            initialValue = defaultNickname,
+            onConfirm = { nickname ->
+                viewModel.saveWithNickname(nickname)
+                showAddDialog = false
+            },
+            onDismiss = { showAddDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun AddToGardenDialog(
+    initialValue: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var text by remember {
+        mutableStateOf(
+            androidx.compose.ui.text.input.TextFieldValue(
+                initialValue,
+                selection = androidx.compose.ui.text.TextRange(initialValue.length),
+            )
+        )
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("dialog_add_to_garden"),
+        title = { Text(stringResource(R.string.add_garden_dialog_title)) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.add_garden_dialog_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.add_garden_dialog_label)) },
+                    modifier = Modifier.testTag("input_add_to_garden_nickname"),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(text.text) },
+                enabled = text.text.trim().isNotEmpty(),
+                modifier = Modifier.testTag("btn_add_to_garden_confirm"),
+            ) {
+                Text(stringResource(R.string.add_garden_dialog_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.garden_detail_rename_cancel))
+            }
+        },
     )
 }
 

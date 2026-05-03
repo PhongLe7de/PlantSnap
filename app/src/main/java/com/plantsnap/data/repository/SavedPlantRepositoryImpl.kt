@@ -103,7 +103,7 @@ class SavedPlantRepositoryImpl @Inject constructor(
         Log.d(TAG, "updateFavourite: id=$savedPlantId isFavourite=$isFavourite")
     }
 
-    override suspend fun updateLastWatered(savedPlantId: String, timestamp: Long) {
+    override suspend fun updateLastWatered(savedPlantId: String, timestamp: Long?) {
         dao.updateLastWatered(savedPlantId, timestamp)
         Log.d(TAG, "updateLastWatered: id=$savedPlantId timestamp=$timestamp")
     }
