@@ -1,18 +1,17 @@
 package com.plantsnap.data.local
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.plantsnap.data.local.model.PlantDetailsEntity
 
 @Dao
 interface PlantDetailsDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsert(entity: PlantDetailsEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertAll(entities: List<PlantDetailsEntity>)
 
     @Query("SELECT * FROM plant_details WHERE plantGbifId = :plantGbifId LIMIT 1")
