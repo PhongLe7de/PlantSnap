@@ -125,6 +125,17 @@
     <string name="garden_empty_title">No saved plants yet</string>
     <string name="garden_empty_desc">Scan a plant and tap ♡ to add it to your garden.</string>
 
+    <!-- My Garden Detail Screen -->
+    <string name="garden_detail_rename_title">Rename plant</string>
+    <string name="garden_detail_rename_confirm">Save</string>
+    <string name="garden_detail_rename_cancel">Cancel</string>
+    <string name="garden_detail_rename_label">Nickname</string>
+    <string name="garden_detail_mark_watered">Mark as watered</string>
+    <string name="garden_detail_watered_ago">Watered %1$s</string>
+    <string name="garden_detail_remove_confirm">Remove from garden</string>
+    <string name="garden_detail_edit_nickname">Edit nickname</string>
+    <string name="garden_detail_more_options">More options</string>
+
     <!-- History Screen -->
     <string name="history_title">History</string>
     <string name="history_match">%d %% match</string>

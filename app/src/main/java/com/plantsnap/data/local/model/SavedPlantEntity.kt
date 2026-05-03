@@ -58,4 +58,7 @@ fun SavedPlantEntity.toDomain(scientificName: String): SavedPlant = SavedPlant(
     ),
     originalScanId = originalScanId,
     createdAt = createdAt,
+    nickname = nickname,
+    isFavourite = isFavourite,
+    lastWateredAt = lastWateredAt,
 )

@@ -27,8 +27,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
@@ -41,6 +43,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -52,6 +56,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -133,10 +140,15 @@ fun PlantDetailScreenContent(
     showAddToGarden: Boolean = true,
     isFavorite: Boolean = false,
     scanLocation: Pair<Double, Double>? = null,
+    displayName: String? = null,
+    lastWateredAt: Long? = null,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
-    onToggleSaved: () -> Unit = {}
+    onToggleSaved: () -> Unit = {},
+    onMarkWatered: (() -> Unit)? = null,
+    onEditNickname: (() -> Unit)? = null,
+    onArchive: (() -> Unit)? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -185,6 +197,39 @@ fun PlantDetailScreenContent(
                         tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
                     )
                 }
+                if (onArchive != null) {
+                    Spacer(Modifier.width(4.dp))
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(
+                            onClick = { menuExpanded = true },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = scheme.surfaceContainerHigh,
+                            ),
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .testTag("btn_garden_detail_overflow"),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.garden_detail_more_options),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.garden_detail_remove_confirm)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onArchive()
+                                },
+                                modifier = Modifier.testTag("menu_garden_detail_remove"),
+                            )
+                        }
+                    }
+                }
             }
         },
     ) { innerPadding ->
@@ -226,8 +271,12 @@ fun PlantDetailScreenContent(
                     isSaved = isSaved,
                     showAddToGarden = showAddToGarden,
                     scanLocation = scanLocation,
+                    displayName = displayName,
+                    lastWateredAt = lastWateredAt,
                     onRetryAi = onRetryAi,
                     onToggleSaved = onToggleSaved,
+                    onMarkWatered = onMarkWatered,
+                    onEditNickname = onEditNickname,
                     contentPadding = innerPadding,
                 )
             }
@@ -245,8 +294,12 @@ private fun PlantDetailBody(
     isSaved: Boolean,
     showAddToGarden: Boolean,
     scanLocation: Pair<Double, Double>?,
+    displayName: String?,
+    lastWateredAt: Long?,
     onRetryAi: () -> Unit,
     onToggleSaved: () -> Unit,
+    onMarkWatered: (() -> Unit)?,
+    onEditNickname: (() -> Unit)?,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -262,7 +315,11 @@ private fun PlantDetailBody(
                 showScanMetadata = showScanMetadata,
                 isSaved = isSaved,
                 showAddToGarden = showAddToGarden,
+                displayName = displayName,
+                lastWateredAt = lastWateredAt,
                 onToggleSaved = onToggleSaved,
+                onMarkWatered = onMarkWatered,
+                onEditNickname = onEditNickname,
             )
         }
         item { Spacer(Modifier.height(24.dp)) }
@@ -288,7 +345,11 @@ private fun HeroSection(
     showScanMetadata: Boolean = true,
     isSaved: Boolean = false,
     showAddToGarden: Boolean = true,
+    displayName: String? = null,
+    lastWateredAt: Long? = null,
     onToggleSaved: () -> Unit = {},
+    onMarkWatered: (() -> Unit)? = null,
+    onEditNickname: (() -> Unit)? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -345,17 +406,46 @@ private fun HeroSection(
                 Spacer(Modifier.height(8.dp))
             }
 
-            Text(
-                text = candidate.scientificName,
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
-                lineHeight = 36.sp,
-            )
-
-            candidate.commonNames.firstOrNull()?.let { commonName ->
+            val titleText = displayName ?: candidate.scientificName
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = commonName,
+                    text = titleText,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                    lineHeight = 36.sp,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (onEditNickname != null) {
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onEditNickname,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .testTag("btn_garden_detail_edit_nickname"),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.White.copy(alpha = 0.18f),
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.garden_detail_edit_nickname),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+
+            val subtitle = if (displayName != null) {
+                candidate.scientificName
+            } else {
+                candidate.commonNames.firstOrNull()
+            }
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
                     style = MaterialTheme.typography.bodyLarge,
                     fontStyle = FontStyle.Italic,
                     color = Color.White.copy(alpha = 0.80f),
@@ -402,6 +492,41 @@ private fun HeroSection(
                             if (isSaved) R.string.detail_saved_to_garden
                             else R.string.detail_add_to_garden
                         ),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            } else if (onMarkWatered != null) {
+                Spacer(Modifier.height(14.dp))
+                val label = if (lastWateredAt != null) {
+                    val rel = android.text.format.DateUtils.getRelativeTimeSpanString(
+                        lastWateredAt,
+                        System.currentTimeMillis(),
+                        android.text.format.DateUtils.MINUTE_IN_MILLIS,
+                    ).toString()
+                    stringResource(R.string.garden_detail_watered_ago, rel)
+                } else {
+                    stringResource(R.string.garden_detail_mark_watered)
+                }
+                Button(
+                    onClick = onMarkWatered,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = scheme.primary,
+                        contentColor = scheme.onPrimary,
+                    ),
+                    modifier = Modifier
+                        .height(48.dp)
+                        .testTag("btn_garden_detail_mark_watered"),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.WaterDrop,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = label,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )

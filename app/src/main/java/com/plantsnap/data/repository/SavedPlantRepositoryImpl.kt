@@ -32,6 +32,11 @@ class SavedPlantRepositoryImpl @Inject constructor(
             rows.map { it.saved.toDomain(scientificName = it.scientificName) }
         }
 
+    override fun observeById(savedPlantId: String): Flow<SavedPlant?> =
+        dao.observeWithDetailsById(savedPlantId).map { row ->
+            row?.saved?.toDomain(scientificName = row.scientificName)
+        }
+
     override fun observeIsSaved(scanId: String, plantGbifId: Long): Flow<Boolean> =
         dao.observeIsSaved(scanId, plantGbifId)
 
@@ -86,5 +91,20 @@ class SavedPlantRepositoryImpl @Inject constructor(
     override suspend fun unsave(savedPlantId: String) {
         dao.setArchived(savedPlantId, true)
         Log.d(TAG, "unsave: archived id=$savedPlantId, marked synced=0")
+    }
+
+    override suspend fun updateNickname(savedPlantId: String, nickname: String) {
+        dao.updateNickname(savedPlantId, nickname)
+        Log.d(TAG, "updateNickname: id=$savedPlantId nickname=$nickname")
+    }
+
+    override suspend fun updateFavourite(savedPlantId: String, isFavourite: Boolean) {
+        dao.updateFavourite(savedPlantId, isFavourite)
+        Log.d(TAG, "updateFavourite: id=$savedPlantId isFavourite=$isFavourite")
+    }
+
+    override suspend fun updateLastWatered(savedPlantId: String, timestamp: Long) {
+        dao.updateLastWatered(savedPlantId, timestamp)
+        Log.d(TAG, "updateLastWatered: id=$savedPlantId timestamp=$timestamp")
     }
 }

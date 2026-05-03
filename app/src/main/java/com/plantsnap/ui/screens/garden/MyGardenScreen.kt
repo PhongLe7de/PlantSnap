@@ -70,7 +70,10 @@ import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
 @Composable
-fun MyGardenScreen(onAddSpecimen: () -> Unit) {
+fun MyGardenScreen(
+    onAddSpecimen: () -> Unit,
+    onPlantClick: (savedPlantId: String) -> Unit = {},
+) {
     val viewModel: MyGardenViewModel = hiltViewModel()
     val plantsState by viewModel.plants.collectAsState()
     MyGardenScreenContent(
@@ -79,6 +82,7 @@ fun MyGardenScreen(onAddSpecimen: () -> Unit) {
             viewModel.resetIdentifyFlow()
             onAddSpecimen()
         },
+        onPlantClick = onPlantClick,
     )
 }
 
@@ -86,6 +90,7 @@ fun MyGardenScreen(onAddSpecimen: () -> Unit) {
 private fun MyGardenScreenContent(
     plantsState: UiState<List<SavedPlantUi>>,
     onAddSpecimen: () -> Unit,
+    onPlantClick: (savedPlantId: String) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -120,6 +125,7 @@ private fun MyGardenScreenContent(
                             CollectionSectionFromSaved(
                                 saved = plantsState.data,
                                 onAddSpecimen = onAddSpecimen,
+                                onPlantClick = onPlantClick,
                             )
                         }
                     }
@@ -437,6 +443,7 @@ private fun TaskTypeLabel(type: TaskType, detail: String) {
 private fun CollectionSectionFromSaved(
     saved: List<SavedPlantUi>,
     onAddSpecimen: () -> Unit,
+    onPlantClick: (savedPlantId: String) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(
@@ -449,13 +456,23 @@ private fun CollectionSectionFromSaved(
             },
         )
         Spacer(Modifier.height(16.dp))
-        val hero = saved.first().toGardenPlant()
-        HeroPlantCard(plant = hero)
-        val others = saved.drop(1).take(2).map { it.toGardenPlant() }
+        val heroSaved = saved.first()
+        HeroPlantCard(
+            plant = heroSaved.toGardenPlant(),
+            savedPlantId = heroSaved.plant.id,
+            onClick = { onPlantClick(heroSaved.plant.id) },
+        )
+        val others = saved.drop(1).take(2)
         if (others.isNotEmpty() || saved.size > 1) {
             Spacer(Modifier.height(16.dp))
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                others.forEach { plant -> PlantCard(plant = plant) }
+                others.forEach { sp ->
+                    PlantCard(
+                        plant = sp.toGardenPlant(),
+                        savedPlantId = sp.plant.id,
+                        onClick = { onPlantClick(sp.plant.id) },
+                    )
+                }
                 AddSpecimenCard(onClick = onAddSpecimen)
             }
         } else {
@@ -554,14 +571,20 @@ private fun SmallCircleButton(icon: ImageVector) {
 }
 
 @Composable
-private fun HeroPlantCard(plant: GardenPlant) {
+private fun HeroPlantCard(
+    plant: GardenPlant,
+    savedPlantId: String,
+    onClick: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(16f / 10f)
             .clip(RoundedCornerShape(20.dp))
-            .background(scheme.surfaceContainerLow),
+            .background(scheme.surfaceContainerLow)
+            .clickable(onClick = onClick)
+            .testTag("garden_plant_card_$savedPlantId"),
     ) {
         AsyncImage(
             model = plant.imageUrl,
@@ -662,9 +685,18 @@ private fun StatusPill() {
 }
 
 @Composable
-private fun PlantCard(plant: GardenPlant) {
+private fun PlantCard(
+    plant: GardenPlant,
+    savedPlantId: String,
+    onClick: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .testTag("garden_plant_card_$savedPlantId"),
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

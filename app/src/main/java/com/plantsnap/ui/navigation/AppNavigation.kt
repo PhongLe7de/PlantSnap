@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
 import com.plantsnap.ui.screens.garden.MyGardenScreen
+import com.plantsnap.ui.screens.garden.detail.SavedPlantDetailScreen
 import com.plantsnap.ui.screens.home.HomeCallbacks
 import com.plantsnap.ui.screens.home.HomeScreen
 import com.plantsnap.ui.screens.home.PlantOfTheDayDetailScreen
@@ -73,6 +74,7 @@ private const val ROUTE_HISTORY = "history"
 private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_ONBOARDING = "onboarding"
+private const val ROUTE_GARDEN_PLANT_DETAILS = "garden_plant_details"
 
 
 enum class IdentifyNavItem(
@@ -355,17 +357,32 @@ fun AppNavigation() {
                 }
             }
 
-            composable(BottomNavItem.GARDEN.route) {
-                MyGardenScreen(
-                    onAddSpecimen = {
-                        navController.navigate(BottomNavItem.IDENTIFY.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+            navigation(
+                startDestination = "garden_main",
+                route = BottomNavItem.GARDEN.route,
+            ) {
+                composable("garden_main") {
+                    MyGardenScreen(
+                        onAddSpecimen = {
+                            navController.navigate(BottomNavItem.IDENTIFY.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
                             }
-                            launchSingleTop = true
-                        }
-                    },
-                )
+                        },
+                        onPlantClick = { savedPlantId ->
+                            navController.navigate("$ROUTE_GARDEN_PLANT_DETAILS/$savedPlantId")
+                        },
+                    )
+                }
+
+                composable("$ROUTE_GARDEN_PLANT_DETAILS/{savedPlantId}") { backStackEntry ->
+                    SavedPlantDetailScreen(
+                        savedPlantId = backStackEntry.arguments?.getString("savedPlantId").orEmpty(),
+                        onBack = { navController.popBackStack() },
+                    )
+                }
             }
         }
     }

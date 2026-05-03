@@ -21,6 +21,17 @@ interface SavedPlantDao {
     )
     fun observeAllWithDetails(): Flow<List<SavedPlantWithDetails>>
 
+    @Query(
+        """
+        SELECT sp.*, pd.scientificName AS details_scientificName
+        FROM saved_plants sp
+        INNER JOIN plant_details pd ON pd.plantGbifId = sp.plantGbifId
+        WHERE sp.id = :id
+        LIMIT 1
+        """
+    )
+    fun observeWithDetailsById(id: String): Flow<SavedPlantWithDetails?>
+
     @Query("""
         SELECT EXISTS(
           SELECT 1 FROM saved_plants
@@ -46,4 +57,13 @@ interface SavedPlantDao {
 
     @Query("UPDATE saved_plants SET isArchived = :v, synced = 0 WHERE id = :id")
     suspend fun setArchived(id: String, v: Boolean)
+
+    @Query("UPDATE saved_plants SET nickname = :nickname, synced = 0 WHERE id = :id")
+    suspend fun updateNickname(id: String, nickname: String)
+
+    @Query("UPDATE saved_plants SET isFavourite = :isFavourite, synced = 0 WHERE id = :id")
+    suspend fun updateFavourite(id: String, isFavourite: Boolean)
+
+    @Query("UPDATE saved_plants SET lastWateredAt = :timestamp, synced = 0 WHERE id = :id")
+    suspend fun updateLastWatered(id: String, timestamp: Long)
 }
