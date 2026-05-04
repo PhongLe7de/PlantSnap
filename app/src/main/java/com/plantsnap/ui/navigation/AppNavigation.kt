@@ -232,7 +232,6 @@ fun AppNavigation() {
             ) {
                 composable(IdentifyNavItem.CAMERA.route) {
                     CameraScreen(
-                        onBack = { navController.popBackStack() },
                         onReviewPhotos = {
                             navController.navigate("${IdentifyNavItem.PREVIEW.route}?page=0")
                         },

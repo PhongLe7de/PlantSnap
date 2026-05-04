@@ -47,6 +47,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -65,6 +67,7 @@ private fun BoxScope.GalleryButton(
         modifier = Modifier
             .align(Alignment.BottomStart)
             .padding(bottom = 58.dp, start = 32.dp)
+            .semantics(mergeDescendants = true) { }
     ) {
         IconButton(
             onClick = onClick,
@@ -79,7 +82,7 @@ private fun BoxScope.GalleryButton(
         ) {
             Icon(
                 imageVector = Icons.Default.PhotoLibrary,
-                contentDescription = "Pick from gallery",
+                contentDescription = if (photoCount > 0) "Pick from gallery, $photoCount photos selected" else "Pick from gallery",
                 modifier = Modifier.size(28.dp)
             )
         }
@@ -90,6 +93,7 @@ private fun BoxScope.GalleryButton(
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
+                    .clearAndSetSemantics { }
                     .background(
                         MaterialTheme.colorScheme.primary,
                         shape = RoundedCornerShape(50)
