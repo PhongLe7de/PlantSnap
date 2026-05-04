@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.PhotoLibrary
@@ -113,7 +112,6 @@ fun CameraScreenContent(
     onFlashToggle: () -> Unit,
     onCapture: () -> Unit,
     onGalleryClick: () -> Unit,
-    onBack: () -> Unit,
     onReviewPhotos: () -> Unit,
     onNavigateToPreview: (page: Int) -> Unit,
     onGrantPermission: () -> Unit,
@@ -140,24 +138,6 @@ fun CameraScreenContent(
             ) {
 
                 cameraPreview()
-
-                // Back button
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(top = 16.dp, start = 8.dp)
-                        .size(48.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Color.Black.copy(alpha = 0.4f),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to home"
-                    )
-                }
 
                 // Flash button
                 IconButton(
@@ -271,7 +251,6 @@ fun CameraScreenContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreen(
-    onBack: () -> Unit,
     onReviewPhotos: () -> Unit,
     onNavigateToPreview: (page: Int) -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
@@ -336,7 +315,6 @@ fun CameraScreen(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
         },
-        onBack = onBack,
         onReviewPhotos = onReviewPhotos,
         onNavigateToPreview = onNavigateToPreview,
         onGrantPermission = { permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION)) },
@@ -363,7 +341,6 @@ private fun CameraScreenGrantedPreview() {
             onFlashToggle = {},
             onCapture = {},
             onGalleryClick = {},
-            onBack = {},
             onReviewPhotos = {},
             onNavigateToPreview = {},
             onGrantPermission = {},
@@ -399,7 +376,6 @@ private fun CameraScreenErrorPreview() {
             cameraPreview = {
                 Box(modifier = Modifier.fillMaxSize().background(Color.DarkGray))
             },
-            onBack = {},
             onReviewPhotos = {},
             onNavigateToPreview = {},
             onDismissError = {}
@@ -421,7 +397,6 @@ private fun CameraScreenDeniedPreview() {
             onFlashToggle = {},
             onCapture = {},
             onGalleryClick = {},
-            onBack = {},
             onReviewPhotos = {},
             onNavigateToPreview = {},
             onGrantPermission = {},
