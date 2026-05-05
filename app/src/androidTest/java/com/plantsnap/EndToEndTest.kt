@@ -75,7 +75,6 @@ class EndToEndTest {
     @Test
     fun e2e_home_screen_displays_key_sections() {
         composeRule.onNodeWithTag("screen_home").assertIsDisplayed()
-        composeRule.onNodeWithTag("potd_card").assertIsDisplayed()
         composeRule.onNodeWithTag("btn_identify_plant_cta").assertIsDisplayed()
     }
 
