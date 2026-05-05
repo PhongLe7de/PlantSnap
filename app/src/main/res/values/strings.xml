@@ -108,22 +108,43 @@
     <string name="garden_section_title">My Garden</string>
     <string name="garden_section_subtitle">%d thriving specimens under your care.</string>
     <string name="garden_all_watered">All Watered</string>
+    <string name="garden_water_all">Water all</string>
     <string name="garden_tasks_title">Today\'s Tasks</string>
     <string name="garden_view_all">View All</string>
     <string name="garden_collection_title">The Collection</string>
     <string name="garden_add_specimen">Add Specimen</string>
     <string name="garden_add_specimen_desc">Identify or enter manually</string>
     <string name="garden_recent_additions">Recent Additions</string>
+    <string name="garden_recent_actions">Recent Actions</string>
+    <string name="garden_action_watered">Watered %s</string>
+    <string name="garden_action_added">Added %s</string>
     <string name="garden_status_thriving">Thriving</string>
     <string name="garden_watered_ago">%s ago</string>
     <string name="garden_plant_height">%dcm</string>
     <string name="garden_acquired_label">Acquired %s</string>
     <string name="garden_completed">Completed</string>
     <string name="garden_task_water">Water (%s)</string>
+    <string name="garden_task_water_simple">Water</string>
+    <string name="garden_view_less">View less</string>
+    <string name="add_garden_dialog_title">Add to My Garden</string>
+    <string name="add_garden_dialog_message">Give this plant a nickname?</string>
+    <string name="add_garden_dialog_label">Nickname</string>
+    <string name="add_garden_dialog_confirm">Add</string>
     <string name="garden_task_fertilize">Fertilize (%s)</string>
     <string name="garden_task_mist">Mist Leaves</string>
     <string name="garden_empty_title">No saved plants yet</string>
     <string name="garden_empty_desc">Scan a plant and tap ♡ to add it to your garden.</string>
+
+    <!-- My Garden Detail Screen -->
+    <string name="garden_detail_rename_title">Rename plant</string>
+    <string name="garden_detail_rename_confirm">Save</string>
+    <string name="garden_detail_rename_cancel">Cancel</string>
+    <string name="garden_detail_rename_label">Nickname</string>
+    <string name="garden_detail_mark_watered">Mark as watered</string>
+    <string name="garden_detail_watered_ago">Watered %1$s</string>
+    <string name="garden_detail_remove_confirm">Remove from garden</string>
+    <string name="garden_detail_edit_nickname">Edit nickname</string>
+    <string name="garden_detail_more_options">More options</string>
 
     <!-- History Screen -->
     <string name="history_title">History</string>
