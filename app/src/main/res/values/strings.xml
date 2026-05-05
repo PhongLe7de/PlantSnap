@@ -7,7 +7,7 @@
     <string name="home_afternoon">Good afternoon, %s</string>
     <string name="home_evening">Good evening, %s</string>
     <string name="home_night">Good night, %s</string>
-    <string name="home_subtitle">Your digital herbarium has %d new updates today.</string>
+    <string name="home_subtitle">Welcome to your digital herbarium</string>
     <string name="home_identify_title">Identify any plant</string>
     <string name="home_identify_desc">Point your camera at a leaf, flower, or tree for instant identification.</string>
     <string name="home_identify_button">Identify Plant</string>
@@ -15,12 +15,7 @@
     <string name="home_view_all">View All</string>
     <string name="home_potd">Plant of the Day</string>
     <string name="home_learn">Learn More</string>
-    <string name="home_daily_care">Daily Care Tasks</string>
     <string name="home_done">Done</string>
-    <string name="home_watering_title">Watering: %s</string> <!-- Placeholder -->
-    <string name="home_watering_desc">Check soil moisture today</string>
-    <string name="home_rotate_title">Rotate: Succulents</string>
-    <string name="home_rotate_desc">Ensure even sun exposure</string>
     <string name="home_no_plants">No plants found</string>
     <string name="home_error">Error: %s</string>
 
