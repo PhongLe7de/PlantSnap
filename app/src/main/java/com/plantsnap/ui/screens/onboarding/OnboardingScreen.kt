@@ -36,6 +36,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import com.plantsnap.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -98,15 +103,16 @@ fun OnboardingScreenContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "${pagerState.currentPage + 1} of $PAGE_COUNT",
+                text = "${pagerState.currentPage + 1} / $PAGE_COUNT",
                 style = MaterialTheme.typography.labelLarge,
                 color = scheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
             )
             if (!isLastPage) {
                 TextButton(onClick = { navigateToPage(PAGE_COUNT - 1) }) {
                     Text(
-                        text = "Skip",
+                        text = stringResource(R.string.onboarding_skip),
                         style = MaterialTheme.typography.labelLarge,
                         color = scheme.primary,
                         fontWeight = FontWeight.SemiBold,

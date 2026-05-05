@@ -97,6 +97,7 @@
     <string name="detail_scanned_here">Scanned here</string>
     <string name="detail_add_to_garden">Add to My Garden</string>
     <string name="detail_saved_to_garden">Saved to Garden</string>
+    <string name="detail_image_description">Photo of %s</string>
 
     <!-- Safety Alerts -->
     <string name="safety_alert_dog_toxic_title">Toxic to your dog</string>
@@ -139,6 +140,10 @@
     <string name="garden_task_mist">Mist Leaves</string>
     <string name="garden_empty_title">No saved plants yet</string>
     <string name="garden_empty_desc">Scan a plant and tap ♡ to add it to your garden.</string>
+    <string name="garden_mark_unwatered">Mark as unwatered</string>
+    <string name="garden_mark_watered">Mark as watered</string>
+    <string name="garden_grid_active">Switch to list view</string>
+    <string name="garden_grid_inactive">Switch to grid view</string>
 
     <!-- My Garden Detail Screen -->
     <string name="garden_detail_rename_title">Rename plant</string>
@@ -166,6 +171,8 @@
     <string name="history_your_scans_appear_here">Your identified plants will appear here</string>
     <string name="history_delete_scan">Delete scan</string>
 
+    <!-- Onboarding Screen -->
+    <string name="onboarding_skip">Skip</string>
     <!-- Onboarding: Pet Safety -->
     <string name="onboarding_pets_title">Do you have pets?</string>
     <string name="onboarding_pets_subtitle">We\'ll warn you about plants that are toxic to your companions.</string>
@@ -173,7 +180,6 @@
     <string name="onboarding_pets_option_cat">Cat</string>
     <string name="onboarding_pets_option_both">Both</string>
     <string name="onboarding_pets_option_none">No pets</string>
-
     <!-- Onboarding: Experience Level -->
     <string name="onboarding_experience_title">How green is your thumb?</string>
     <string name="onboarding_experience_subtitle">We\'ll adjust the detail level in plant guides to match your experience.</string>
@@ -183,12 +189,11 @@
     <string name="onboarding_experience_option_intermediate_desc">I know the basics</string>
     <string name="onboarding_experience_option_expert_label">Expert</string>
     <string name="onboarding_experience_option_expert_desc">I speak Latin binomials</string>
-
     <!-- Onboarding: Complete -->
     <string name="onboarding_complete_title">You\'re all set!</string>
     <string name="onboarding_complete_subtitle">PlantSnap is ready to help you explore the plant world.</string>
     <string name="onboarding_complete_cta">Start Exploring</string>
-
+    <string name="onboarding_complete_description">Summary of your selections</string>
     <!-- Onboarding: Plant Interests -->
     <string name="onboarding_interests_title">What are you into?</string>
     <string name="onboarding_interests_subtitle">Select all that apply, we\'ll tailor your experience.</string>

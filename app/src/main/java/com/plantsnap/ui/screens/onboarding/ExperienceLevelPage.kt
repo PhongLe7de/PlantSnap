@@ -31,6 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +78,7 @@ fun ExperienceLevelPage(
                 ExperienceLevel.entries.forEach { level ->
                     ExperienceCard(
                         level = level,
-                        selected = selectedExperience == level,
+                        isSelected = selectedExperience == level,
                         onClick = { onSelectExperience(level) },
                     )
                 }
@@ -86,16 +90,20 @@ fun ExperienceLevelPage(
 @Composable
 private fun ExperienceCard(
     level: ExperienceLevel,
-    selected: Boolean,
+    isSelected: Boolean,
     onClick: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val cardBg = if (selected) scheme.surfaceContainerHighest else scheme.surfaceContainerLow
+    val cardBg = if (isSelected) scheme.surfaceContainerHighest else scheme.surfaceContainerLow
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics {
+                selected = isSelected
+                role = Role.RadioButton
+            },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -108,7 +116,7 @@ private fun ExperienceCard(
                 modifier = Modifier
                     .width(4.dp)
                     .height(72.dp)
-                    .background(if (selected) scheme.primary else cardBg),
+                    .background(if (isSelected) scheme.primary else cardBg),
             )
 
             Row(
@@ -122,7 +130,7 @@ private fun ExperienceCard(
                         .size(44.dp)
                         .clip(CircleShape)
                         .background(
-                            if (selected) scheme.primary.copy(alpha = 0.12f)
+                            if (isSelected) scheme.primary.copy(alpha = 0.12f)
                             else scheme.secondaryContainer
                         ),
                     contentAlignment = Alignment.Center,
@@ -130,7 +138,7 @@ private fun ExperienceCard(
                     Icon(
                         imageVector = level.icon,
                         contentDescription = null,
-                        tint = if (selected) scheme.primary else scheme.onSecondaryContainer,
+                        tint = if (isSelected) scheme.primary else scheme.onSecondaryContainer,
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -142,7 +150,7 @@ private fun ExperienceCard(
                         text = stringResource(level.labelRes),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (selected) scheme.primary else scheme.onSurface,
+                        color = if (isSelected) scheme.primary else scheme.onSurface,
                     )
                     Text(
                         text = stringResource(level.descriptionRes),

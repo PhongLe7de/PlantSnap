@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -46,6 +46,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -123,7 +129,10 @@ private fun IdentificationLoadingContent(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+        ) {
             CircularProgressIndicator(color = scheme.primary)
             Spacer(Modifier.height(16.dp))
             Text(
@@ -149,7 +158,9 @@ private fun IdentificationErrorContent(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 32.dp),
+            modifier = Modifier
+                .padding(horizontal = 32.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         ) {
             Icon(
                 Icons.Filled.Warning,
@@ -166,6 +177,7 @@ private fun IdentificationErrorContent(
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onBack,
+                modifier = Modifier.heightIn(min = 48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                 shape = RoundedCornerShape(50),
             ) {
@@ -267,6 +279,7 @@ private fun SafetyDisclaimerBanner(modifier: Modifier = Modifier) {
             Column {
                 Text(
                     text = stringResource(R.string.id_safety_title).uppercase(Locale.getDefault()),
+                    Modifier.semantics { heading() },
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -292,7 +305,8 @@ private fun AnalysisCompleteChip(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .background(scheme.secondaryContainer, RoundedCornerShape(50))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -326,6 +340,7 @@ private fun UploadedImagePreview(
     Column(modifier = modifier) {
         Text(
             text = stringResource(R.string.id_results_title),
+            Modifier.semantics { heading() },
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.ExtraBold,
             color = scheme.primary,
@@ -364,7 +379,8 @@ private fun UploadedImagePreview(
                 .align(Alignment.BottomEnd)
                 .offset(x = (-12).dp, y = 24.dp)
                 .background(scheme.primary, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .semantics(mergeDescendants = true) { },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -419,6 +435,7 @@ private fun CandidateCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) { role = Role.Button }
             .clickable(onClick = onClick),
     ) {
         Row(
@@ -437,7 +454,7 @@ private fun CandidateCard(
                 if (candidate.imageUrl != null) {
                     AsyncImage(
                         model = candidate.imageUrl,
-                        contentDescription = candidate.scientificName,
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -539,6 +556,7 @@ private fun RetakeCTASection(onBack: () -> Unit, modifier: Modifier = Modifier) 
         ) {
             Text(
                 text = stringResource(R.string.id_not_seeing_title),
+                Modifier.semantics { heading() },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onPrimary,
@@ -552,6 +570,7 @@ private fun RetakeCTASection(onBack: () -> Unit, modifier: Modifier = Modifier) 
             Spacer(Modifier.height(20.dp))
             Button(
                 onClick = onBack,
+                modifier = Modifier.heightIn(min = 48.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = scheme.secondaryContainer,
                     contentColor = scheme.onSecondaryContainer,
