@@ -48,13 +48,17 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
 
 @Composable
@@ -141,6 +145,9 @@ fun ProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                }
                 .padding(horizontal = 20.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(scheme.errorContainer)
@@ -186,7 +193,9 @@ fun SettingsSection(
             fontWeight = FontWeight.Bold,
             color = scheme.onSurfaceVariant,
             letterSpacing = 2.sp,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 12.dp),
+            modifier = Modifier
+                .padding(horizontal = 4.dp, vertical = 12.dp)
+                .semantics { heading() },
         )
 
         Box(
@@ -227,6 +236,9 @@ fun SettingsRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                }
                 .clickable(onClick = onClick)
                 .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -371,6 +383,9 @@ fun RankProgressCard(
                 progress = { statsState.rankProgress },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .semantics {
+                        contentDescription = "Rank progress: ${statsState.rankProgress}"
+                    }
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
                 color = scheme.primary,
@@ -391,43 +406,51 @@ fun StatsBentoGrid(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-
-        Box(
+        Column(
             modifier = Modifier
                 .weight(1f)
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(28.dp))
-                .background(scheme.surfaceContainerLow)
-                .padding(20.dp),
+                .semantics(mergeDescendants = true) { }
+                .height(170.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Icon(
-                Icons.Filled.LocalFlorist,
-                contentDescription = null,
-                tint = scheme.primary,
+            Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .align(Alignment.TopStart),
-            )
-            Column(modifier = Modifier.align(Alignment.BottomStart)) {
-                Text(
-                    text = statsState.totalScans.toString(),
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = scheme.primary,
+                    .weight(1f)
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(scheme.surfaceContainerLow)
+                    .padding(20.dp),
+            ) {
+                Icon(
+                    Icons.Filled.LocalFlorist,
+                    contentDescription = null,
+                    tint = scheme.primary,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.TopStart),
                 )
-                Text(
-                    text = stringResource(R.string.profile_plants_found),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = scheme.onSurfaceVariant,
-                    letterSpacing = 1.sp,
-                )
+                Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                    Text(
+                        text = statsState.totalScans.toString(),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = scheme.primary,
+                    )
+                    Text(
+                        text = stringResource(R.string.profile_plants_found),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = scheme.onSurfaceVariant,
+                        letterSpacing = 1.sp,
+                    )
+                }
             }
         }
 
         Column(
             modifier = Modifier
                 .weight(1f)
+                .semantics(mergeDescendants = true) { }
                 .height(170.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -435,6 +458,7 @@ fun StatsBentoGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .aspectRatio(1f)
                     .clip(RoundedCornerShape(28.dp))
                     .background(scheme.primaryContainer)
                     .padding(20.dp),
@@ -444,7 +468,7 @@ fun StatsBentoGrid(
                     contentDescription = null,
                     tint = scheme.onPrimaryContainer,
                     modifier = Modifier
-                        .size(30.dp)
+                        .size(36.dp)
                         .align(Alignment.TopStart)
                 )
                 Column(modifier = Modifier.align(Alignment.BottomStart)) {
@@ -502,28 +526,11 @@ fun ProfileHero(
                 } else {
                     Icon(
                         Icons.Filled.Person,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.profile_photo_desc),
                         tint = scheme.onSurfaceVariant,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
-            }
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(scheme.primary)
-                    .border(4.dp, scheme.background, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Filled.Edit,
-                    contentDescription = stringResource(R.string.profile_edit_desc),
-                    tint = scheme.onPrimary,
-                    modifier = Modifier.size(16.dp),
-                )
             }
         }
 
@@ -534,6 +541,7 @@ fun ProfileHero(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = scheme.primary,
+            modifier = Modifier.semantics { heading() },
         )
 
         Spacer(Modifier.height(4.dp))
