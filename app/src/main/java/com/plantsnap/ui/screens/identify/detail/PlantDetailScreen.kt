@@ -2,9 +2,6 @@ package com.plantsnap.ui.screens.identify.detail
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,16 +21,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.Button
@@ -63,13 +57,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -78,15 +74,17 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.plantsnap.R
-import com.plantsnap.domain.models.CareInfo
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.CareInfo
 import com.plantsnap.domain.models.HabitatInfo
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.safety.SafetyAlert
+import com.plantsnap.ui.components.AiLoadingRow
+import com.plantsnap.ui.components.DetailTopBar
+import com.plantsnap.ui.components.RetryButton
+import com.plantsnap.ui.components.SmallLoadingIndicator
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
-import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
-import com.plantsnap.ui.util.validImageUrlOrNull
 
 @Composable
 fun PlantDetailScreen(
@@ -144,48 +142,26 @@ fun PlantDetailScreenContent(
         modifier = Modifier.testTag("screen_plantDetail"),
         containerColor = scheme.background,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(scheme.background)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = scheme.surfaceContainerHigh,
-                    ),
-                    modifier = Modifier.clip(CircleShape),
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.detail_back),
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.detail_topbar_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = scheme.primary,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                )
-                IconButton(
-                    onClick = onToggleFavorite,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = scheme.surfaceContainerHigh,
-                        contentColor = if (isFavorite) Color.Red else scheme.onSurfaceVariant
-                    ),
-                    modifier = Modifier.clip(CircleShape),
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = stringResource(R.string.detail_favourite),
-                        tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
-                    )
-                }
-            }
+            DetailTopBar(
+                title = stringResource(R.string.detail_topbar_title),
+                onBack = onBack,
+                trailingContent = {
+                    IconButton(
+                        onClick = onToggleFavorite,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = scheme.surfaceContainerHigh,
+                            contentColor = if (isFavorite) Color.Red else scheme.onSurfaceVariant,
+                        ),
+                        modifier = Modifier.clip(CircleShape),
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = stringResource(R.string.detail_favourite),
+                            tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant,
+                        )
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         when (candidateState) {
@@ -674,21 +650,7 @@ private fun AiInsightsSection(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 if (isLoading) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = scheme.primary,
-                        )
-                        Text(
-                            text = stringResource(R.string.detail_loading),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = scheme.onSurfaceVariant,
-                        )
-                    }
+                    AiLoadingRow(loadingText = stringResource(R.string.detail_loading))
                 } else if (isError) {
                     Text(
                         text = (aiInfoState).message,
@@ -955,34 +917,6 @@ private fun CareRoutineItem(item: CareItem) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun SmallLoadingIndicator(
-    modifier: Modifier = Modifier,
-    size: androidx.compose.ui.unit.Dp = 16.dp,
-    topPadding: androidx.compose.ui.unit.Dp = 8.dp,
-) {
-    CircularProgressIndicator(
-        modifier = modifier
-            .padding(top = topPadding)
-            .size(size),
-        strokeWidth = 2.dp,
-        color = MaterialTheme.colorScheme.primary,
-    )
-}
-
-@Composable
-private fun RetryButton(onClick: () -> Unit) {
-    Button(onClick = onClick) {
-        Icon(
-            imageVector = Icons.Default.Refresh,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(stringResource(R.string.detail_retry))
     }
 }
 

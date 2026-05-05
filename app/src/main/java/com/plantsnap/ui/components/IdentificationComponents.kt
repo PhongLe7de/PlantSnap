@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plantsnap.R
@@ -279,11 +280,15 @@ fun RetryButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun SmallLoadingIndicator(modifier: Modifier = Modifier) {
+fun SmallLoadingIndicator(
+    modifier: Modifier = Modifier,
+    size: Dp = 16.dp,
+    topPadding: Dp = 8.dp,
+) {
     CircularProgressIndicator(
         modifier = modifier
-            .padding(top = 8.dp)
-            .size(16.dp),
+            .padding(top = topPadding)
+            .size(size),
         strokeWidth = 2.dp,
         color = MaterialTheme.colorScheme.primary,
     )
