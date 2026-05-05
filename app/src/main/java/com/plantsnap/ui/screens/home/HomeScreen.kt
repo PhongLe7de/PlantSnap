@@ -4,19 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,12 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -195,9 +187,6 @@ fun HomeScreenContent(
 
             item { Spacer(Modifier.height(20.dp)) }
             item { PlantOfTheDaySection(plantOfTheDayState, callbacks.onLearnMorePlantOfTheDay) }
-            item { Spacer(Modifier.height(20.dp)) }
-            item { DailyCareSection() }
-            item { Spacer(Modifier.height(20.dp)) }
         }
     }
 }
@@ -241,7 +230,7 @@ private fun WelcomeSection(authState: AuthUiState) {
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.home_subtitle, 12), // Int placeholder
+            text = stringResource(R.string.home_subtitle),
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             color = scheme.onSurfaceVariant,
@@ -478,114 +467,6 @@ private fun PlantOfTheDaySection(
                             )
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DailyCareSection() {
-    val scheme = MaterialTheme.colorScheme
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.home_daily_care),
-            modifier = Modifier.semantics { heading() },
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = scheme.primary,
-        )
-        Spacer(Modifier.height(12.dp))
-
-        CareTaskItem(
-            title = stringResource(R.string.home_watering_title, "Plant Name"),
-            subtitle = stringResource(R.string.home_watering_desc),
-            accentColor = scheme.primary,
-        )
-        Spacer(Modifier.height(8.dp))
-        CareTaskItem(
-            title = stringResource(R.string.home_rotate_title),
-            subtitle = stringResource(R.string.home_rotate_desc),
-            accentColor = scheme.primary,
-        )
-    }
-}
-
-@Composable
-private fun CareTaskItem(
-    title: String,
-    subtitle: String,
-    accentColor: Color,
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(72.dp)
-                    .background(accentColor),
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                // Icon placeholder
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clearAndSetSemantics { }
-                        .clip(CircleShape)
-                        .background(accentColor.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(16.dp)
-                            .background(accentColor.copy(alpha = 0.55f), CircleShape)
-                    )
-                }
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = scheme.onSurface,
-                    )
-                    Text(
-                        text = subtitle,
-                        fontSize = 12.sp,
-                        color = scheme.onSurfaceVariant,
-                    )
-                }
-
-                OutlinedButton(
-                    onClick = {}, // TODO: mark task done
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accentColor),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
-                    modifier = Modifier.defaultMinSize(minHeight = 40.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_done),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
                 }
             }
         }
