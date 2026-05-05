@@ -95,7 +95,7 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.uiState.collectAsState()
 
-    val hasCompletedOnboarding = authState.hasCompletedOnboarding
+    val hasCompletedOnboarding = authState.hasCompletedOnboarding ?: return
 
     val startDestination = if (hasCompletedOnboarding == true) BottomNavItem.HOME.route else ROUTE_ONBOARDING
 
