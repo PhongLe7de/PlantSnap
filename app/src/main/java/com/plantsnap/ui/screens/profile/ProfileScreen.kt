@@ -55,6 +55,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
+
 @Composable
 fun ProfileScreen(
     authState: AuthUiState,
@@ -194,8 +196,8 @@ fun SettingsSection(
                 .background(scheme.surfaceContainerLow),
         ) {
             Column {
-                SettingsRow(icon = Icons.Filled.Settings, label = stringResource(R.string.profile_settings), onClick = onNavigateToSettings)
-                SettingsRow(icon = Icons.AutoMirrored.Filled.List, label = stringResource(R.string.profile_history), isLast = true, onClick = onNavigateToHistory)
+                SettingsRow(icon = Icons.Filled.Settings, label = stringResource(R.string.profile_settings), onClick = onNavigateToSettings, modifier = Modifier.testTag("btn_settings"))
+                SettingsRow(icon = Icons.AutoMirrored.Filled.List, label = stringResource(R.string.profile_history), isLast = true, onClick = onNavigateToHistory, modifier = Modifier.testTag("btn_history"))
             }
         }
     }
@@ -208,6 +210,7 @@ fun SettingsRow(
     showDivider: Boolean = false,
     isLast: Boolean = false,
     onClick: () -> Unit = {},
+    modifier: Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
