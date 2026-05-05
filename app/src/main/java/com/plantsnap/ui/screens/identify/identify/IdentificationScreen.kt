@@ -2,6 +2,7 @@ package com.plantsnap.ui.screens.identify.identify
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,15 +13,19 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -42,12 +47,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.plantsnap.R
@@ -58,7 +70,6 @@ import com.plantsnap.ui.components.RetakeCTABox
 import com.plantsnap.ui.components.SafetyDisclaimerBanner
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
-import java.util.Locale
 
 @Composable
 fun IdentificationScreen(
@@ -122,7 +133,10 @@ private fun IdentificationLoadingContent(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+        ) {
             CircularProgressIndicator(color = scheme.primary)
             Spacer(Modifier.height(16.dp))
             Text(
@@ -148,7 +162,9 @@ private fun IdentificationErrorContent(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 32.dp),
+            modifier = Modifier
+                .padding(horizontal = 32.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         ) {
             Icon(
                 Icons.Filled.Warning,
@@ -165,6 +181,7 @@ private fun IdentificationErrorContent(
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onBack,
+                modifier = Modifier.heightIn(min = 48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                 shape = RoundedCornerShape(50),
             ) {
@@ -259,7 +276,8 @@ private fun AnalysisCompleteChip(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .background(scheme.secondaryContainer, RoundedCornerShape(50))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -293,6 +311,7 @@ private fun UploadedImagePreview(
     Column(modifier = modifier) {
         Text(
             text = stringResource(R.string.id_results_title),
+            Modifier.semantics { heading() },
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.ExtraBold,
             color = scheme.primary,
@@ -352,6 +371,7 @@ private fun CandidateCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) { role = Role.Button }
             .clickable(onClick = onClick),
     ) {
         Row(
@@ -370,7 +390,7 @@ private fun CandidateCard(
                 if (candidate.imageUrl != null) {
                     AsyncImage(
                         model = candidate.imageUrl,
-                        contentDescription = candidate.scientificName,
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
