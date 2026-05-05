@@ -384,7 +384,7 @@ private fun PlantOfTheDaySection(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().testTag("potd_card")) {
         Text(
             text = stringResource(R.string.home_potd),
             fontSize = 24.sp,
@@ -451,7 +451,7 @@ private fun PlantOfTheDaySection(
                         Spacer(Modifier.height(20.dp))
                         Button(
                             onClick = onLearnMore,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("potd_learn_more"),
                             colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                             shape = RoundedCornerShape(12.dp),
                         ) {
