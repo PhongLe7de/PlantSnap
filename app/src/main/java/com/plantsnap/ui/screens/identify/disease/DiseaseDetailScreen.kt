@@ -1,6 +1,11 @@
 package com.plantsnap.ui.screens.identify.disease
 
 import androidx.compose.foundation.background
+import com.plantsnap.ui.components.AiLoadingRow
+import com.plantsnap.ui.components.DetailTopBar
+import com.plantsnap.ui.components.RetryButton
+import com.plantsnap.ui.components.SafetyDisclaimerBanner
+import com.plantsnap.ui.components.SmallLoadingIndicator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -15,25 +20,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Spa
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,35 +95,10 @@ private fun DiseaseDetailContent(
     Scaffold(
         containerColor = scheme.background,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(scheme.background)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = scheme.surfaceContainerHigh,
-                    ),
-                    modifier = Modifier.clip(CircleShape),
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.detail_back),
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.disease_detail_topbar_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = scheme.primary,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.size(40.dp))
-            }
+            DetailTopBar(
+                title = stringResource(R.string.disease_detail_topbar_title),
+                onBack = onBack,
+            )
         },
     ) { innerPadding ->
         when (candidateState) {
@@ -186,7 +158,13 @@ private fun DiseaseDetailBody(
     ) {
         item { DiseaseHeroSection(candidate) }
         item { Spacer(Modifier.height(16.dp)) }
-        item { DiseaseDisclaimerBanner(modifier = Modifier.padding(horizontal = 16.dp)) }
+        item {
+            SafetyDisclaimerBanner(
+                title = stringResource(R.string.disease_id_disclaimer_title),
+                body = stringResource(R.string.disease_id_disclaimer_body),
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+        }
         item { Spacer(Modifier.height(24.dp)) }
         item { DiseaseOverviewSection(aiInfoState, canRetry, onRetryAi) }
         item { Spacer(Modifier.height(24.dp)) }
@@ -307,21 +285,7 @@ private fun DiseaseOverviewSection(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 if (isLoading) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = scheme.primary,
-                        )
-                        Text(
-                            text = stringResource(R.string.disease_detail_loading),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = scheme.onSurfaceVariant,
-                        )
-                    }
+                    AiLoadingRow(loadingText = stringResource(R.string.disease_detail_loading))
                 } else if (isError) {
                     Text(
                         text = (aiInfoState as UiState.Error).message,
@@ -525,26 +489,3 @@ private fun ManagementCard(
     }
 }
 
-@Composable
-private fun SmallLoadingIndicator(modifier: Modifier = Modifier) {
-    CircularProgressIndicator(
-        modifier = modifier
-            .padding(top = 8.dp)
-            .size(16.dp),
-        strokeWidth = 2.dp,
-        color = MaterialTheme.colorScheme.primary,
-    )
-}
-
-@Composable
-private fun RetryButton(onClick: () -> Unit) {
-    Button(onClick = onClick) {
-        Icon(
-            imageVector = Icons.Default.Refresh,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.detail_retry))
-    }
-}
