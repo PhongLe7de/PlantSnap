@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -59,6 +60,9 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -295,7 +299,11 @@ fun CategoryChip(
         modifier = Modifier
             .clip(CircleShape)
             .background(bgColor)
-            .clickable(onClick = onClick)
+            .toggleable(
+                value = selected,
+                role = Role.RadioButton,
+                onValueChange = { onClick() }
+            )
             .padding(horizontal = 20.dp, vertical = 10.dp),
     ) {
         Text(
@@ -314,6 +322,8 @@ fun HistorySearchBar(
     modifier: Modifier = Modifier,
 ) {
     val  scheme = MaterialTheme.colorScheme
+
+    val description = stringResource(R.string.history_search_bar)
 
     Box(
         modifier = modifier
@@ -346,7 +356,9 @@ fun HistorySearchBar(
                     ),
                     cursorBrush = SolidColor(scheme.primary),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = description },
                 )
             }
         }
@@ -445,7 +457,10 @@ fun HistoryScanCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(scheme.surfaceContainerLowest)
-            .clickable(onClick = onClick),
+            .clickable(
+                onClick = onClick,
+                onClickLabel = scan.bestMatch,
+            ),
     ) {
         Row(modifier = Modifier.height(112.dp)) {
             Box(modifier = Modifier.size(112.dp)) {
@@ -486,7 +501,7 @@ fun HistoryScanCard(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = scheme.primary,
-                            fontSize = 9.sp,
+                            fontSize = 11.sp,
                             letterSpacing = 0.8.sp,
                         )
                     }
@@ -495,7 +510,7 @@ fun HistoryScanCard(
                 if (scan.isFavorite) {
                     Icon(
                         Icons.Filled.Favorite,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.history_favourited),
                         tint = scheme.primary,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -598,7 +613,7 @@ fun HistoryEmptyState(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = if (isFiltered) stringResource(R.string.history_no_Results) else stringResource(R.string.history_no_scans),
+            text = if (isFiltered) stringResource(R.string.history_no_results) else stringResource(R.string.history_no_scans),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,

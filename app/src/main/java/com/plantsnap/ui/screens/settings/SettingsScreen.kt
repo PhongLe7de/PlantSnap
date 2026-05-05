@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,8 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -39,6 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,8 +60,6 @@ fun SettingsScreen(
     onThemeChange: (AppTheme) -> Unit,
     onTemperatureUnitChange: (TemperatureUnit) -> Unit,
     onLanguageChange: (String) -> Unit,
-    onNotificationsChange: (Boolean) -> Unit,
-    onPlantCareRemindersChange: (Boolean) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     var showThemePicker by remember { mutableStateOf(false) }
@@ -118,25 +118,6 @@ fun SettingsScreen(
             }
 
             Spacer(Modifier.height(8.dp))
-
-            /**SettingsSection(title = "Plant Care Reminders") {
-                SettingsToggleRow(
-                    icon = Icons.Filled.Notifications,
-                    label = "Push Notifications",
-                    subtitle = "Receive alerts about your plants",
-                    checked = settings.notificationsEnabled,
-                    onCheckedChange = onNotificationsChange,
-                )
-                SettingsDivider()
-                SettingsToggleRow(
-                    icon = Icons.Filled.WaterDrop,
-                    label = "Care Reminders",
-                    subtitle = "Watering and care schedule alerts",
-                    checked = settings.plantCareReminders,
-                    enabled = settings.notificationsEnabled,
-                    onCheckedChange = onPlantCareRemindersChange,
-                )
-            }**/
         }
     }
 
@@ -210,7 +191,10 @@ private fun SettingsRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .semantics {
+                role = Role.Button
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -240,57 +224,6 @@ private fun SettingsRow(
 }
 
 @Composable
-private fun SettingsToggleRow(
-    icon: ImageVector,
-    label: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true,
-){
-    val scheme = MaterialTheme.colorScheme
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (enabled) scheme.onSurfaceVariant else scheme.onSurfaceVariant.copy(alpha = 0.4f),
-            modifier = Modifier.size(22.dp),
-        )
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = if (enabled) scheme.onSurface else scheme.onSurface.copy(alpha = 0.4f),
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (enabled) scheme.onSurfaceVariant else scheme.onSurfaceVariant.copy(alpha = 0.4f),
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = scheme.onPrimary,
-                checkedTrackColor = scheme.primary,
-            ),
-        )
-    }
-}
-
-@Composable
 private fun SettingsDivider() {
     val scheme = MaterialTheme.colorScheme
     androidx.compose.material3.HorizontalDivider(
@@ -315,7 +248,7 @@ private fun <T> PickerBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        contentColor = scheme.surfaceContainerLow,
+        contentColor = scheme.onSurface,
     ) {
         Column(
             modifier = Modifier
@@ -335,7 +268,11 @@ private fun <T> PickerBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable{ onSelect(value) }
+                        .selectable(
+                            selected = isSelected,
+                            role = Role.RadioButton,
+                            onClick = { onSelect(value) }
+                        )
                         .background(
                             if (isSelected) scheme.primaryContainer
                             else androidx.compose.ui.graphics.Color.Transparent
@@ -388,8 +325,6 @@ private fun SettingsScreenPreview() {
             onThemeChange = {},
             onTemperatureUnitChange = {},
             onLanguageChange = {},
-            onNotificationsChange = {},
-            onPlantCareRemindersChange = {},
         )
     }
 }

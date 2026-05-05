@@ -337,8 +337,6 @@ fun AppNavigation() {
                         onThemeChange = settingsViewModel::setTheme,
                         onTemperatureUnitChange = settingsViewModel::setTemperatureUnit,
                         onLanguageChange = settingsViewModel::setLanguage,
-                        onNotificationsChange = settingsViewModel::setNotificationsEnabled,
-                        onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
                     )
                 }
 

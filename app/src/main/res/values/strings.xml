@@ -160,11 +160,12 @@
     <string name="history_subtitle">Your botanical journey documented</string>
     <string name="history_search_bar">Search your garden...</string>
     <string name="history_accuracy">%1$d%% Accuracy</string>
-    <string name="history_no_Results">No results found</string>
+    <string name="history_no_results">No results found</string>
     <string name="history_no_scans">No scans yet</string>
     <string name="history_try_different_filter">Try a different search or filter</string>
     <string name="history_your_scans_appear_here">Your identified plants will appear here</string>
     <string name="history_delete_scan">Delete scan</string>
+    <string name="history_favourited">Favourited</string>
 
     <!-- Onboarding Screen -->
     <string name="onboarding_skip">Skip</string>
