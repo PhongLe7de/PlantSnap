@@ -2,6 +2,8 @@ package com.plantsnap.data.repository
 
 import com.plantsnap.data.plantnet.IdentifyPlantResponse
 import com.plantsnap.data.plantnet.PlantNetApi
+import com.plantsnap.data.plantnet.toDomain
+import com.plantsnap.domain.models.DiseaseScanResult
 import com.plantsnap.domain.repository.PlantNetRepository
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -36,5 +38,16 @@ class PlantNetRepositoryImpl @Inject constructor(
             MultipartBody.Part.createFormData("organs", organs?.getOrNull(index) ?: "auto")
         }
         return api.identify(images = imageParts, organs = organParts, includeRelatedImages = true)
+    }
+
+    override suspend fun identifyDisease(imageFiles: List<File>, organs: List<String>?, imagePath: String): DiseaseScanResult {
+        val imageParts = imageFiles.map { file ->
+            val body = file.asRequestBody("image/jpeg".toMediaType())
+            MultipartBody.Part.createFormData("images", file.name, body)
+        }
+        val organParts = imageFiles.mapIndexed { index, _ ->
+            MultipartBody.Part.createFormData("organs", organs?.getOrNull(index) ?: "auto")
+        }
+        return api.identifyDisease(images = imageParts, organs = organParts, includeRelatedImages = true).toDomain(imagePath)
     }
 }

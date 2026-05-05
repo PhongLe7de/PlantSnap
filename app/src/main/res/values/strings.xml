@@ -195,6 +195,31 @@
     <string name="onboarding_interests_option_flowers">Flowers</string>
     <string name="onboarding_interests_option_trees">Trees &amp; shrubs</string>
 
+    <!-- Disease Identification Screen -->
+    <string name="disease_id_analyzing">Analyzing for diseases…</string>
+    <string name="disease_id_error">Identification error: %s</string>
+    <string name="disease_id_analysis_complete">ANALYSIS COMPLETE</string>
+    <string name="disease_id_disclaimer_title">IMPORTANT</string>
+    <string name="disease_id_disclaimer_body">Results are AI-generated and for informational purposes only. Consult a plant pathologist or agronomist before treating your plant.</string>
+    <string name="disease_id_results_title">Disease Results</string>
+    <string name="disease_id_confidence">CONFIDENCE</string>
+    <string name="disease_id_uploaded_photo">Uploaded photo</string>
+    <string name="disease_id_retake_title">Not what you expected?</string>
+    <string name="disease_id_retake_body">Try a closer photo focusing on the affected area — leaves, stems, or spots.</string>
+    <plurals name="disease_id_candidates_found">
+        <item quantity="one">1 potential disease found</item>
+        <item quantity="other">%d potential diseases found</item>
+    </plurals>
+
+    <!-- Disease Detail Screen -->
+    <string name="disease_detail_topbar_title">Disease Detail</string>
+    <string name="disease_detail_loading">Loading disease info…</string>
+    <string name="disease_detail_symptoms">Symptoms</string>
+    <string name="disease_detail_causes">Causes</string>
+    <string name="disease_detail_management">Management</string>
+    <string name="disease_detail_treatment">Treatment</string>
+    <string name="disease_detail_prevention">Prevention</string>
+
     <!-- Navigation Bar -->
     <string name="navigation_home">Home</string>
     <string name="navigation_identify">Identify</string>
