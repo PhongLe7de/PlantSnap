@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -59,6 +60,9 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -76,8 +80,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.plantsnap.R
-import com.plantsnap.ui.components.TopBar
-import com.plantsnap.ui.screens.profile.AuthUiState
 
 enum class PlantCategory(val label: String) {
     ALL("All scans"),
@@ -110,35 +112,26 @@ fun ScanResult.inferCategory(): PlantCategory {
 
 @Composable
 fun HistoryScreen(
-    authState: AuthUiState,
     viewModel: HistoryViewModel = hiltViewModel(),
-    profilePhotoUrl: String? = null,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
     onBack: () -> Unit = {},
-    onProfileSelected: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
     HistoryScreenContent(
         state = state,
-        profilePhotoUrl = profilePhotoUrl,
         onScanSelected = onScanSelected,
         onDeleteScan = viewModel::deleteScan,
-        authState = authState,
         onBack = onBack,
-        onProfileSelected = onProfileSelected
     )
 }
 
 @Composable
 fun HistoryScreenContent(
     state: UiState<List<ScanResult>>,
-    authState: AuthUiState,
-    profilePhotoUrl: String?,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
     onDeleteScan: (String) -> Unit = {},
     onBack: () -> Unit = {},
-    onProfileSelected: () -> Unit = {},
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(PlantCategory.ALL) }
@@ -152,18 +145,11 @@ fun HistoryScreenContent(
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         item {
-            TopBar(
-                profilePhotoUrl = profilePhotoUrl,
-                onProfileSelected = onProfileSelected,
-            )
-        }
-
-        item {
             Column(modifier = Modifier.padding(top = 4.dp)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 4.dp, end = 20.dp),
+                        .padding(start = 4.dp, end = 20.dp, top = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
@@ -175,7 +161,7 @@ fun HistoryScreenContent(
                     }
                     Text(
                         text = stringResource(R.string.history_title),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = scheme.primary
                     )
@@ -313,7 +299,11 @@ fun CategoryChip(
         modifier = Modifier
             .clip(CircleShape)
             .background(bgColor)
-            .clickable(onClick = onClick)
+            .toggleable(
+                value = selected,
+                role = Role.RadioButton,
+                onValueChange = { onClick() }
+            )
             .padding(horizontal = 20.dp, vertical = 10.dp),
     ) {
         Text(
@@ -332,6 +322,8 @@ fun HistorySearchBar(
     modifier: Modifier = Modifier,
 ) {
     val  scheme = MaterialTheme.colorScheme
+
+    val description = stringResource(R.string.history_search_bar)
 
     Box(
         modifier = modifier
@@ -364,7 +356,9 @@ fun HistorySearchBar(
                     ),
                     cursorBrush = SolidColor(scheme.primary),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = description },
                 )
             }
         }
@@ -463,7 +457,10 @@ fun HistoryScanCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(scheme.surfaceContainerLowest)
-            .clickable(onClick = onClick),
+            .clickable(
+                onClick = onClick,
+                onClickLabel = scan.bestMatch,
+            ),
     ) {
         Row(modifier = Modifier.height(112.dp)) {
             Box(modifier = Modifier.size(112.dp)) {
@@ -504,7 +501,7 @@ fun HistoryScanCard(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = scheme.primary,
-                            fontSize = 9.sp,
+                            fontSize = 11.sp,
                             letterSpacing = 0.8.sp,
                         )
                     }
@@ -513,7 +510,7 @@ fun HistoryScanCard(
                 if (scan.isFavorite) {
                     Icon(
                         Icons.Filled.Favorite,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.history_favourited),
                         tint = scheme.primary,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -616,7 +613,7 @@ fun HistoryEmptyState(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = if (isFiltered) stringResource(R.string.history_no_Results) else stringResource(R.string.history_no_scans),
+            text = if (isFiltered) stringResource(R.string.history_no_results) else stringResource(R.string.history_no_scans),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -662,21 +659,12 @@ private val previewScans = listOf(
     ),
 )
 
-private val previewAuthState = AuthUiState(
-    isLoggedIn = true,
-    userEmail = "user@example.com",
-    displayName = "Jane Doe",
-    profilePhotoUrl = null,
-)
-
 @Preview(showBackground = true, showSystemUi = true, name = "History - items")
 @Composable
 private fun HistoryScreenPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Success(previewScans),
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }
@@ -687,8 +675,6 @@ private fun HistoryScreenEmptyPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Success(emptyList()),
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }
@@ -699,8 +685,6 @@ private fun HistoryScreenLoadingPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Loading,
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }

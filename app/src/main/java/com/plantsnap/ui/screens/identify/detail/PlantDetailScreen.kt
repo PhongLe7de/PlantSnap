@@ -35,7 +35,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.Button
@@ -95,8 +94,11 @@ import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.safety.SafetyAlert
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
-import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
-import com.plantsnap.ui.util.validImageUrlOrNull
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 
 @Composable
 fun PlantDetailScreen(
@@ -275,7 +277,7 @@ private fun PlantDetailTopBar(
             colors = IconButtonDefaults.iconButtonColors(
                 containerColor = scheme.surfaceContainerHigh,
             ),
-            modifier = Modifier.clip(CircleShape),
+            modifier = Modifier.clip(CircleShape)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -287,7 +289,9 @@ private fun PlantDetailTopBar(
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() },
             textAlign = TextAlign.Center,
         )
         FavoriteToggleButton(isFavorite = isFavorite, onClick = onToggleFavorite)
@@ -309,7 +313,9 @@ private fun FavoriteToggleButton(isFavorite: Boolean, onClick: () -> Unit) {
             containerColor = scheme.surfaceContainerHigh,
             contentColor = tint,
         ),
-        modifier = Modifier.clip(CircleShape),
+        modifier = Modifier
+            .clip(CircleShape)
+            .semantics { selected = isFavorite },
     ) {
         Icon(
             imageVector = icon,
@@ -507,7 +513,7 @@ private fun HeroSection(
                 .data(candidate.imageUrl)
                 .crossfade(true)
                 .build(),
-            contentDescription = candidate.scientificName,
+            contentDescription = stringResource(R.string.detail_image_description, candidate.scientificName),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
         )
@@ -556,7 +562,9 @@ private fun HeroSection(
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.White,
                     lineHeight = 36.sp,
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .semantics { heading() },
                 )
                 if (onEditNickname != null) {
                     Spacer(Modifier.width(8.dp))
@@ -741,7 +749,9 @@ private fun CareCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = modifier.aspectRatio(1f),
+        modifier = modifier
+            .aspectRatio(1f)
+            .semantics(mergeDescendants = true) { },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -871,7 +881,9 @@ private fun SafetyAlertCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor.copy(alpha = 0.35f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -944,6 +956,7 @@ private fun AiInsightsSection(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
@@ -1005,7 +1018,9 @@ private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
             text = stringResource(R.string.detail_habitat),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .semantics { heading() },
         )
         Spacer(Modifier.height(12.dp))
 
@@ -1055,7 +1070,9 @@ private fun HabitatCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = Modifier.width(260.dp),
+        modifier = Modifier
+            .width(260.dp)
+            .semantics(mergeDescendants = true) { },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -1161,7 +1178,9 @@ private fun CareRoutineSection(aiInfoState: UiState<PlantAiInfo>) {
             text = stringResource(R.string.detail_care),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp),
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .semantics { heading() },
         )
 
         items.forEach { item ->
@@ -1177,7 +1196,8 @@ private fun CareRoutineItem(item: CareItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 12.dp),
+            .padding(horizontal = 4.dp, vertical = 12.dp)
+            .semantics(mergeDescendants = true) { },
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -1268,7 +1288,9 @@ private fun ScanLocationSection(scanLocation: Pair<Double, Double>) {
             text = stringResource(R.string.detail_scan_location),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp),
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .semantics { heading() },
         )
 
         Card(

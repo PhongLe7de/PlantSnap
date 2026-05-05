@@ -99,7 +99,7 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.uiState.collectAsState()
 
-    val hasCompletedOnboarding = authState.hasCompletedOnboarding
+    val hasCompletedOnboarding = authState.hasCompletedOnboarding ?: return
 
     val startDestination = if (hasCompletedOnboarding == true) BottomNavItem.HOME.route else ROUTE_ONBOARDING
 
@@ -236,7 +236,6 @@ fun AppNavigation() {
             ) {
                 composable(IdentifyNavItem.CAMERA.route) {
                     CameraScreen(
-                        onBack = { navController.popBackStack() },
                         onReviewPhotos = {
                             navController.navigate("${IdentifyNavItem.PREVIEW.route}?page=0")
                         },
@@ -350,13 +349,10 @@ fun AppNavigation() {
 
                 composable(ROUTE_HISTORY) {
                     HistoryScreen(
-                        authState = authState,
-                        profilePhotoUrl = authState.profilePhotoUrl,
                         onScanSelected = { plantId, candidateIndex ->
                             navController.navigate("$ROUTE_PROFILE_PLANT_DETAILS/$plantId/$candidateIndex")
                         },
                         onBack = { navController.popBackStack() },
-                        onProfileSelected = navigateToProfile,
                     )
                 }
 
@@ -367,10 +363,6 @@ fun AppNavigation() {
                         onThemeChange = settingsViewModel::setTheme,
                         onTemperatureUnitChange = settingsViewModel::setTemperatureUnit,
                         onLanguageChange = settingsViewModel::setLanguage,
-                        onNotificationsChange = settingsViewModel::setNotificationsEnabled,
-                        onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
-                        profilePhotoUrl = authState.profilePhotoUrl,
-                        onProfileSelected = navigateToProfile,
                     )
                 }
 

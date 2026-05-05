@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,6 +61,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -103,6 +112,7 @@ private fun MyGardenScreenContent(
     Scaffold(
         modifier = Modifier.testTag("screen_garden"),
         containerColor = scheme.surface,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { MyGardenTopBar(onAddClick = onAddSpecimen) },
     ) { innerPadding ->
         LazyColumn(
@@ -299,7 +309,8 @@ private fun WaterAllPill(allWatered: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .clip(RoundedCornerShape(50))
             .clickable(onClick = onClick)
-            .testTag("btn_garden_water_all"),
+            .testTag("btn_garden_water_all")
+            .semantics { liveRegion = LiveRegionMode.Polite },
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
@@ -410,7 +421,9 @@ private fun TaskCard(task: TodayTask, onCheckClick: () -> Unit) {
                 .padding(20.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) { },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
@@ -421,7 +434,7 @@ private fun TaskCard(task: TodayTask, onCheckClick: () -> Unit) {
                 ) {
                     AsyncImage(
                         model = task.imageUrl,
-                        contentDescription = task.nickname,
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(56.dp)
@@ -487,6 +500,13 @@ private fun TaskCard(task: TodayTask, onCheckClick: () -> Unit) {
 @Composable
 private fun TaskCheckButton(checked: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
+
+    val description = if (checked) {
+        stringResource(R.string.garden_mark_unwatered)
+    } else {
+        stringResource(R.string.garden_mark_watered)
+    }
+
     Box(
         modifier = Modifier
             .size(32.dp)
@@ -497,7 +517,12 @@ private fun TaskCheckButton(checked: Boolean, onClick: () -> Unit) {
                 color = scheme.primary,
                 shape = CircleShape,
             )
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics {
+                role = Role.Checkbox
+                selected = checked
+                contentDescription = description
+            },
         contentAlignment = Alignment.Center,
     ) {
         if (checked) {
@@ -555,7 +580,7 @@ private fun CollectionSectionFromSaved(
             trailing = {
                 SmallCircleButton(
                     icon = Icons.Outlined.GridView,
-                    selected = viewMode == CollectionViewMode.GRID,
+                    isSelected = viewMode == CollectionViewMode.GRID,
                     onClick = onToggleViewMode,
                 )
             },
@@ -690,21 +715,31 @@ private fun SavedPlantUi.toGardenPlant(): GardenPlant = GardenPlant(
 private fun SmallCircleButton(
     icon: ImageVector,
     onClick: () -> Unit,
-    selected: Boolean = false,
+    isSelected: Boolean = false,
 ) {
     val scheme = MaterialTheme.colorScheme
+
+    val description = stringResource(
+        if (isSelected) R.string.garden_grid_active else R.string.garden_grid_inactive
+    )
+
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(48.dp)
             .clip(CircleShape)
-            .background(if (selected) scheme.primaryContainer else scheme.surfaceContainerLow)
-            .clickable(onClick = onClick),
+            .background(if (isSelected) scheme.primaryContainer else scheme.surfaceContainerLow)
+            .clickable(onClick = onClick)
+            .semantics {
+                selected = isSelected
+                role = Role.RadioButton
+                contentDescription = description
+            },
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (selected) scheme.primary else scheme.onSurfaceVariant,
+            tint = if (isSelected) scheme.primary else scheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp),
         )
     }
@@ -724,7 +759,8 @@ private fun HeroPlantCard(
             .clip(RoundedCornerShape(20.dp))
             .background(scheme.surfaceContainerLow)
             .clickable(onClick = onClick)
-            .testTag("garden_plant_card_$savedPlantId"),
+            .testTag("garden_plant_card_$savedPlantId")
+            .semantics(mergeDescendants = true) { role = Role.Button },
     ) {
         AsyncImage(
             model = plant.imageUrl,
@@ -834,7 +870,8 @@ private fun PlantCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .testTag("garden_plant_card_$savedPlantId"),
+            .testTag("garden_plant_card_$savedPlantId")
+            .semantics(mergeDescendants = true) { role = Role.Button },
     ) {
         Box(
             modifier = Modifier
@@ -947,7 +984,8 @@ private fun AddSpecimenCard(onClick: () -> Unit) {
             .background(scheme.surfaceContainerLow.copy(alpha = 0.4f))
             .clickable(onClick = onClick)
             .testTag("btn_garden_add_specimen")
-            .padding(16.dp),
+            .padding(16.dp)
+            .semantics(mergeDescendants = true) { role = Role.Button },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -1037,7 +1075,8 @@ private fun ProgressItem(entry: ProgressEntry, onClick: () -> Unit) {
             .background(scheme.surfaceContainerLowest)
             .clickable(onClick = onClick)
             .testTag("garden_recent_action_${entry.savedPlantId}")
-            .padding(14.dp),
+            .padding(14.dp)
+            .semantics(mergeDescendants = true) { role = Role.Button },
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -1055,7 +1094,7 @@ private fun ProgressItem(entry: ProgressEntry, onClick: () -> Unit) {
         }
         AsyncImage(
             model = entry.imageUrl,
-            contentDescription = entry.caption,
+            contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
@@ -1079,6 +1118,7 @@ private fun SectionHeader(title: String, trailing: @Composable () -> Unit) {
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
+            modifier = Modifier.semantics { heading() },
         )
         trailing()
     }

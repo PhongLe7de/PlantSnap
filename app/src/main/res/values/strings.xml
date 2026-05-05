@@ -7,7 +7,7 @@
     <string name="home_afternoon">Good afternoon, %s</string>
     <string name="home_evening">Good evening, %s</string>
     <string name="home_night">Good night, %s</string>
-    <string name="home_subtitle">Your digital herbarium has %d new updates today.</string>
+    <string name="home_subtitle">Welcome to your digital herbarium</string>
     <string name="home_identify_title">Identify any plant</string>
     <string name="home_identify_desc">Point your camera at a leaf, flower, or tree for instant identification.</string>
     <string name="home_identify_button">Identify Plant</string>
@@ -15,12 +15,7 @@
     <string name="home_view_all">View All</string>
     <string name="home_potd">Plant of the Day</string>
     <string name="home_learn">Learn More</string>
-    <string name="home_daily_care">Daily Care Tasks</string>
     <string name="home_done">Done</string>
-    <string name="home_watering_title">Watering: %s</string> <!-- Placeholder -->
-    <string name="home_watering_desc">Check soil moisture today</string>
-    <string name="home_rotate_title">Rotate: Succulents</string>
-    <string name="home_rotate_desc">Ensure even sun exposure</string>
     <string name="home_no_plants">No plants found</string>
     <string name="home_error">Error: %s</string>
 
@@ -67,6 +62,11 @@
     <string name="profile_settings">Settings</string>
     <string name="profile_history">Scan History</string>
 
+    <!-- Authentication Screen -->
+    <string name="auth_title">Welcome to PlantSnap</string>
+    <string name="auth_description">Sign in to sync your plant collection</string>
+    <string name="auth_sign_in">Sign in with Google</string>
+
     <!-- Plant Detail Screen -->
     <string name="detail_topbar_title">Details</string>
     <string name="detail_error">Error: %s</string>
@@ -92,6 +92,7 @@
     <string name="detail_scanned_here">Scanned here</string>
     <string name="detail_add_to_garden">Add to My Garden</string>
     <string name="detail_saved_to_garden">Saved to Garden</string>
+    <string name="detail_image_description">Photo of %s</string>
 
     <!-- Safety Alerts -->
     <string name="safety_alert_dog_toxic_title">Toxic to your dog</string>
@@ -134,6 +135,10 @@
     <string name="garden_task_mist">Mist Leaves</string>
     <string name="garden_empty_title">No saved plants yet</string>
     <string name="garden_empty_desc">Scan a plant and tap ♡ to add it to your garden.</string>
+    <string name="garden_mark_unwatered">Mark as unwatered</string>
+    <string name="garden_mark_watered">Mark as watered</string>
+    <string name="garden_grid_active">Switch to list view</string>
+    <string name="garden_grid_inactive">Switch to grid view</string>
 
     <!-- My Garden Detail Screen -->
     <string name="garden_detail_rename_title">Rename plant</string>
@@ -155,12 +160,15 @@
     <string name="history_subtitle">Your botanical journey documented</string>
     <string name="history_search_bar">Search your garden...</string>
     <string name="history_accuracy">%1$d%% Accuracy</string>
-    <string name="history_no_Results">No results found</string>
+    <string name="history_no_results">No results found</string>
     <string name="history_no_scans">No scans yet</string>
     <string name="history_try_different_filter">Try a different search or filter</string>
     <string name="history_your_scans_appear_here">Your identified plants will appear here</string>
     <string name="history_delete_scan">Delete scan</string>
+    <string name="history_favourited">Favourited</string>
 
+    <!-- Onboarding Screen -->
+    <string name="onboarding_skip">Skip</string>
     <!-- Onboarding: Pet Safety -->
     <string name="onboarding_pets_title">Do you have pets?</string>
     <string name="onboarding_pets_subtitle">We\'ll warn you about plants that are toxic to your companions.</string>
@@ -168,7 +176,6 @@
     <string name="onboarding_pets_option_cat">Cat</string>
     <string name="onboarding_pets_option_both">Both</string>
     <string name="onboarding_pets_option_none">No pets</string>
-
     <!-- Onboarding: Experience Level -->
     <string name="onboarding_experience_title">How green is your thumb?</string>
     <string name="onboarding_experience_subtitle">We\'ll adjust the detail level in plant guides to match your experience.</string>
@@ -178,12 +185,11 @@
     <string name="onboarding_experience_option_intermediate_desc">I know the basics</string>
     <string name="onboarding_experience_option_expert_label">Expert</string>
     <string name="onboarding_experience_option_expert_desc">I speak Latin binomials</string>
-
     <!-- Onboarding: Complete -->
     <string name="onboarding_complete_title">You\'re all set!</string>
     <string name="onboarding_complete_subtitle">PlantSnap is ready to help you explore the plant world.</string>
     <string name="onboarding_complete_cta">Start Exploring</string>
-
+    <string name="onboarding_complete_description">Summary of your selections</string>
     <!-- Onboarding: Plant Interests -->
     <string name="onboarding_interests_title">What are you into?</string>
     <string name="onboarding_interests_subtitle">Select all that apply, we\'ll tailor your experience.</string>
@@ -225,5 +231,12 @@
     <string name="navigation_identify">Identify</string>
     <string name="navigation_my_garden">My Garden</string>
     <string name="navigation_profile">Profile</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_temperature">Temperature</string>
+    <string name="settings_language">Language</string>
 
 </resources>

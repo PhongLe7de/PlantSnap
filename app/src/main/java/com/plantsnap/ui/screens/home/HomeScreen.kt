@@ -4,18 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,7 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,10 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,8 +59,10 @@ import com.plantsnap.ui.util.validImageUrlOrNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
-/** Navigation callbacks consumed by the Home screen. Grouped to keep param counts low. */
+// Navigation callbacks consumed by the Home screen. Grouped to keep param counts low.
 data class HomeCallbacks(
     val onIdentifyPlantSelected: () -> Unit = {},
     val onLearnMorePlantOfTheDay: () -> Unit = {},
@@ -106,6 +107,7 @@ fun HomeScreenContent(
     Scaffold(
         modifier = Modifier.testTag("screen_home"),
         containerColor = scheme.surface,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopBar(
                 profilePhotoUrl = profilePhotoUrl,
@@ -136,7 +138,8 @@ fun HomeScreenContent(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(120.dp),
+                            .height(120.dp)
+                            .semantics { liveRegion = LiveRegionMode.Polite },
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator(color = scheme.primary)
@@ -186,9 +189,6 @@ fun HomeScreenContent(
 
             item { Spacer(Modifier.height(20.dp)) }
             item { PlantOfTheDaySection(plantOfTheDayState, callbacks.onLearnMorePlantOfTheDay) }
-            item { Spacer(Modifier.height(20.dp)) }
-            item { DailyCareSection() }
-            item { Spacer(Modifier.height(20.dp)) }
         }
     }
 }
@@ -203,7 +203,7 @@ fun getGreeting(): Int {
             in 22..23, in 0..4 -> R.string.home_night
             else -> R.string.home_greeting
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         R.string.home_greeting
     }
 }
@@ -223,6 +223,7 @@ private fun WelcomeSection(authState: AuthUiState) {
     ) {
         Text(
             text = greetingText,
+            modifier = Modifier.semantics { heading() },
             fontSize = 34.sp,
             fontWeight = FontWeight.ExtraBold,
             lineHeight = 40.sp,
@@ -231,7 +232,7 @@ private fun WelcomeSection(authState: AuthUiState) {
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.home_subtitle, 12), // Int placeholder
+            text = stringResource(R.string.home_subtitle),
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             color = scheme.onSurfaceVariant,
@@ -250,8 +251,8 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
             .background(
                 Brush.verticalGradient(
                     listOf(
+                        scheme.primary,
                         scheme.primary.copy(alpha = 0.4f),
-                        scheme.primary
                     )
                 )
             )
@@ -261,6 +262,7 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
         Column {
             Text(
                 text = stringResource(R.string.home_identify_title),
+                modifier = Modifier.semantics { heading() },
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onPrimary,
@@ -269,8 +271,7 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
             Text(
                 text = stringResource(R.string.home_identify_desc),
                 fontSize = 14.sp,
-                color = scheme.onPrimary.copy(alpha = 0.80f),
-                modifier = Modifier.fillMaxWidth(0.72f),
+                color = scheme.onPrimary,
             )
             Spacer(Modifier.height(16.dp))
             Button(
@@ -302,6 +303,7 @@ private fun RecentScansHeader(onViewAllScans: () -> Unit) {
     ) {
         Text(
             text = stringResource(R.string.home_recent_scans),
+            modifier = Modifier.semantics { heading() },
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
@@ -329,7 +331,9 @@ private fun ScanCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = modifier,
+        modifier = modifier.semantics(mergeDescendants = true) {
+            role = Role.Button
+        },
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
@@ -345,7 +349,7 @@ private fun ScanCard(
             if (imageModel != null) {
                 AsyncImage(
                     model = imageModel,
-                    contentDescription = plantName,
+                    contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -387,6 +391,7 @@ private fun PlantOfTheDaySection(
     Column(modifier = Modifier.fillMaxWidth().testTag("potd_card")) {
         Text(
             text = stringResource(R.string.home_potd),
+            modifier = Modifier.semantics { heading() },
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
@@ -445,7 +450,7 @@ private fun PlantOfTheDaySection(
                         Text(
                             text = data.description ?: stringResource(R.string.detail_info_unavailable),
                             fontSize = 13.sp,
-                            color = scheme.onSecondaryContainer.copy(alpha = 0.75f),
+                            color = scheme.onSecondaryContainer,
                             lineHeight = 20.sp,
                         )
                         Spacer(Modifier.height(20.dp))
@@ -464,112 +469,6 @@ private fun PlantOfTheDaySection(
                             )
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DailyCareSection() {
-    val scheme = MaterialTheme.colorScheme
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.home_daily_care),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = scheme.primary,
-        )
-        Spacer(Modifier.height(12.dp))
-
-        CareTaskItem(
-            title = stringResource(R.string.home_watering_title, "Plant Name"),
-            subtitle = stringResource(R.string.home_watering_desc),
-            accentColor = scheme.primary,
-        )
-        Spacer(Modifier.height(8.dp))
-        CareTaskItem(
-            title = stringResource(R.string.home_rotate_title),
-            subtitle = stringResource(R.string.home_rotate_desc),
-            accentColor = scheme.primary,
-        )
-    }
-}
-
-@Composable
-private fun CareTaskItem(
-    title: String,
-    subtitle: String,
-    accentColor: Color,
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(72.dp)
-                    .background(accentColor),
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                // Icon placeholder
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(accentColor.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(16.dp)
-                            .background(accentColor.copy(alpha = 0.55f), CircleShape)
-                    )
-                }
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = scheme.onSurface,
-                    )
-                    Text(
-                        text = subtitle,
-                        fontSize = 12.sp,
-                        color = scheme.onSurfaceVariant,
-                    )
-                }
-
-                OutlinedButton(
-                    onClick = {}, // TODO: mark task done
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accentColor),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
-                    modifier = Modifier.height(32.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_done),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
                 }
             }
         }
