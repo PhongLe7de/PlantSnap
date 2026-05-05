@@ -2,11 +2,16 @@
 
 ![PlantSnap header](docs/readme_header.jpg)
 
+![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![Min SDK](https://img.shields.io/badge/Min%20SDK-26-green?style=for-the-badge)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+
+<br>
 AI-powered plant identification <br>
 Take a picture of any plant and get an instant species identification with safety information or
 identify potential plant diseases
+
 </div>
-<br>
 
 <div align="center">
 
@@ -17,6 +22,7 @@ identify potential plant diseases
 <img src="docs/my_garden_screen.png" width="24%">
 <img src="docs/profile_screen.png" width="24%">
 </div>
+
 
 
 <br>
@@ -51,6 +57,7 @@ with AI-generated symptoms, causes, treatment and prevention information.
 - **Background cloud sync** — scans and saved plants synced to Supabase automatically
 
 ---
+
 
 ## Architecture
 
@@ -191,4 +198,4 @@ CI              GitHub Actions
 
 ## License
 
-This project is developed for academic purposes as part of a mobile development course.
+MIT License — see [LICENSE](LICENSE) for details.
