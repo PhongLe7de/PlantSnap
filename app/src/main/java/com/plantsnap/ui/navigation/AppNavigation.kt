@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.plantsnap.ui.screens.history.HistoryScreen
 import com.plantsnap.ui.screens.garden.MyGardenScreen
+import com.plantsnap.ui.screens.garden.detail.SavedPlantDetailScreen
 import com.plantsnap.ui.screens.home.HomeCallbacks
 import com.plantsnap.ui.screens.home.HomeScreen
 import com.plantsnap.ui.screens.home.PlantOfTheDayDetailScreen
@@ -46,6 +47,8 @@ import com.plantsnap.ui.screens.profile.ProfileScreen
 import com.plantsnap.ui.screens.profile.ProfileViewModel
 import com.plantsnap.ui.screens.identify.camera.CameraScreen
 import com.plantsnap.ui.screens.identify.camera.CameraViewModel
+import com.plantsnap.ui.screens.identify.disease.DiseaseDetailScreen
+import com.plantsnap.ui.screens.identify.disease.DiseaseIdentificationScreen
 import com.plantsnap.ui.screens.identify.identify.IdentificationScreen
 import com.plantsnap.ui.screens.identify.detail.PlantDetailScreen
 import com.plantsnap.ui.screens.identify.preview.ImagePreviewScreen
@@ -73,6 +76,7 @@ private const val ROUTE_HISTORY = "history"
 private const val ROUTE_PLANT_OF_THE_DAY_DETAIL = "plant_of_the_day_detail"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_ONBOARDING = "onboarding"
+private const val ROUTE_GARDEN_PLANT_DETAILS = "garden_plant_details"
 
 
 enum class IdentifyNavItem(
@@ -81,6 +85,8 @@ enum class IdentifyNavItem(
     CAMERA("camera"),
     PREVIEW("preview"),
     IDENTIFICATION("identification"),
+    DISEASE("disease_identification"),
+    DISEASE_DETAIL("disease_detail"),
     PLANT_DETAILS("plant_details")
 }
 
@@ -93,7 +99,7 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.uiState.collectAsState()
 
-    val hasCompletedOnboarding = authState.hasCompletedOnboarding
+    val hasCompletedOnboarding = authState.hasCompletedOnboarding ?: return
 
     val startDestination = if (hasCompletedOnboarding == true) BottomNavItem.HOME.route else ROUTE_ONBOARDING
 
@@ -230,7 +236,6 @@ fun AppNavigation() {
             ) {
                 composable(IdentifyNavItem.CAMERA.route) {
                     CameraScreen(
-                        onBack = { navController.popBackStack() },
                         onReviewPhotos = {
                             navController.navigate("${IdentifyNavItem.PREVIEW.route}?page=0")
                         },
@@ -246,8 +251,11 @@ fun AppNavigation() {
                     ImagePreviewScreen(
                         initialPage = initialPage,
                         onRetake = { navController.popBackStack() },
-                        onUsePhotos = {
+                        onIdentifyPlant = {
                             navController.navigate(IdentifyNavItem.IDENTIFICATION.route)
+                        },
+                        onIdentifyDisease = {
+                            navController.navigate(IdentifyNavItem.DISEASE.route)
                         },
                         photosHolder = cameraViewModel.photosHolder
                     )
@@ -263,6 +271,25 @@ fun AppNavigation() {
                         onPlantSelected = { plantId, candidateIndex ->
                             navController.navigate("${IdentifyNavItem.PLANT_DETAILS.route}/$plantId/$candidateIndex")
                         }
+                    )
+                }
+                composable(IdentifyNavItem.DISEASE.route) {
+                    DiseaseIdentificationScreen(
+                        onBack = {
+                            navController.popBackStack(
+                                route = IdentifyNavItem.CAMERA.route,
+                                inclusive = false,
+                            )
+                        },
+                        onCandidateSelected = { index ->
+                            navController.navigate("${IdentifyNavItem.DISEASE_DETAIL.route}/$index")
+                        },
+                    )
+                }
+                composable("${IdentifyNavItem.DISEASE_DETAIL.route}/{candidateIndex}") { backStackEntry ->
+                    DiseaseDetailScreen(
+                        candidateIndex = backStackEntry.arguments?.getString("candidateIndex")?.toIntOrNull() ?: 0,
+                        onBack = { navController.popBackStack() },
                     )
                 }
                 composable("${IdentifyNavItem.PLANT_DETAILS.route}/{plantId}/{candidateIndex}") { backStackEntry ->
@@ -322,13 +349,10 @@ fun AppNavigation() {
 
                 composable(ROUTE_HISTORY) {
                     HistoryScreen(
-                        authState = authState,
-                        profilePhotoUrl = authState.profilePhotoUrl,
                         onScanSelected = { plantId, candidateIndex ->
                             navController.navigate("$ROUTE_PROFILE_PLANT_DETAILS/$plantId/$candidateIndex")
                         },
                         onBack = { navController.popBackStack() },
-                        onProfileSelected = navigateToProfile,
                     )
                 }
 
@@ -339,10 +363,6 @@ fun AppNavigation() {
                         onThemeChange = settingsViewModel::setTheme,
                         onTemperatureUnitChange = settingsViewModel::setTemperatureUnit,
                         onLanguageChange = settingsViewModel::setLanguage,
-                        onNotificationsChange = settingsViewModel::setNotificationsEnabled,
-                        onPlantCareRemindersChange = settingsViewModel::setPlantCareReminders,
-                        profilePhotoUrl = authState.profilePhotoUrl,
-                        onProfileSelected = navigateToProfile,
                     )
                 }
 
@@ -355,17 +375,32 @@ fun AppNavigation() {
                 }
             }
 
-            composable(BottomNavItem.GARDEN.route) {
-                MyGardenScreen(
-                    onAddSpecimen = {
-                        navController.navigate(BottomNavItem.IDENTIFY.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+            navigation(
+                startDestination = "garden_main",
+                route = BottomNavItem.GARDEN.route,
+            ) {
+                composable("garden_main") {
+                    MyGardenScreen(
+                        onAddSpecimen = {
+                            navController.navigate(BottomNavItem.IDENTIFY.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
                             }
-                            launchSingleTop = true
-                        }
-                    },
-                )
+                        },
+                        onPlantClick = { savedPlantId ->
+                            navController.navigate("$ROUTE_GARDEN_PLANT_DETAILS/$savedPlantId")
+                        },
+                    )
+                }
+
+                composable("$ROUTE_GARDEN_PLANT_DETAILS/{savedPlantId}") { backStackEntry ->
+                    SavedPlantDetailScreen(
+                        savedPlantId = backStackEntry.arguments?.getString("savedPlantId").orEmpty(),
+                        onBack = { navController.popBackStack() },
+                    )
+                }
             }
         }
     }

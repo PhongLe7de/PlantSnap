@@ -3,7 +3,6 @@ package com.plantsnap.ui.screens.identify.camera
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -23,6 +22,7 @@ fun CameraPreview(
                 this.controller = controller
                 controller.bindToLifecycle(lifecycleOwner)
                 controller.imageCaptureMode = ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY // TODO: Or CAPTURE_MODE_MAXIMIZE_QUALITY ? Have to test how api responds
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
             }
         },
         modifier = modifier

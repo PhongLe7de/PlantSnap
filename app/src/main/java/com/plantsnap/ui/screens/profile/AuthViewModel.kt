@@ -1,6 +1,5 @@
 package com.plantsnap.ui.screens.profile
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.plantsnap.domain.repository.ProfileRepository
@@ -60,7 +59,7 @@ class AuthViewModel @Inject constructor(
                         )
                     }
                     is SessionStatus.Initializing -> {
-                        _uiState.value = AuthUiState(isLoading = true)
+                        _uiState.value = _uiState.value.copy(isLoading = true)
                     }
                     is SessionStatus.RefreshFailure -> {
                         _uiState.value = AuthUiState(

@@ -79,7 +79,7 @@ class CareTaskRepositoryImpl @Inject constructor(
         db.withTransaction {
             careTaskDao.markCompleted(taskId, completedAt = now, nextDueAt = nextDueAt, updatedAt = now)
             if (mirrorWater) {
-                savedPlantDao.setLastWatered(task.savedPlantId, now)
+                savedPlantDao.updateLastWatered(task.savedPlantId, now)
             }
         }
         Log.d(TAG, "markCompleted: id=$taskId type=${task.taskType} nextDueAt=$nextDueAt")

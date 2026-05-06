@@ -28,6 +28,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.plantsnap.ui.theme.PlantSnapTheme
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 
 enum class Organ(val label: String, val icon: ImageVector? = null) {
     AUTO("Auto", Icons.Filled.HdrAuto),
@@ -46,7 +51,8 @@ fun OrganSelector(
     Row(
         modifier = modifier
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -89,6 +95,10 @@ private fun OrganButton(
             horizontal = 14.dp,
             vertical = 8.dp,
         ),
+        modifier = Modifier.semantics {
+            selected = isSelected
+            role = Role.RadioButton
+        },
     ) {
         if (organ.icon != null) {
             Icon(

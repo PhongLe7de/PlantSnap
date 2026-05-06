@@ -169,6 +169,8 @@ class PlantService @Inject constructor(
 
     fun getPlantsFromLocal(): Flow<List<ScanResult>> = scanRepo.getAll()
 
+    suspend fun deletePlantFromLocal(id: String) = scanRepo.delete(id)
+
     private suspend fun getCurrentLocation(): Pair<Double, Double>? {
         val hasFine = ContextCompat.checkSelfPermission(
             appContext,

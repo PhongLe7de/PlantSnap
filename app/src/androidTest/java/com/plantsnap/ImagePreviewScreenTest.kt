@@ -46,8 +46,9 @@ class ImagePreviewScreenTest {
         initialPage: Int = 0,
         onRetake: (Int) -> Unit = {},
         onBack: () -> Unit = {},
-        onUsePhotos: () -> Unit = {},
-        onRemovePhoto: (Int) -> Unit = {}
+        onRemovePhoto: (Int) -> Unit = {},
+        onIdentifyPlant:() -> Unit = {},
+        onIdentifyDisease:() -> Unit = {}
     ) {
         composeRule.activity.setContent {
             PlantSnapTheme {
@@ -56,8 +57,9 @@ class ImagePreviewScreenTest {
                     photos = photos,
                     onRetake = onRetake,
                     onBack = onBack,
-                    onUsePhotos = onUsePhotos,
-                    onRemovePhoto = onRemovePhoto
+                    onRemovePhoto = onRemovePhoto,
+                    onIdentifyPlant = onIdentifyPlant,
+                    onIdentifyDisease = onIdentifyDisease
                 )
             }
         }
@@ -99,7 +101,7 @@ class ImagePreviewScreenTest {
     @Test
     fun use_photo_button_triggers_callback() {
         var clicked = false
-        setPreviewContent(onUsePhotos = { clicked = true })
+        setPreviewContent(onIdentifyPlant = { clicked = true })
 
         composeRule.onNodeWithTag("btn_use_photo").performClick()
         composeRule.waitForIdle()

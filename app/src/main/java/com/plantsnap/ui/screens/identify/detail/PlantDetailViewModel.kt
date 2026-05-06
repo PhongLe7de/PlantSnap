@@ -226,6 +226,38 @@ class PlantDetailViewModel @Inject constructor(
         }
     }
 
+    fun saveWithNickname(nickname: String) {
+        val c = (candidateState.value as? UiState.Success)?.data ?: run {
+            Log.w(TAG, "saveWithNickname: ignored, candidateState is not Success")
+            return
+        }
+        val scanId = currentScanId ?: run {
+            Log.w(TAG, "saveWithNickname: ignored, currentScanId is null")
+            return
+        }
+        if (c.gbifId == null) {
+            Log.w(TAG, "saveWithNickname: ignored, candidate has no gbifId")
+            return
+        }
+        if (isSaved.value) {
+            Log.d(TAG, "saveWithNickname: ignored, already saved")
+            return
+        }
+        viewModelScope.launch {
+            val saved = savedPlantRepo.save(c, scanId)
+            val trimmed = nickname.trim()
+            val defaultNickname = c.commonNames.firstOrNull() ?: c.scientificName
+            if (trimmed.isNotEmpty() && trimmed != defaultNickname) {
+                savedPlantRepo.updateNickname(saved.id, trimmed)
+            }
+            try {
+                savedPlantSyncManager.syncPending()
+            } catch (e: Exception) {
+                Log.w(TAG, "saveWithNickname: syncPending threw ${e::class.simpleName}: ${e.message}", e)
+            }
+        }
+    }
+
     fun toggleSaved() {
         val c = (candidateState.value as? UiState.Success)?.data ?: run {
             Log.w(TAG, "toggleSaved: ignored, candidateState is not Success")

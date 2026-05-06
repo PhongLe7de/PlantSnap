@@ -27,13 +27,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material3.AlertDialog
@@ -42,7 +43,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -103,6 +109,11 @@ import com.plantsnap.ui.theme.PlantSnapTheme
 import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
 import com.plantsnap.ui.util.validImageUrlOrNull
 import android.text.format.DateUtils
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 
 @Composable
 fun PlantDetailScreen(
@@ -124,6 +135,10 @@ fun PlantDetailScreen(
         viewModel.loadPlantDetail(plantId, candidateIndex)
     }
 
+    var showAddDialog by remember { mutableStateOf(false) }
+    val candidate = (candidateState as? UiState.Success)?.data
+    val defaultNickname = candidate?.let { it.commonNames.firstOrNull() ?: it.scientificName }.orEmpty()
+
     PlantDetailScreenContent(
         candidateState = candidateState,
         aiInfoState = aiInfoState,
@@ -134,12 +149,76 @@ fun PlantDetailScreen(
         onRetryAi = viewModel::retryAiInfo,
         isFavorite = isFavorite,
         onToggleFavorite = viewModel::toggleFavorite,
-        onToggleSaved = viewModel::toggleSaved,
+        onToggleSaved = {
+            if (isSaved) viewModel.toggleSaved() else showAddDialog = true
+        },
         scanLocation = scanLocation,
         careTasks = careTasks,
         onMarkCareTaskDone = viewModel::markCareTaskDone,
         onSetCareTaskCadence = viewModel::setCareTaskCadence,
         onSetCareTaskEnabled = viewModel::setCareTaskEnabled,
+    )
+
+    if (showAddDialog) {
+        AddToGardenDialog(
+            initialValue = defaultNickname,
+            onConfirm = { nickname ->
+                viewModel.saveWithNickname(nickname)
+                showAddDialog = false
+            },
+            onDismiss = { showAddDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun AddToGardenDialog(
+    initialValue: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var text by remember {
+        mutableStateOf(
+            androidx.compose.ui.text.input.TextFieldValue(
+                initialValue,
+                selection = androidx.compose.ui.text.TextRange(initialValue.length),
+            )
+        )
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("dialog_add_to_garden"),
+        title = { Text(stringResource(R.string.add_garden_dialog_title)) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.add_garden_dialog_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.add_garden_dialog_label)) },
+                    modifier = Modifier.testTag("input_add_to_garden_nickname"),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(text.text) },
+                enabled = text.text.trim().isNotEmpty(),
+                modifier = Modifier.testTag("btn_add_to_garden_confirm"),
+            ) {
+                Text(stringResource(R.string.add_garden_dialog_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.garden_detail_rename_cancel))
+            }
+        },
     )
 }
 
@@ -155,6 +234,8 @@ fun PlantDetailScreenContent(
     isFavorite: Boolean = false,
     scanLocation: Pair<Double, Double>? = null,
     careTasks: List<CareTask> = emptyList(),
+    displayName: String? = null,
+    lastWateredAt: Long? = null,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
@@ -162,6 +243,9 @@ fun PlantDetailScreenContent(
     onMarkCareTaskDone: (String) -> Unit = {},
     onSetCareTaskCadence: (String, Int) -> Unit = { _, _ -> },
     onSetCareTaskEnabled: (String, Boolean) -> Unit = { _, _ -> },
+    onMarkWatered: (() -> Unit)? = null,
+    onEditNickname: (() -> Unit)? = null,
+    onArchive: (() -> Unit)? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -169,99 +253,206 @@ fun PlantDetailScreenContent(
         modifier = Modifier.testTag("screen_plantDetail"),
         containerColor = scheme.background,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(scheme.background)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = scheme.surfaceContainerHigh,
-                    ),
-                    modifier = Modifier.clip(CircleShape),
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.detail_back),
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.detail_topbar_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = scheme.primary,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                )
-                IconButton(
-                    onClick = onToggleFavorite,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = scheme.surfaceContainerHigh,
-                        contentColor = if (isFavorite) Color.Red else scheme.onSurfaceVariant
-                    ),
-                    modifier = Modifier.clip(CircleShape),
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = stringResource(R.string.detail_favourite),
-                        tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
-                    )
-                }
-            }
+            PlantDetailTopBar(
+                isFavorite = isFavorite,
+                onBack = onBack,
+                onToggleFavorite = onToggleFavorite,
+                onArchive = onArchive,
+            )
         },
     ) { innerPadding ->
-        when (candidateState) {
-            is UiState.Idle,
-            is UiState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = scheme.primary)
-                }
-            }
+        PlantDetailContent(
+            candidateState = candidateState,
+            aiInfoState = aiInfoState,
+            canRetry = canRetry,
+            safetyAlerts = safetyAlerts,
+            showScanMetadata = showScanMetadata,
+            isSaved = isSaved,
+            showAddToGarden = showAddToGarden,
+            scanLocation = scanLocation,
+            displayName = displayName,
+            lastWateredAt = lastWateredAt,
+            careTasks = careTasks,
+            onRetryAi = onRetryAi,
+            onToggleSaved = onToggleSaved,
+            onMarkWatered = onMarkWatered,
+            onEditNickname = onEditNickname,
+            onMarkCareTaskDone = onMarkCareTaskDone,
+            onSetCareTaskCadence = onSetCareTaskCadence,
+            onSetCareTaskEnabled = onSetCareTaskEnabled,
+            contentPadding = innerPadding,
+        )
+    }
+}
 
-            is UiState.Error -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "Error: ${candidateState.message}",
-                        color = scheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-
-            is UiState.Success -> {
-                PlantDetailBody(
-                    candidate = candidateState.data,
-                    aiInfoState = aiInfoState,
-                    canRetry = canRetry,
-                    safetyAlerts = safetyAlerts,
-                    showScanMetadata = showScanMetadata,
-                    isSaved = isSaved,
-                    showAddToGarden = showAddToGarden,
-                    scanLocation = scanLocation,
-                    careTasks = careTasks,
-                    onRetryAi = onRetryAi,
-                    onToggleSaved = onToggleSaved,
-                    onMarkCareTaskDone = onMarkCareTaskDone,
-                    onSetCareTaskCadence = onSetCareTaskCadence,
-                    onSetCareTaskEnabled = onSetCareTaskEnabled,
-                    contentPadding = innerPadding,
-                )
-            }
+@Composable
+private fun PlantDetailTopBar(
+    isFavorite: Boolean,
+    onBack: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onArchive: (() -> Unit)?,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(scheme.background)
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            onClick = onBack,
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = scheme.surfaceContainerHigh,
+            ),
+            modifier = Modifier.clip(CircleShape)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.detail_back),
+            )
+        }
+        Text(
+            text = stringResource(R.string.detail_topbar_title),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = scheme.primary,
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() },
+            textAlign = TextAlign.Center,
+        )
+        FavoriteToggleButton(isFavorite = isFavorite, onClick = onToggleFavorite)
+        if (onArchive != null) {
+            Spacer(Modifier.width(4.dp))
+            ArchiveOverflowMenu(onArchive = onArchive)
         }
     }
+}
+
+@Composable
+private fun FavoriteToggleButton(isFavorite: Boolean, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val tint = if (isFavorite) Color.Red else scheme.onSurfaceVariant
+    val icon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
+    IconButton(
+        onClick = onClick,
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = scheme.surfaceContainerHigh,
+            contentColor = tint,
+        ),
+        modifier = Modifier
+            .clip(CircleShape)
+            .semantics { selected = isFavorite },
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = stringResource(R.string.detail_favourite),
+            tint = tint,
+        )
+    }
+}
+
+@Composable
+private fun ArchiveOverflowMenu(onArchive: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    var menuExpanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(
+            onClick = { menuExpanded = true },
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = scheme.surfaceContainerHigh,
+            ),
+            modifier = Modifier
+                .clip(CircleShape)
+                .testTag("btn_garden_detail_overflow"),
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.garden_detail_more_options),
+            )
+        }
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = { menuExpanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.garden_detail_remove_confirm)) },
+                onClick = {
+                    menuExpanded = false
+                    onArchive()
+                },
+                modifier = Modifier.testTag("menu_garden_detail_remove"),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlantDetailContent(
+    candidateState: UiState<Candidate>,
+    aiInfoState: UiState<PlantAiInfo>,
+    canRetry: Boolean,
+    safetyAlerts: List<SafetyAlert>,
+    showScanMetadata: Boolean,
+    isSaved: Boolean,
+    showAddToGarden: Boolean,
+    scanLocation: Pair<Double, Double>?,
+    displayName: String?,
+    lastWateredAt: Long?,
+    careTasks: List<CareTask>,
+    onRetryAi: () -> Unit,
+    onToggleSaved: () -> Unit,
+    onMarkWatered: (() -> Unit)?,
+    onEditNickname: (() -> Unit)?,
+    onMarkCareTaskDone: (String) -> Unit,
+    onSetCareTaskCadence: (String, Int) -> Unit,
+    onSetCareTaskEnabled: (String, Boolean) -> Unit,
+    contentPadding: PaddingValues,
+) {
+    when (candidateState) {
+        is UiState.Idle, is UiState.Loading -> CenteredFill(contentPadding) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        is UiState.Error -> CenteredFill(contentPadding) {
+            Text(
+                text = "Error: ${candidateState.message}",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        is UiState.Success -> PlantDetailBody(
+            candidate = candidateState.data,
+            aiInfoState = aiInfoState,
+            canRetry = canRetry,
+            safetyAlerts = safetyAlerts,
+            showScanMetadata = showScanMetadata,
+            isSaved = isSaved,
+            showAddToGarden = showAddToGarden,
+            scanLocation = scanLocation,
+            displayName = displayName,
+            lastWateredAt = lastWateredAt,
+            careTasks = careTasks,
+            onRetryAi = onRetryAi,
+            onToggleSaved = onToggleSaved,
+            onMarkWatered = onMarkWatered,
+            onEditNickname = onEditNickname,
+            onMarkCareTaskDone = onMarkCareTaskDone,
+            onSetCareTaskCadence = onSetCareTaskCadence,
+            onSetCareTaskEnabled = onSetCareTaskEnabled,
+            contentPadding = contentPadding,
+        )
+    }
+}
+
+@Composable
+private fun CenteredFill(contentPadding: PaddingValues, content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+        contentAlignment = Alignment.Center,
+    ) { content() }
 }
 
 @Composable
@@ -274,9 +465,13 @@ private fun PlantDetailBody(
     isSaved: Boolean,
     showAddToGarden: Boolean,
     scanLocation: Pair<Double, Double>?,
+    displayName: String?,
+    lastWateredAt: Long?,
     careTasks: List<CareTask>,
     onRetryAi: () -> Unit,
     onToggleSaved: () -> Unit,
+    onMarkWatered: (() -> Unit)?,
+    onEditNickname: (() -> Unit)?,
     onMarkCareTaskDone: (String) -> Unit,
     onSetCareTaskCadence: (String, Int) -> Unit,
     onSetCareTaskEnabled: (String, Boolean) -> Unit,
@@ -290,12 +485,21 @@ private fun PlantDetailBody(
         ),
     ) {
         item {
+            val savedPlantExtras = if (onMarkWatered != null && onEditNickname != null) {
+                SavedPlantHeroExtras(
+                    displayName = displayName,
+                    lastWateredAt = lastWateredAt,
+                    onMarkWatered = onMarkWatered,
+                    onEditNickname = onEditNickname,
+                )
+            } else null
             HeroSection(
                 candidate = candidate,
                 showScanMetadata = showScanMetadata,
                 isSaved = isSaved,
                 showAddToGarden = showAddToGarden,
                 onToggleSaved = onToggleSaved,
+                savedPlantExtras = savedPlantExtras,
             )
         }
         item { Spacer(Modifier.height(24.dp)) }
@@ -326,6 +530,13 @@ private fun PlantDetailBody(
     }
 }
 
+internal data class SavedPlantHeroExtras(
+    val displayName: String?,
+    val lastWateredAt: Long?,
+    val onMarkWatered: () -> Unit,
+    val onEditNickname: () -> Unit,
+)
+
 @Composable
 private fun HeroSection(
     candidate: Candidate,
@@ -333,7 +544,12 @@ private fun HeroSection(
     isSaved: Boolean = false,
     showAddToGarden: Boolean = true,
     onToggleSaved: () -> Unit = {},
+    savedPlantExtras: SavedPlantHeroExtras? = null,
 ) {
+    val displayName = savedPlantExtras?.displayName
+    val lastWateredAt = savedPlantExtras?.lastWateredAt
+    val onMarkWatered = savedPlantExtras?.onMarkWatered
+    val onEditNickname = savedPlantExtras?.onEditNickname
     val scheme = MaterialTheme.colorScheme
 
     Box(
@@ -348,7 +564,7 @@ private fun HeroSection(
                 .data(candidate.imageUrl)
                 .crossfade(true)
                 .build(),
-            contentDescription = candidate.scientificName,
+            contentDescription = stringResource(R.string.detail_image_description, candidate.scientificName),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
         )
@@ -389,17 +605,48 @@ private fun HeroSection(
                 Spacer(Modifier.height(8.dp))
             }
 
-            Text(
-                text = candidate.scientificName,
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
-                lineHeight = 36.sp,
-            )
-
-            candidate.commonNames.firstOrNull()?.let { commonName ->
+            val titleText = displayName ?: candidate.scientificName
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = commonName,
+                    text = titleText,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                    lineHeight = 36.sp,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .semantics { heading() },
+                )
+                if (onEditNickname != null) {
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onEditNickname,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .testTag("btn_garden_detail_edit_nickname"),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.White.copy(alpha = 0.18f),
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.garden_detail_edit_nickname),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+
+            val subtitle = if (displayName != null) {
+                candidate.scientificName
+            } else {
+                candidate.commonNames.firstOrNull()
+            }
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
                     style = MaterialTheme.typography.bodyLarge,
                     fontStyle = FontStyle.Italic,
                     color = Color.White.copy(alpha = 0.80f),
@@ -446,6 +693,41 @@ private fun HeroSection(
                             if (isSaved) R.string.detail_saved_to_garden
                             else R.string.detail_add_to_garden
                         ),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            } else if (onMarkWatered != null) {
+                Spacer(Modifier.height(14.dp))
+                val label = if (lastWateredAt != null) {
+                    val rel = android.text.format.DateUtils.getRelativeTimeSpanString(
+                        lastWateredAt,
+                        System.currentTimeMillis(),
+                        android.text.format.DateUtils.MINUTE_IN_MILLIS,
+                    ).toString()
+                    stringResource(R.string.garden_detail_watered_ago, rel)
+                } else {
+                    stringResource(R.string.garden_detail_mark_watered)
+                }
+                Button(
+                    onClick = onMarkWatered,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = scheme.primary,
+                        contentColor = scheme.onPrimary,
+                    ),
+                    modifier = Modifier
+                        .height(48.dp)
+                        .testTag("btn_garden_detail_mark_watered"),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.WaterDrop,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = label,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -518,7 +800,9 @@ private fun CareCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = modifier.aspectRatio(1f),
+        modifier = modifier
+            .aspectRatio(1f)
+            .semantics(mergeDescendants = true) { },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -648,7 +932,9 @@ private fun SafetyAlertCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor.copy(alpha = 0.35f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -721,6 +1007,7 @@ private fun AiInsightsSection(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
@@ -782,7 +1069,9 @@ private fun NativeHabitatSection(aiInfoState: UiState<PlantAiInfo>) {
             text = stringResource(R.string.detail_habitat),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .semantics { heading() },
         )
         Spacer(Modifier.height(12.dp))
 
@@ -832,7 +1121,9 @@ private fun HabitatCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = Modifier.width(260.dp),
+        modifier = Modifier
+            .width(260.dp)
+            .semantics(mergeDescendants = true) { },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -938,7 +1229,9 @@ private fun CareRoutineSection(aiInfoState: UiState<PlantAiInfo>) {
             text = stringResource(R.string.detail_care),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp),
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .semantics { heading() },
         )
 
         items.forEach { item ->
@@ -954,7 +1247,8 @@ private fun CareRoutineItem(item: CareItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 12.dp),
+            .padding(horizontal = 4.dp, vertical = 12.dp)
+            .semantics(mergeDescendants = true) { },
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -1045,7 +1339,9 @@ private fun ScanLocationSection(scanLocation: Pair<Double, Double>) {
             text = stringResource(R.string.detail_scan_location),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp),
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .semantics { heading() },
         )
 
         Card(

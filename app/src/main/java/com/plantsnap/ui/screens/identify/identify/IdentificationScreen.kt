@@ -2,7 +2,6 @@ package com.plantsnap.ui.screens.identify.identify
 
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,18 +12,16 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -46,6 +43,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +61,9 @@ import coil3.compose.AsyncImage
 import com.plantsnap.R
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
+import com.plantsnap.ui.components.ConfidenceBadge
+import com.plantsnap.ui.components.RetakeCTABox
+import com.plantsnap.ui.components.SafetyDisclaimerBanner
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
 
@@ -123,7 +129,10 @@ private fun IdentificationLoadingContent(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+        ) {
             CircularProgressIndicator(color = scheme.primary)
             Spacer(Modifier.height(16.dp))
             Text(
@@ -149,7 +158,9 @@ private fun IdentificationErrorContent(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 32.dp),
+            modifier = Modifier
+                .padding(horizontal = 32.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         ) {
             Icon(
                 Icons.Filled.Warning,
@@ -166,6 +177,7 @@ private fun IdentificationErrorContent(
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onBack,
+                modifier = Modifier.heightIn(min = 48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                 shape = RoundedCornerShape(50),
             ) {
@@ -207,7 +219,13 @@ private fun IdentificationSuccessContent(
                 }
             }
         }
-        item { SafetyDisclaimerBanner(modifier = Modifier.padding(horizontal = 20.dp)) }
+        item {
+            SafetyDisclaimerBanner(
+                title = stringResource(R.string.id_safety_title).uppercase(Locale.getDefault()),
+                body = stringResource(R.string.id_safety_body),
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+        }
         item { Spacer(Modifier.height(24.dp)) }
         item {
             AnalysisCompleteChip(modifier = Modifier.padding(horizontal = 20.dp))
@@ -234,54 +252,16 @@ private fun IdentificationSuccessContent(
         }
 
         item { Spacer(Modifier.height(12.dp)) }
-        item { RetakeCTASection(onBack = onBack, modifier = Modifier.padding(horizontal = 20.dp)) }
-        item { Spacer(Modifier.height(24.dp)) }
-    }
-}
-
-@Composable
-private fun SafetyDisclaimerBanner(modifier: Modifier = Modifier) {
-    val scheme = MaterialTheme.colorScheme
-
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.errorContainer),
-        modifier = modifier
-            .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                color = scheme.error.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(12.dp),
-            ),
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                Icons.Filled.Warning,
-                contentDescription = null,
-                tint = scheme.onErrorContainer,
-                modifier = Modifier.size(20.dp),
+        item {
+            RetakeCTABox(
+                title = stringResource(R.string.id_not_seeing_title),
+                body = stringResource(R.string.id_not_seeing_body),
+                buttonText = stringResource(R.string.id_retake_photo),
+                onRetake = onBack,
+                modifier = Modifier.padding(horizontal = 20.dp),
             )
-            Column {
-                Text(
-                    text = stringResource(R.string.id_safety_title).uppercase(Locale.getDefault()),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    color = scheme.onErrorContainer,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.id_safety_body),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium,
-                    color = scheme.onErrorContainer,
-                    lineHeight = 18.sp,
-                )
-            }
         }
+        item { Spacer(Modifier.height(24.dp)) }
     }
 }
 
@@ -292,7 +272,8 @@ private fun AnalysisCompleteChip(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .background(scheme.secondaryContainer, RoundedCornerShape(50))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -326,6 +307,7 @@ private fun UploadedImagePreview(
     Column(modifier = modifier) {
         Text(
             text = stringResource(R.string.id_results_title),
+            Modifier.semantics { heading() },
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.ExtraBold,
             color = scheme.primary,
@@ -358,46 +340,12 @@ private fun UploadedImagePreview(
             )
         }
 
-        // Confidence badge overlay
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .offset(x = (-12).dp, y = 24.dp)
-                .background(scheme.primary, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(scheme.primaryContainer, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Filled.Verified,
-                    contentDescription = null,
-                    tint = scheme.onPrimaryContainer,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-            Column {
-                Text(
-                    text = stringResource(R.string.id_confidence_label).uppercase(Locale.getDefault()),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    color = scheme.inversePrimary,
-                    fontSize = 9.sp,
-                )
-                Text(
-                    text = "%.1f%%".format(topScore * 100),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = scheme.onPrimary,
-                )
-            }
-        }
+        ConfidenceBadge(
+            score = topScore,
+            icon = Icons.Filled.Verified,
+            label = stringResource(R.string.id_confidence_label).uppercase(Locale.getDefault()),
+            modifier = Modifier.align(Alignment.BottomEnd),
+        )
     }
 
     // Extra spacer to account for the overflowing badge
@@ -419,6 +367,7 @@ private fun CandidateCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) { role = Role.Button }
             .clickable(onClick = onClick),
     ) {
         Row(
@@ -437,7 +386,7 @@ private fun CandidateCard(
                 if (candidate.imageUrl != null) {
                     AsyncImage(
                         model = candidate.imageUrl,
-                        contentDescription = candidate.scientificName,
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -512,61 +461,6 @@ private fun TagChip(text: String) {
             .background(scheme.surfaceContainerHighest, RoundedCornerShape(50))
             .padding(horizontal = 10.dp, vertical = 4.dp),
     )
-}
-
-@Composable
-private fun RetakeCTASection(onBack: () -> Unit, modifier: Modifier = Modifier) {
-    val scheme = MaterialTheme.colorScheme
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(scheme.primary)
-            .padding(32.dp),
-    ) {
-        // Decorative circle
-        Box(
-            modifier = Modifier
-                .size(128.dp)
-                .offset(x = (-40).dp, y = (-40).dp)
-                .background(scheme.primaryContainer.copy(alpha = 0.2f), CircleShape),
-        )
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = stringResource(R.string.id_not_seeing_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = scheme.onPrimary,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.id_not_seeing_body),
-                style = MaterialTheme.typography.bodyMedium,
-                color = scheme.onPrimaryContainer,
-            )
-            Spacer(Modifier.height(20.dp))
-            Button(
-                onClick = onBack,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = scheme.secondaryContainer,
-                    contentColor = scheme.onSecondaryContainer,
-                ),
-                shape = RoundedCornerShape(50),
-            ) {
-                Text(
-                    text = stringResource(R.string.id_retake_photo).uppercase(Locale.getDefault()),
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.5.sp,
-                    fontSize = 12.sp,
-                )
-            }
-        }
-    }
 }
 
 private val previewScanResult = ScanResult(

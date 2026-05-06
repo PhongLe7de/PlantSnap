@@ -4,9 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +41,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,8 +68,10 @@ import com.plantsnap.ui.util.validImageUrlOrNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
-/** Navigation callbacks consumed by the Home screen. Grouped to keep param counts low. */
+// Navigation callbacks consumed by the Home screen. Grouped to keep param counts low.
 data class HomeCallbacks(
     val onIdentifyPlantSelected: () -> Unit = {},
     val onLearnMorePlantOfTheDay: () -> Unit = {},
@@ -114,6 +121,7 @@ fun HomeScreenContent(
     Scaffold(
         modifier = Modifier.testTag("screen_home"),
         containerColor = scheme.surface,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopBar(
                 profilePhotoUrl = profilePhotoUrl,
@@ -144,7 +152,8 @@ fun HomeScreenContent(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(120.dp),
+                            .height(120.dp)
+                            .semantics { liveRegion = LiveRegionMode.Polite },
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator(color = scheme.primary)
@@ -211,7 +220,7 @@ fun getGreeting(): Int {
             in 22..23, in 0..4 -> R.string.home_night
             else -> R.string.home_greeting
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         R.string.home_greeting
     }
 }
@@ -231,6 +240,7 @@ private fun WelcomeSection(authState: AuthUiState) {
     ) {
         Text(
             text = greetingText,
+            modifier = Modifier.semantics { heading() },
             fontSize = 34.sp,
             fontWeight = FontWeight.ExtraBold,
             lineHeight = 40.sp,
@@ -239,7 +249,7 @@ private fun WelcomeSection(authState: AuthUiState) {
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.home_subtitle, 12), // Int placeholder
+            text = stringResource(R.string.home_subtitle),
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             color = scheme.onSurfaceVariant,
@@ -258,8 +268,8 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
             .background(
                 Brush.verticalGradient(
                     listOf(
+                        scheme.primary,
                         scheme.primary.copy(alpha = 0.4f),
-                        scheme.primary
                     )
                 )
             )
@@ -269,6 +279,7 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
         Column {
             Text(
                 text = stringResource(R.string.home_identify_title),
+                modifier = Modifier.semantics { heading() },
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onPrimary,
@@ -277,8 +288,7 @@ private fun IdentifySection(onIdentifyPlantSelected: () -> Unit) {
             Text(
                 text = stringResource(R.string.home_identify_desc),
                 fontSize = 14.sp,
-                color = scheme.onPrimary.copy(alpha = 0.80f),
-                modifier = Modifier.fillMaxWidth(0.72f),
+                color = scheme.onPrimary,
             )
             Spacer(Modifier.height(16.dp))
             Button(
@@ -310,6 +320,7 @@ private fun RecentScansHeader(onViewAllScans: () -> Unit) {
     ) {
         Text(
             text = stringResource(R.string.home_recent_scans),
+            modifier = Modifier.semantics { heading() },
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
@@ -337,7 +348,9 @@ private fun ScanCard(
     val scheme = MaterialTheme.colorScheme
 
     Card(
-        modifier = modifier,
+        modifier = modifier.semantics(mergeDescendants = true) {
+            role = Role.Button
+        },
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
@@ -353,7 +366,7 @@ private fun ScanCard(
             if (imageModel != null) {
                 AsyncImage(
                     model = imageModel,
-                    contentDescription = plantName,
+                    contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -392,9 +405,10 @@ private fun PlantOfTheDaySection(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().testTag("potd_card")) {
         Text(
             text = stringResource(R.string.home_potd),
+            modifier = Modifier.semantics { heading() },
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.primary,
@@ -453,13 +467,13 @@ private fun PlantOfTheDaySection(
                         Text(
                             text = data.description ?: stringResource(R.string.detail_info_unavailable),
                             fontSize = 13.sp,
-                            color = scheme.onSecondaryContainer.copy(alpha = 0.75f),
+                            color = scheme.onSecondaryContainer,
                             lineHeight = 20.sp,
                         )
                         Spacer(Modifier.height(20.dp))
                         Button(
                             onClick = onLearnMore,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("potd_learn_more"),
                             colors = ButtonDefaults.buttonColors(containerColor = scheme.primary),
                             shape = RoundedCornerShape(12.dp),
                         ) {

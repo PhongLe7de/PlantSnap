@@ -1,8 +1,14 @@
 package com.plantsnap.ui.screens.history
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,17 +18,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -32,11 +41,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +60,9 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.state.UiState
@@ -63,8 +80,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.plantsnap.R
-import com.plantsnap.ui.components.TopBar
-import com.plantsnap.ui.screens.profile.AuthUiState
 
 enum class PlantCategory(val label: String) {
     ALL("All scans"),
@@ -97,33 +112,26 @@ fun ScanResult.inferCategory(): PlantCategory {
 
 @Composable
 fun HistoryScreen(
-    authState: AuthUiState,
     viewModel: HistoryViewModel = hiltViewModel(),
-    profilePhotoUrl: String? = null,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = {_, _ -> },
     onBack: () -> Unit = {},
-    onProfileSelected: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
     HistoryScreenContent(
         state = state,
-        profilePhotoUrl = profilePhotoUrl,
         onScanSelected = onScanSelected,
-        authState = authState,
+        onDeleteScan = viewModel::deleteScan,
         onBack = onBack,
-        onProfileSelected = onProfileSelected
     )
 }
 
 @Composable
 fun HistoryScreenContent(
     state: UiState<List<ScanResult>>,
-    authState: AuthUiState,
-    profilePhotoUrl: String?,
     onScanSelected: (plantId: String, candidateIndex: Int) -> Unit = { _, _ -> },
+    onDeleteScan: (String) -> Unit = {},
     onBack: () -> Unit = {},
-    onProfileSelected: () -> Unit = {},
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf(PlantCategory.ALL) }
@@ -137,18 +145,11 @@ fun HistoryScreenContent(
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         item {
-            TopBar(
-                profilePhotoUrl = profilePhotoUrl,
-                onProfileSelected = onProfileSelected,
-            )
-        }
-
-        item {
             Column(modifier = Modifier.padding(top = 4.dp)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 4.dp, end = 20.dp),
+                        .padding(start = 4.dp, end = 20.dp, top = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
@@ -160,7 +161,7 @@ fun HistoryScreenContent(
                     }
                     Text(
                         text = stringResource(R.string.history_title),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = scheme.primary
                     )
@@ -257,12 +258,19 @@ fun HistoryScreenContent(
                         )
                     }
                 } else {
-                    items(filtered, key = { it.id }) {scan ->
-                        HistoryScanCard(
-                            scan = scan,
-                            onClick = { onScanSelected(scan.id, 0) },
+                    items(filtered, key = { it.id }) { scan ->
+                        SwipeToRevealDelete(
+                            onDelete = { onDeleteScan(scan.id) },
                             modifier = Modifier.padding(horizontal = 20.dp),
-                        )
+                        ) { revealed, closeReveal ->
+                            HistoryScanCard(
+                                scan = scan,
+                                onClick = {
+                                    if (revealed) closeReveal() else onScanSelected(scan.id, 0)
+                                },
+                                modifier = Modifier,
+                            )
+                        }
                         Spacer(Modifier.height(12.dp))
                     }
                 }
@@ -291,7 +299,11 @@ fun CategoryChip(
         modifier = Modifier
             .clip(CircleShape)
             .background(bgColor)
-            .clickable(onClick = onClick)
+            .toggleable(
+                value = selected,
+                role = Role.RadioButton,
+                onValueChange = { onClick() }
+            )
             .padding(horizontal = 20.dp, vertical = 10.dp),
     ) {
         Text(
@@ -310,6 +322,8 @@ fun HistorySearchBar(
     modifier: Modifier = Modifier,
 ) {
     val  scheme = MaterialTheme.colorScheme
+
+    val description = stringResource(R.string.history_search_bar)
 
     Box(
         modifier = modifier
@@ -342,9 +356,79 @@ fun HistorySearchBar(
                     ),
                     cursorBrush = SolidColor(scheme.primary),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = description },
                 )
             }
+        }
+    }
+}
+
+private enum class SwipeRevealValue { Closed, Revealed }
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SwipeToRevealDelete(
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (revealed: Boolean, closeReveal: () -> Unit) -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    val buttonWidth = 88.dp
+    val buttonWidthPx = with(density) { buttonWidth.toPx() }
+
+    val state = remember {
+        AnchoredDraggableState(
+            initialValue = SwipeRevealValue.Closed,
+            anchors = DraggableAnchors {
+                SwipeRevealValue.Closed at 0f
+                SwipeRevealValue.Revealed at -buttonWidthPx
+            },
+        )
+    }
+
+    val revealed = state.currentValue == SwipeRevealValue.Revealed
+    val closeReveal: () -> Unit = {
+        scope.launch { state.animateTo(SwipeRevealValue.Closed) }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp)),
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(scheme.errorContainer),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            IconButton(
+                onClick = onDelete,
+                enabled = revealed,
+                modifier = Modifier.width(buttonWidth),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.history_delete_scan),
+                    tint = scheme.onErrorContainer,
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        state.offset.takeIf { it.isFinite() }?.roundToInt() ?: 0,
+                        0,
+                    )
+                }
+                .anchoredDraggable(state, Orientation.Horizontal),
+        ) {
+            content(revealed, closeReveal)
         }
     }
 }
@@ -373,7 +457,10 @@ fun HistoryScanCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(scheme.surfaceContainerLowest)
-            .clickable(onClick = onClick),
+            .clickable(
+                onClick = onClick,
+                onClickLabel = scan.bestMatch,
+            ),
     ) {
         Row(modifier = Modifier.height(112.dp)) {
             Box(modifier = Modifier.size(112.dp)) {
@@ -414,7 +501,7 @@ fun HistoryScanCard(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = scheme.primary,
-                            fontSize = 9.sp,
+                            fontSize = 11.sp,
                             letterSpacing = 0.8.sp,
                         )
                     }
@@ -423,7 +510,7 @@ fun HistoryScanCard(
                 if (scan.isFavorite) {
                     Icon(
                         Icons.Filled.Favorite,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.history_favourited),
                         tint = scheme.primary,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -526,7 +613,7 @@ fun HistoryEmptyState(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = if (isFiltered) stringResource(R.string.history_no_Results) else stringResource(R.string.history_no_scans),
+            text = if (isFiltered) stringResource(R.string.history_no_results) else stringResource(R.string.history_no_scans),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -572,21 +659,12 @@ private val previewScans = listOf(
     ),
 )
 
-private val previewAuthState = AuthUiState(
-    isLoggedIn = true,
-    userEmail = "user@example.com",
-    displayName = "Jane Doe",
-    profilePhotoUrl = null,
-)
-
 @Preview(showBackground = true, showSystemUi = true, name = "History - items")
 @Composable
 private fun HistoryScreenPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Success(previewScans),
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }
@@ -597,8 +675,6 @@ private fun HistoryScreenEmptyPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Success(emptyList()),
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }
@@ -609,8 +685,6 @@ private fun HistoryScreenLoadingPreview() {
     PlantSnapTheme {
         HistoryScreenContent(
             state = UiState.Loading,
-            profilePhotoUrl = "",
-            authState = previewAuthState,
         )
     }
 }

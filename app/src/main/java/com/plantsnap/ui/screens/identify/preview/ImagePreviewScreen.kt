@@ -29,6 +29,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,12 +50,15 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.plantsnap.ui.screens.identify.camera.CapturedPhotosHolder
 
+enum class IdentifyMode { PLANT, DISEASE }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImagePreviewScreen(
     initialPage: Int = 0,
     onRetake: () -> Unit,
-    onUsePhotos: () -> Unit,
+    onIdentifyPlant: () -> Unit,
+    onIdentifyDisease: () -> Unit,
     photosHolder: CapturedPhotosHolder
 ) {
     val currentPhotos by photosHolder.photos.collectAsState()
@@ -74,7 +81,8 @@ fun ImagePreviewScreen(
             photosHolder.removePhoto(currentPage)
         },
         onBack = onRetake,
-        onUsePhotos = onUsePhotos,
+        onIdentifyPlant = onIdentifyPlant,
+        onIdentifyDisease = onIdentifyDisease,
         onRemovePhoto = { index -> photosHolder.removePhoto(index) }
     )
 }
@@ -86,13 +94,16 @@ fun ImagePreviewContent(
     photos: List<Uri>,
     onRetake: (currentPage: Int) -> Unit,
     onBack: () -> Unit,
-    onUsePhotos: () -> Unit,
+    onIdentifyPlant: () -> Unit,
+    onIdentifyDisease: () -> Unit,
     onRemovePhoto: (Int) -> Unit
 ) {
     val pagerState = rememberPagerState(
         initialPage = initialPage.coerceIn(0, (photos.size - 1).coerceAtLeast(0)),
         pageCount = { photos.size }
     )
+
+    var selectedMode by remember { mutableStateOf(IdentifyMode.PLANT) }
 
     // Keep pager in bounds when photos are removed
     LaunchedEffect(photos.size) {
@@ -128,12 +139,46 @@ fun ImagePreviewContent(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        IdentifyModeSelector(
+            selectedMode = selectedMode,
+            onModeSelected = { selectedMode = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         PreviewActionButtons(
             onRetake = { onRetake(pagerState.currentPage) },
-            onUsePhotos = onUsePhotos
+            onUsePhotos = if (selectedMode == IdentifyMode.PLANT) onIdentifyPlant else onIdentifyDisease
         )
+    }
+}
+
+@Composable
+private fun IdentifyModeSelector(
+    selectedMode: IdentifyMode,
+    onModeSelected: (IdentifyMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SingleChoiceSegmentedButtonRow(modifier = modifier) {
+        SegmentedButton(
+            selected = selectedMode == IdentifyMode.PLANT,
+            onClick = { onModeSelected(IdentifyMode.PLANT) },
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+        ) {
+            Text("Identify Plant", fontWeight = FontWeight.SemiBold)
+        }
+        SegmentedButton(
+            selected = selectedMode == IdentifyMode.DISEASE,
+            onClick = { onModeSelected(IdentifyMode.DISEASE) },
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+        ) {
+            Text("Identify Disease", fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 

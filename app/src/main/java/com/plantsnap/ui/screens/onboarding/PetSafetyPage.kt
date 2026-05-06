@@ -28,6 +28,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -81,7 +85,7 @@ fun PetSafetyPage(
                                 labelRes = option.labelRes,
                                 drawableRes = option.drawableRes,
                                 imageVector = option.imageVector,
-                                selected = selectedPets == option,
+                                isSelected = selectedPets == option,
                                 onClick = { onSelectPets(option) },
                                 modifier = Modifier.weight(1f),
                             )
@@ -98,20 +102,24 @@ private fun PetOptionButton(
     @StringRes labelRes: Int,
     @DrawableRes drawableRes: Int? = null,
     imageVector: ImageVector? = null,
-    selected: Boolean,
+    isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val containerColor = if (selected) scheme.primary else scheme.surfaceContainerLow
-    val contentColor = if (selected) scheme.onPrimary else scheme.onSurfaceVariant
+    val containerColor = if (isSelected) scheme.primary else scheme.surfaceContainerLow
+    val contentColor = if (isSelected) scheme.onPrimary else scheme.onSurfaceVariant
     val painter = imageVector?.let { rememberVectorPainter(it) }
         ?: painterResource(drawableRes!!)
 
     Card(
         modifier = modifier
             .height(100.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics {
+                selected = isSelected
+                role = Role.RadioButton
+            },
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
