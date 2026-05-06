@@ -72,6 +72,11 @@ data class CareInfo(
     val temperature: String? = null,
     val humidity: String? = null,
     val soil: String? = null,
+    val waterEveryDays: Int? = null,
+    val fertilizeEveryDays: Int? = null,
+    val mistEveryDays: Int? = null,
+    val rotateEveryDays: Int? = null,
+    val repotEveryDays: Int? = null,
 )
 
 @Serializable
