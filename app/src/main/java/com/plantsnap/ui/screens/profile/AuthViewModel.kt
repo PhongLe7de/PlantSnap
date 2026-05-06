@@ -2,6 +2,9 @@ package com.plantsnap.ui.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plantsnap.data.local.CareTaskDao
+import com.plantsnap.data.local.SavedPlantDao
+import com.plantsnap.data.local.ScanDao
 import com.plantsnap.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
@@ -28,7 +31,10 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     val supabaseClient: SupabaseClient,
-    val profileRepository: ProfileRepository
+    val profileRepository: ProfileRepository,
+    private val scanDao: ScanDao,
+    private val savedPlantDao: SavedPlantDao,
+    private val careTaskDao: CareTaskDao,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -77,6 +83,11 @@ class AuthViewModel @Inject constructor(
     fun signOut() {
         viewModelScope.launch {
             supabaseClient.auth.signOut()
+            // Wipe user-scoped local data so the next session (guest or different account)
+            // doesn't see leftover scans/plants. plant_details is shared cache, kept.
+            careTaskDao.deleteAll()
+            savedPlantDao.deleteAll()
+            scanDao.deleteAll()
         }
     }
 

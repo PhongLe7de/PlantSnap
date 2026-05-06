@@ -5,14 +5,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -20,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -51,6 +57,9 @@ import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
+import com.plantsnap.ui.screens.garden.CareTaskUi
+import com.plantsnap.ui.screens.garden.DueLabel
+import com.plantsnap.ui.screens.garden.dueLabelFor
 import com.plantsnap.ui.screens.profile.AuthUiState
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
@@ -80,6 +89,7 @@ fun HomeScreen(
 ) {
     val scansState by viewModel.scansState.collectAsState()
     val plantOfTheDayState by viewModel.plantOfTheDayState.collectAsState()
+    val careTasks by viewModel.upcomingCareTasks.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
@@ -91,6 +101,8 @@ fun HomeScreen(
         scansState = scansState,
         plantOfTheDayState = plantOfTheDayState,
         authState = authState,
+        careTasks = careTasks,
+        onCareTaskDone = viewModel::markCareTaskDone,
     )
 }
 
@@ -101,6 +113,8 @@ fun HomeScreenContent(
     scansState: UiState<List<ScanResult>>,
     plantOfTheDayState: UiState<PlantOfTheDay> = UiState.Idle,
     authState: AuthUiState,
+    careTasks: List<CareTaskUi> = emptyList(),
+    onCareTaskDone: (String) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -189,6 +203,9 @@ fun HomeScreenContent(
 
             item { Spacer(Modifier.height(20.dp)) }
             item { PlantOfTheDaySection(plantOfTheDayState, callbacks.onLearnMorePlantOfTheDay) }
+            item { Spacer(Modifier.height(20.dp)) }
+            item { DailyCareSection(tasks = careTasks, onMarkDone = onCareTaskDone) }
+            item { Spacer(Modifier.height(20.dp)) }
         }
     }
 }
@@ -469,6 +486,151 @@ private fun PlantOfTheDaySection(
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyCareSection(
+    tasks: List<CareTaskUi>,
+    onMarkDone: (String) -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.home_daily_care),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = scheme.primary,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        if (tasks.isEmpty()) {
+            Text(
+                text = stringResource(R.string.home_care_empty),
+                fontSize = 13.sp,
+                color = scheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
+        } else {
+            tasks.forEachIndexed { index, task ->
+                CareTaskItem(
+                    title = "${task.taskTypeShort()}: ${task.plantNickname}",
+                    subtitle = task.dueSubtitle(),
+                    accentColor = scheme.primary,
+                    onDoneClick = { onMarkDone(task.id) },
+                )
+                if (index != tasks.lastIndex) Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CareTaskUi.taskTypeShort(): String = stringResource(
+    when (taskType) {
+        com.plantsnap.domain.models.CareTaskType.WATER -> R.string.care_task_water_short
+        com.plantsnap.domain.models.CareTaskType.FERTILIZE -> R.string.care_task_fertilize_short
+        com.plantsnap.domain.models.CareTaskType.MIST -> R.string.care_task_mist_short
+        com.plantsnap.domain.models.CareTaskType.ROTATE -> R.string.care_task_rotate_short
+        com.plantsnap.domain.models.CareTaskType.REPOT -> R.string.care_task_repot_short
+    }
+)
+
+@Composable
+private fun CareTaskUi.dueSubtitle(): String {
+    val now = System.currentTimeMillis()
+    return when (val label = dueLabelFor(nextDueAt, now)) {
+        DueLabel.DueToday -> stringResource(R.string.care_due_today)
+        is DueLabel.Overdue -> androidx.compose.ui.res.pluralStringResource(
+            R.plurals.care_overdue_days,
+            label.daysLate,
+            label.daysLate,
+        )
+        is DueLabel.Upcoming -> androidx.compose.ui.res.pluralStringResource(
+            R.plurals.care_upcoming_days,
+            label.daysUntil,
+            label.daysUntil,
+        )
+    }
+}
+
+@Composable
+private fun CareTaskItem(
+    title: String,
+    subtitle: String,
+    accentColor: Color,
+    onDoneClick: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(72.dp)
+                    .background(accentColor),
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(accentColor.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .background(accentColor.copy(alpha = 0.55f), CircleShape)
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = scheme.onSurface,
+                    )
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        color = scheme.onSurfaceVariant,
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = onDoneClick,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accentColor),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_done),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
             }
         }

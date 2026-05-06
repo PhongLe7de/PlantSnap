@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Thermostat
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,9 +52,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +67,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,12 +95,20 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.plantsnap.R
 import com.plantsnap.domain.models.CareInfo
+import com.plantsnap.domain.models.CareTask
+import com.plantsnap.domain.models.CareTaskType
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.HabitatInfo
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.safety.SafetyAlert
+import com.plantsnap.ui.screens.garden.DueLabel
+import com.plantsnap.ui.screens.garden.dueLabelFor
+import com.plantsnap.ui.screens.garden.visuals
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
+import com.plantsnap.ui.util.FALLBACK_IMAGE_URL
+import com.plantsnap.ui.util.validImageUrlOrNull
+import android.text.format.DateUtils
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -114,6 +129,7 @@ fun PlantDetailScreen(
     val isSaved by viewModel.isSaved.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
     val scanLocation by viewModel.scanLocation.collectAsState()
+    val careTasks by viewModel.careTasks.collectAsState()
 
     LaunchedEffect(plantId, candidateIndex) {
         viewModel.loadPlantDetail(plantId, candidateIndex)
@@ -137,6 +153,10 @@ fun PlantDetailScreen(
             if (isSaved) viewModel.toggleSaved() else showAddDialog = true
         },
         scanLocation = scanLocation,
+        careTasks = careTasks,
+        onMarkCareTaskDone = viewModel::markCareTaskDone,
+        onSetCareTaskCadence = viewModel::setCareTaskCadence,
+        onSetCareTaskEnabled = viewModel::setCareTaskEnabled,
     )
 
     if (showAddDialog) {
@@ -213,12 +233,17 @@ fun PlantDetailScreenContent(
     showAddToGarden: Boolean = true,
     isFavorite: Boolean = false,
     scanLocation: Pair<Double, Double>? = null,
+    careTasks: List<CareTask> = emptyList(),
+    showCareSchedule: Boolean = false,
     displayName: String? = null,
     lastWateredAt: Long? = null,
     onBack: () -> Unit,
     onRetryAi: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
     onToggleSaved: () -> Unit = {},
+    onMarkCareTaskDone: (String) -> Unit = {},
+    onSetCareTaskCadence: (String, Int) -> Unit = { _, _ -> },
+    onSetCareTaskEnabled: (String, Boolean) -> Unit = { _, _ -> },
     onMarkWatered: (() -> Unit)? = null,
     onEditNickname: (() -> Unit)? = null,
     onArchive: (() -> Unit)? = null,
@@ -248,10 +273,15 @@ fun PlantDetailScreenContent(
             scanLocation = scanLocation,
             displayName = displayName,
             lastWateredAt = lastWateredAt,
+            careTasks = careTasks,
+            showCareSchedule = showCareSchedule,
             onRetryAi = onRetryAi,
             onToggleSaved = onToggleSaved,
             onMarkWatered = onMarkWatered,
             onEditNickname = onEditNickname,
+            onMarkCareTaskDone = onMarkCareTaskDone,
+            onSetCareTaskCadence = onSetCareTaskCadence,
+            onSetCareTaskEnabled = onSetCareTaskEnabled,
             contentPadding = innerPadding,
         )
     }
@@ -372,10 +402,15 @@ private fun PlantDetailContent(
     scanLocation: Pair<Double, Double>?,
     displayName: String?,
     lastWateredAt: Long?,
+    careTasks: List<CareTask>,
+    showCareSchedule: Boolean,
     onRetryAi: () -> Unit,
     onToggleSaved: () -> Unit,
     onMarkWatered: (() -> Unit)?,
     onEditNickname: (() -> Unit)?,
+    onMarkCareTaskDone: (String) -> Unit,
+    onSetCareTaskCadence: (String, Int) -> Unit,
+    onSetCareTaskEnabled: (String, Boolean) -> Unit,
     contentPadding: PaddingValues,
 ) {
     when (candidateState) {
@@ -400,10 +435,15 @@ private fun PlantDetailContent(
             scanLocation = scanLocation,
             displayName = displayName,
             lastWateredAt = lastWateredAt,
+            careTasks = careTasks,
+            showCareSchedule = showCareSchedule,
             onRetryAi = onRetryAi,
             onToggleSaved = onToggleSaved,
             onMarkWatered = onMarkWatered,
             onEditNickname = onEditNickname,
+            onMarkCareTaskDone = onMarkCareTaskDone,
+            onSetCareTaskCadence = onSetCareTaskCadence,
+            onSetCareTaskEnabled = onSetCareTaskEnabled,
             contentPadding = contentPadding,
         )
     }
@@ -431,10 +471,15 @@ private fun PlantDetailBody(
     scanLocation: Pair<Double, Double>?,
     displayName: String?,
     lastWateredAt: Long?,
+    careTasks: List<CareTask>,
+    showCareSchedule: Boolean,
     onRetryAi: () -> Unit,
     onToggleSaved: () -> Unit,
     onMarkWatered: (() -> Unit)?,
     onEditNickname: (() -> Unit)?,
+    onMarkCareTaskDone: (String) -> Unit,
+    onSetCareTaskCadence: (String, Int) -> Unit,
+    onSetCareTaskEnabled: (String, Boolean) -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -471,7 +516,20 @@ private fun PlantDetailBody(
         item { Spacer(Modifier.height(24.dp)) }
         item { NativeHabitatSection(aiInfoState) }
         item { Spacer(Modifier.height(24.dp)) }
-        item { CareRoutineSection(aiInfoState) }
+        if (showCareSchedule) {
+            if (careTasks.isNotEmpty()) {
+                item {
+                    CareScheduleSection(
+                        tasks = careTasks,
+                        onMarkDone = onMarkCareTaskDone,
+                        onSetCadence = onSetCareTaskCadence,
+                        onSetEnabled = onSetCareTaskEnabled,
+                    )
+                }
+            }
+        } else {
+            item { CareRoutineSection(aiInfoState) }
+        }
         if (scanLocation != null) {
             item { Spacer(Modifier.height(24.dp)) }
             item { ScanLocationSection(scanLocation) }
@@ -1320,6 +1378,217 @@ private fun ScanLocationSection(scanLocation: Pair<Double, Double>) {
             }
         }
     }
+}
+
+@Composable
+private fun CareScheduleSection(
+    tasks: List<CareTask>,
+    onMarkDone: (String) -> Unit,
+    onSetCadence: (String, Int) -> Unit,
+    onSetEnabled: (String, Boolean) -> Unit,
+) {
+    var editingTask by remember { mutableStateOf<CareTask?>(null) }
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = stringResource(R.string.care_schedule_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp),
+        )
+        // Render in canonical task-type order (matches Generator output).
+        val byType = tasks.associateBy { it.taskType }
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            CareTaskType.entries.forEach { type ->
+                val task = byType[type] ?: return@forEach
+                CareScheduleRow(
+                    task = task,
+                    onMarkDone = { onMarkDone(task.id) },
+                    onCadenceClick = { editingTask = task },
+                    onToggleEnabled = { onSetEnabled(task.id, it) },
+                )
+            }
+        }
+    }
+
+    editingTask?.let { task ->
+        CadenceEditDialog(
+            initialDays = task.cadenceDays.takeIf { it > 0 } ?: 7,
+            onDismiss = { editingTask = null },
+            onSave = { days ->
+                onSetCadence(task.id, days)
+                editingTask = null
+            },
+        )
+    }
+}
+
+@Composable
+private fun CareScheduleRow(
+    task: CareTask,
+    onMarkDone: () -> Unit,
+    onCadenceClick: () -> Unit,
+    onToggleEnabled: (Boolean) -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val visuals = task.taskType.visuals()
+    val now = System.currentTimeMillis()
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(scheme.secondaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = visuals.icon,
+                        contentDescription = null,
+                        tint = scheme.onSecondaryContainer,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                Text(
+                    text = stringResource(visuals.shortLabelRes),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(checked = task.enabled, onCheckedChange = onToggleEnabled)
+            }
+            if (task.enabled) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 52.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        TextButton(
+                            onClick = onCadenceClick,
+                            contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+                        ) {
+                            Text(
+                                text = androidx.compose.ui.res.pluralStringResource(
+                                    R.plurals.care_every_n_days,
+                                    task.cadenceDays,
+                                    task.cadenceDays,
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = scheme.primary,
+                            )
+                        }
+                        Text(
+                            text = task.cadenceFootnote(now),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = scheme.onSurfaceVariant,
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = onMarkDone,
+                        shape = RoundedCornerShape(50),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                        modifier = Modifier.height(32.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.home_done),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CareTask.cadenceFootnote(now: Long): String {
+    val due = when (val label = dueLabelFor(nextDueAt, now)) {
+        DueLabel.DueToday -> stringResource(R.string.care_due_today)
+        is DueLabel.Overdue -> androidx.compose.ui.res.pluralStringResource(
+            R.plurals.care_overdue_days,
+            label.daysLate,
+            label.daysLate,
+        )
+        is DueLabel.Upcoming -> androidx.compose.ui.res.pluralStringResource(
+            R.plurals.care_upcoming_days,
+            label.daysUntil,
+            label.daysUntil,
+        )
+    }
+    val lastDone = lastCompletedAt?.let {
+        val rel = DateUtils.getRelativeTimeSpanString(it, now, DateUtils.DAY_IN_MILLIS).toString()
+        stringResource(R.string.care_last_done, rel)
+    } ?: stringResource(R.string.care_never_done)
+    return "$due  ·  $lastDone"
+}
+
+@Composable
+private fun CadenceEditDialog(
+    initialDays: Int,
+    onDismiss: () -> Unit,
+    onSave: (Int) -> Unit,
+) {
+    var text by remember { mutableStateOf(initialDays.toString()) }
+    val parsed = text.toIntOrNull()
+    val valid = parsed != null && parsed in 1..3650
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.care_cadence_dialog_title)) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.filter { ch -> ch.isDigit() }.take(4) },
+                    label = { Text(stringResource(R.string.care_cadence_dialog_label)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = !valid && text.isNotEmpty(),
+                    singleLine = true,
+                )
+                if (!valid && text.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.care_cadence_dialog_invalid),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { parsed?.let(onSave) },
+                enabled = valid,
+            ) { Text(stringResource(R.string.care_cadence_dialog_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.care_cadence_dialog_cancel))
+            }
+        },
+    )
 }
 
 private val previewCandidate = Candidate(

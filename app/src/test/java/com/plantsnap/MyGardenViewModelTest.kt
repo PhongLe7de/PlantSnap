@@ -3,6 +3,7 @@ package com.plantsnap
 import android.util.Log
 import com.plantsnap.data.storage.PlantImageUrlResolver
 import com.plantsnap.data.sync.SavedPlantSyncManager
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.ui.screens.garden.MyGardenViewModel
 import com.plantsnap.ui.screens.identify.camera.CapturedPhotosHolder
@@ -33,6 +34,9 @@ class MyGardenViewModelTest {
     private val repo: SavedPlantRepository = mockk(relaxed = true) {
         every { observeAll() } returns flowOf(emptyList())
     }
+    private val careTaskRepository: CareTaskRepository = mockk(relaxed = true) {
+        every { observeDueBy(any()) } returns flowOf(emptyList())
+    }
     private val imageUrlResolver: PlantImageUrlResolver = mockk {
         coEvery { resolveAll(any()) } returns emptyMap()
     }
@@ -48,7 +52,7 @@ class MyGardenViewModelTest {
         every { Log.d(any(), any()) } returns 0
         every { Log.w(any<String>(), any<String>()) } returns 0
         every { Log.w(any<String>(), any<String>(), any()) } returns 0
-        viewModel = MyGardenViewModel(repo, imageUrlResolver, photosHolder, syncManager)
+        viewModel = MyGardenViewModel(repo, careTaskRepository, imageUrlResolver, photosHolder, syncManager)
     }
 
     @After

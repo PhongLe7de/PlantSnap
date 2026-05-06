@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import com.plantsnap.data.local.PlantOfTheDayDao
+import com.plantsnap.data.local.SavedPlantDao
+import com.plantsnap.data.local.ScanDao
 import com.plantsnap.data.local.model.PlantOfTheDayEntity
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -20,6 +22,7 @@ import com.plantsnap.data.sync.ScanSyncManager
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.PlantDetailsRepository
 import com.plantsnap.domain.repository.PlantNetRepository
@@ -40,6 +43,9 @@ class PlantService @Inject constructor(
     private val plantDetailsRepository: PlantDetailsRepository,
     private val plantImageUploader: PlantImageUploader,
     private val plantOfTheDayDao: PlantOfTheDayDao,
+    private val savedPlantDao: SavedPlantDao,
+    private val scanDao: ScanDao,
+    private val careTaskRepository: CareTaskRepository,
     private val json: Json,
 ) {
     private val locationClient: FusedLocationProviderClient =
@@ -110,6 +116,22 @@ class PlantService @Inject constructor(
         val infoJson = json.encodeToString(PlantAiInfo.serializer(), info)
         scanRepo.updateCandidateAiInfo(scanId, scientificName, infoJson)
         plantDetailsRepository.upsertIfHasGbif(scanId, scientificName, info)
+
+        // Hook 2: catch-up generation for the rare flow where a plant was saved
+        // before its AI info was fetched. Hook 1 (SavedPlantRepositoryImpl.save)
+        // covers the typical flow where AI info is already cached.
+        val gbifId = scanDao.getCandidateGbifId(scanId, scientificName)
+        if (gbifId != null) {
+            val savedPlant = savedPlantDao.findExisting(scanId, gbifId)
+            if (savedPlant != null) {
+                try {
+                    careTaskRepository.generateForSavedPlant(savedPlant.id, info.care)
+                } catch (e: Exception) {
+                    Log.w(TAG, "requestAdditionalInfo: care task generation failed for ${savedPlant.id}", e)
+                }
+            }
+        }
+
         return info
     }
 

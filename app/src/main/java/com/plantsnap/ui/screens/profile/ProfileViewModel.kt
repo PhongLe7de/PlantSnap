@@ -24,15 +24,17 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 scanRepository.observeTotalScanCount(),
-                scanRepository.observeFirstScanTimestamp()
-            ) { total, firstTimestamp ->
+                scanRepository.observeDistinctSpeciesCount(),
+                scanRepository.observeFirstScanTimestamp(),
+            ) { total, speciesCount, firstTimestamp ->
                 ProfileStatsState(
                     totalScans = total,
+                    plantsFound = speciesCount,
                     firstScanTimestamp = firstTimestamp,
                     rank = PlantRank.fromScanCount(total),
                     rankProgress = PlantRank.progressToNext(total),
                     scansToNextRank = PlantRank.scansToNextRank(total),
-                    isLoading = false
+                    isLoading = false,
                 )
             }.collect { _statsState.value = it }
         }
