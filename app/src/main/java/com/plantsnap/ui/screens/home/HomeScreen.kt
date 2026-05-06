@@ -52,6 +52,9 @@ import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantOfTheDay
 import com.plantsnap.domain.models.ScanResult
 import com.plantsnap.ui.components.TopBar
+import com.plantsnap.ui.screens.garden.CareTaskUi
+import com.plantsnap.ui.screens.garden.DueLabel
+import com.plantsnap.ui.screens.garden.dueLabelFor
 import com.plantsnap.ui.screens.profile.AuthUiState
 import com.plantsnap.ui.state.UiState
 import com.plantsnap.ui.theme.PlantSnapTheme
@@ -79,6 +82,7 @@ fun HomeScreen(
 ) {
     val scansState by viewModel.scansState.collectAsState()
     val plantOfTheDayState by viewModel.plantOfTheDayState.collectAsState()
+    val careTasks by viewModel.upcomingCareTasks.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
@@ -90,6 +94,8 @@ fun HomeScreen(
         scansState = scansState,
         plantOfTheDayState = plantOfTheDayState,
         authState = authState,
+        careTasks = careTasks,
+        onCareTaskDone = viewModel::markCareTaskDone,
     )
 }
 
@@ -100,6 +106,8 @@ fun HomeScreenContent(
     scansState: UiState<List<ScanResult>>,
     plantOfTheDayState: UiState<PlantOfTheDay> = UiState.Idle,
     authState: AuthUiState,
+    careTasks: List<CareTaskUi> = emptyList(),
+    onCareTaskDone: (String) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -187,7 +195,7 @@ fun HomeScreenContent(
             item { Spacer(Modifier.height(20.dp)) }
             item { PlantOfTheDaySection(plantOfTheDayState, callbacks.onLearnMorePlantOfTheDay) }
             item { Spacer(Modifier.height(20.dp)) }
-            item { DailyCareSection() }
+            item { DailyCareSection(tasks = careTasks, onMarkDone = onCareTaskDone) }
             item { Spacer(Modifier.height(20.dp)) }
         }
     }
@@ -471,7 +479,10 @@ private fun PlantOfTheDaySection(
 }
 
 @Composable
-private fun DailyCareSection() {
+private fun DailyCareSection(
+    tasks: List<CareTaskUi>,
+    onMarkDone: (String) -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -483,16 +494,52 @@ private fun DailyCareSection() {
         )
         Spacer(Modifier.height(12.dp))
 
-        CareTaskItem(
-            title = stringResource(R.string.home_watering_title, "Plant Name"),
-            subtitle = stringResource(R.string.home_watering_desc),
-            accentColor = scheme.primary,
+        if (tasks.isEmpty()) {
+            Text(
+                text = stringResource(R.string.home_care_empty),
+                fontSize = 13.sp,
+                color = scheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
+        } else {
+            tasks.forEachIndexed { index, task ->
+                CareTaskItem(
+                    title = "${task.taskTypeShort()}: ${task.plantNickname}",
+                    subtitle = task.dueSubtitle(),
+                    accentColor = scheme.primary,
+                    onDoneClick = { onMarkDone(task.id) },
+                )
+                if (index != tasks.lastIndex) Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CareTaskUi.taskTypeShort(): String = stringResource(
+    when (taskType) {
+        com.plantsnap.domain.models.CareTaskType.WATER -> R.string.care_task_water_short
+        com.plantsnap.domain.models.CareTaskType.FERTILIZE -> R.string.care_task_fertilize_short
+        com.plantsnap.domain.models.CareTaskType.MIST -> R.string.care_task_mist_short
+        com.plantsnap.domain.models.CareTaskType.ROTATE -> R.string.care_task_rotate_short
+        com.plantsnap.domain.models.CareTaskType.REPOT -> R.string.care_task_repot_short
+    }
+)
+
+@Composable
+private fun CareTaskUi.dueSubtitle(): String {
+    val now = System.currentTimeMillis()
+    return when (val label = dueLabelFor(nextDueAt, now)) {
+        DueLabel.DueToday -> stringResource(R.string.care_due_today)
+        is DueLabel.Overdue -> androidx.compose.ui.res.pluralStringResource(
+            R.plurals.care_overdue_days,
+            label.daysLate,
+            label.daysLate,
         )
-        Spacer(Modifier.height(8.dp))
-        CareTaskItem(
-            title = stringResource(R.string.home_rotate_title),
-            subtitle = stringResource(R.string.home_rotate_desc),
-            accentColor = scheme.primary,
+        is DueLabel.Upcoming -> androidx.compose.ui.res.pluralStringResource(
+            R.plurals.care_upcoming_days,
+            label.daysUntil,
+            label.daysUntil,
         )
     }
 }
@@ -502,6 +549,7 @@ private fun CareTaskItem(
     title: String,
     subtitle: String,
     accentColor: Color,
+    onDoneClick: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -529,7 +577,6 @@ private fun CareTaskItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Icon placeholder
                 Box(
                     modifier = Modifier
                         .size(44.dp)
@@ -559,7 +606,7 @@ private fun CareTaskItem(
                 }
 
                 OutlinedButton(
-                    onClick = {}, // TODO: mark task done
+                    onClick = onDoneClick,
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = accentColor),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
