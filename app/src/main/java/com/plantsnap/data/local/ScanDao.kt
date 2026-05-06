@@ -64,4 +64,7 @@ interface ScanDao {
 
     @Query("SELECT imageUrl FROM scans WHERE id = :id LIMIT 1")
     suspend fun getImageUrl(id: String): String?
+
+    @Query("SELECT aiInfo FROM candidates WHERE scanId = :scanId AND scientificName = :scientificName LIMIT 1")
+    suspend fun getCandidateAiInfo(scanId: String, scientificName: String): String?
 }

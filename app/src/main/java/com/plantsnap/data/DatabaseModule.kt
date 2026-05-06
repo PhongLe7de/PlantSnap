@@ -2,13 +2,16 @@ package com.plantsnap.data
 
 import android.content.Context
 import androidx.room.Room
+import com.plantsnap.data.local.CareTaskDao
 import com.plantsnap.data.local.PlantDetailsDao
 import com.plantsnap.data.local.PlantOfTheDayDao
 import com.plantsnap.data.local.PlantSnapDatabase
 import com.plantsnap.data.local.SavedPlantDao
 import com.plantsnap.data.local.ScanDao
+import com.plantsnap.data.repository.CareTaskRepositoryImpl
 import com.plantsnap.data.repository.SavedPlantRepositoryImpl
 import com.plantsnap.data.repository.ScanRepositoryImpl
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.repository.ScanRepository
 import dagger.Binds
@@ -31,6 +34,10 @@ abstract class DatabaseModule {
     @Singleton
     abstract fun bindSavedPlantRepository(impl: SavedPlantRepositoryImpl): SavedPlantRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindCareTaskRepository(impl: CareTaskRepositoryImpl): CareTaskRepository
+
     companion object {
         @Provides
         @Singleton
@@ -48,6 +55,7 @@ abstract class DatabaseModule {
                     PlantSnapDatabase.MIGRATION_9_10,
                     PlantSnapDatabase.MIGRATION_10_11,
                     PlantSnapDatabase.MIGRATION_11_12,
+                    PlantSnapDatabase.MIGRATION_12_13,
                 )
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
@@ -67,5 +75,9 @@ abstract class DatabaseModule {
         @Provides
         @Singleton
         fun providePlantOfTheDayDao(db: PlantSnapDatabase): PlantOfTheDayDao = db.plantOfTheDayDao()
+
+        @Provides
+        @Singleton
+        fun provideCareTaskDao(db: PlantSnapDatabase): CareTaskDao = db.careTaskDao()
     }
 }

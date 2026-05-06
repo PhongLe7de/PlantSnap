@@ -32,6 +32,17 @@ interface SavedPlantDao {
     @Query("SELECT * FROM saved_plants WHERE originalScanId = :scanId AND plantGbifId = :plantGbifId LIMIT 1")
     suspend fun findExisting(scanId: String, plantGbifId: Long): SavedPlantEntity?
 
+    @Query("""
+        SELECT sp.*, pd.scientificName AS details_scientificName
+        FROM saved_plants sp
+        INNER JOIN plant_details pd ON pd.plantGbifId = sp.plantGbifId
+        WHERE sp.originalScanId = :scanId
+          AND sp.plantGbifId = :plantGbifId
+          AND sp.isArchived = 0
+        LIMIT 1
+    """)
+    fun observeSavedFor(scanId: String, plantGbifId: Long): Flow<SavedPlantWithDetails?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: SavedPlantEntity)
 
@@ -46,4 +57,7 @@ interface SavedPlantDao {
 
     @Query("UPDATE saved_plants SET isArchived = :v, synced = 0 WHERE id = :id")
     suspend fun setArchived(id: String, v: Boolean)
+
+    @Query("UPDATE saved_plants SET lastWateredAt = :timestamp, synced = 0 WHERE id = :id")
+    suspend fun setLastWatered(id: String, timestamp: Long)
 }

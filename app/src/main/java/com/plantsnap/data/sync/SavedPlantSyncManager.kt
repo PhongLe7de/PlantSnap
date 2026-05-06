@@ -27,6 +27,7 @@ class SavedPlantSyncManager @Inject constructor(
     private val plantDetailsDao: PlantDetailsDao,
     private val plantDetailsRepository: PlantDetailsRepository,
     private val plantService: PlantService,
+    private val careTaskSyncManager: CareTaskSyncManager,
 ) {
     private companion object {
         const val TAG = "SavedPlantSyncManager"
@@ -47,6 +48,14 @@ class SavedPlantSyncManager @Inject constructor(
             launch { pullFromRemoteInternal(userId) }
             launch { pushPendingInternal(userId) }
         }
+        // care_tasks.saved_plant_id has an FK on saved_plants.id, so child sync must
+        // run after the parent is fully drained — otherwise an unsynced care task
+        // could 23503 against a still-pending saved_plants row.
+        try {
+            careTaskSyncManager.sync()
+        } catch (e: Exception) {
+            Log.w(TAG, "downstream care task sync threw ${e::class.simpleName}: ${e.message}", e)
+        }
     }
 
     /** Push-only path used right after a local save, before the pull trigger fires. */
@@ -59,6 +68,11 @@ class SavedPlantSyncManager @Inject constructor(
         Log.d(TAG, "syncPending: starting for user=$userId")
         pushPendingInternal(userId)
         Log.d(TAG, "syncPending: done for user=$userId")
+        try {
+            careTaskSyncManager.syncPending()
+        } catch (e: Exception) {
+            Log.w(TAG, "downstream care task syncPending threw ${e::class.simpleName}: ${e.message}", e)
+        }
     }
 
     private suspend fun pullFromRemoteInternal(userId: String) {

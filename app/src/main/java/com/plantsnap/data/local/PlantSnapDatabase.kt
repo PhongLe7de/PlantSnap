@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.plantsnap.data.local.model.CandidateEntity
+import com.plantsnap.data.local.model.CareTaskEntity
 import com.plantsnap.data.local.model.PlantDetailsEntity
 import com.plantsnap.data.local.model.PlantOfTheDayEntity
 import com.plantsnap.data.local.model.SavedPlantEntity
@@ -18,14 +19,16 @@ import com.plantsnap.data.local.model.ScanEntity
         SavedPlantEntity::class,
         PlantDetailsEntity::class,
         PlantOfTheDayEntity::class,
+        CareTaskEntity::class,
     ],
-    version = 12,
+    version = 13,
 )
 abstract class PlantSnapDatabase : RoomDatabase() {
     abstract fun scanDao(): ScanDao
     abstract fun savedPlantDao(): SavedPlantDao
     abstract fun plantDetailsDao(): PlantDetailsDao
     abstract fun plantOfTheDayDao(): PlantOfTheDayDao
+    abstract fun careTaskDao(): CareTaskDao
 
     companion object {
         /** Adds the `isFavorite` column on `scans` shipped by PR #61. */
@@ -307,6 +310,49 @@ abstract class PlantSnapDatabase : RoomDatabase() {
                 )
                 db.execSQL("DROP TABLE scans")
                 db.execSQL("ALTER TABLE scans_new RENAME TO scans")
+            }
+        }
+
+        /** Adds the `care_tasks` table powering per-plant care routine tracking. */
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `care_tasks` (
+                        `id` TEXT NOT NULL,
+                        `savedPlantId` TEXT NOT NULL,
+                        `taskType` TEXT NOT NULL,
+                        `cadenceDays` INTEGER NOT NULL,
+                        `nextDueAt` INTEGER NOT NULL,
+                        `lastCompletedAt` INTEGER,
+                        `enabled` INTEGER NOT NULL,
+                        `userOverride` INTEGER NOT NULL,
+                        `createdAt` INTEGER NOT NULL,
+                        `updatedAt` INTEGER NOT NULL,
+                        `synced` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`savedPlantId`) REFERENCES `saved_plants`(`id`)
+                            ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS " +
+                        "`index_care_tasks_savedPlantId_taskType` " +
+                        "ON `care_tasks` (`savedPlantId`, `taskType`)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_care_tasks_savedPlantId` " +
+                        "ON `care_tasks` (`savedPlantId`)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_care_tasks_nextDueAt` " +
+                        "ON `care_tasks` (`nextDueAt`)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_care_tasks_synced` " +
+                        "ON `care_tasks` (`synced`)"
+                )
             }
         }
     }
