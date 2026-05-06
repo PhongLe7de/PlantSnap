@@ -13,6 +13,7 @@ import javax.inject.Singleton
 class ScanSyncObserver @Inject constructor(
     private val supabase: SupabaseClient,
     private val scanSyncManager: ScanSyncManager,
+    private val userSessionGate: UserSessionGate,
 ) {
     private companion object {
         const val TAG = "ScanSyncObserver"
@@ -23,6 +24,7 @@ class ScanSyncObserver @Inject constructor(
             supabase.auth.sessionStatus.collect { status ->
                 if (status is SessionStatus.Authenticated) {
                     Log.d(TAG, "session authenticated — syncing (pull + push)")
+                    status.session.user?.id?.let { userSessionGate.reconcile(it) }
                     scanSyncManager.sync()
                 }
             }

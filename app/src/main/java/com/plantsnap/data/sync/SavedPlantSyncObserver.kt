@@ -14,6 +14,7 @@ import javax.inject.Singleton
 class SavedPlantSyncObserver @Inject constructor(
     private val supabase: SupabaseClient,
     private val savedPlantSyncManager: SavedPlantSyncManager,
+    private val userSessionGate: UserSessionGate,
 ) {
     private companion object {
         const val TAG = "SavedPlantSyncObserver"
@@ -29,6 +30,7 @@ class SavedPlantSyncObserver @Inject constructor(
                 if (status is SessionStatus.Authenticated) {
                     Log.d(TAG, "session authenticated — syncing saved plants (pull + push)")
                     try {
+                        status.session.user?.id?.let { userSessionGate.reconcile(it) }
                         savedPlantSyncManager.sync()
                         Log.d(TAG, "sync returned")
                     } catch (e: Exception) {

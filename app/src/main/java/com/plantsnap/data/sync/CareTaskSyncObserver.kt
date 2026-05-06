@@ -14,6 +14,7 @@ import javax.inject.Singleton
 class CareTaskSyncObserver @Inject constructor(
     private val supabase: SupabaseClient,
     private val careTaskSyncManager: CareTaskSyncManager,
+    private val userSessionGate: UserSessionGate,
 ) {
     private companion object {
         const val TAG = "CareTaskSyncObserver"
@@ -29,6 +30,7 @@ class CareTaskSyncObserver @Inject constructor(
                     if (status is SessionStatus.Authenticated) {
                         Log.d(TAG, "session authenticated — syncing care tasks (pull + push)")
                         try {
+                            status.session.user?.id?.let { userSessionGate.reconcile(it) }
                             careTaskSyncManager.sync()
                             Log.d(TAG, "sync returned")
                         } catch (e: Exception) {

@@ -50,6 +50,7 @@ class ScanRepositoryImpl @Inject constructor(
     override suspend fun getAllScanIds(): List<String> = dao.getAllScanIds()
 
     override fun observeTotalScanCount(): Flow<Int> = dao.observeTotalScanCount()
+    override fun observeDistinctSpeciesCount(): Flow<Int> = dao.observeDistinctSpeciesCount()
     override fun observeFirstScanTimestamp(): Flow<Long?> = dao.observeFirstScanTimestamp()
 
     override suspend fun setFavorite(id: String, isFavorite: Boolean) = dao.setFavorite(id, isFavorite)

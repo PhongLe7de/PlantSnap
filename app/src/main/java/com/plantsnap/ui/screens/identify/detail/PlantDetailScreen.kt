@@ -234,6 +234,7 @@ fun PlantDetailScreenContent(
     isFavorite: Boolean = false,
     scanLocation: Pair<Double, Double>? = null,
     careTasks: List<CareTask> = emptyList(),
+    showCareSchedule: Boolean = false,
     displayName: String? = null,
     lastWateredAt: Long? = null,
     onBack: () -> Unit,
@@ -273,6 +274,7 @@ fun PlantDetailScreenContent(
             displayName = displayName,
             lastWateredAt = lastWateredAt,
             careTasks = careTasks,
+            showCareSchedule = showCareSchedule,
             onRetryAi = onRetryAi,
             onToggleSaved = onToggleSaved,
             onMarkWatered = onMarkWatered,
@@ -401,6 +403,7 @@ private fun PlantDetailContent(
     displayName: String?,
     lastWateredAt: Long?,
     careTasks: List<CareTask>,
+    showCareSchedule: Boolean,
     onRetryAi: () -> Unit,
     onToggleSaved: () -> Unit,
     onMarkWatered: (() -> Unit)?,
@@ -433,6 +436,7 @@ private fun PlantDetailContent(
             displayName = displayName,
             lastWateredAt = lastWateredAt,
             careTasks = careTasks,
+            showCareSchedule = showCareSchedule,
             onRetryAi = onRetryAi,
             onToggleSaved = onToggleSaved,
             onMarkWatered = onMarkWatered,
@@ -468,6 +472,7 @@ private fun PlantDetailBody(
     displayName: String?,
     lastWateredAt: Long?,
     careTasks: List<CareTask>,
+    showCareSchedule: Boolean,
     onRetryAi: () -> Unit,
     onToggleSaved: () -> Unit,
     onMarkWatered: (() -> Unit)?,
@@ -511,17 +516,19 @@ private fun PlantDetailBody(
         item { Spacer(Modifier.height(24.dp)) }
         item { NativeHabitatSection(aiInfoState) }
         item { Spacer(Modifier.height(24.dp)) }
-        item { CareRoutineSection(aiInfoState) }
-        if (isSaved && careTasks.isNotEmpty()) {
-            item { Spacer(Modifier.height(24.dp)) }
-            item {
-                CareScheduleSection(
-                    tasks = careTasks,
-                    onMarkDone = onMarkCareTaskDone,
-                    onSetCadence = onSetCareTaskCadence,
-                    onSetEnabled = onSetCareTaskEnabled,
-                )
+        if (showCareSchedule) {
+            if (careTasks.isNotEmpty()) {
+                item {
+                    CareScheduleSection(
+                        tasks = careTasks,
+                        onMarkDone = onMarkCareTaskDone,
+                        onSetCadence = onSetCareTaskCadence,
+                        onSetEnabled = onSetCareTaskEnabled,
+                    )
+                }
             }
+        } else {
+            item { CareRoutineSection(aiInfoState) }
         }
         if (scanLocation != null) {
             item { Spacer(Modifier.height(24.dp)) }

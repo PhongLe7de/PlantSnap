@@ -60,8 +60,8 @@ interface SavedPlantDao {
     @Query("SELECT * FROM saved_plants WHERE synced = 0")
     suspend fun getUnsynced(): List<SavedPlantEntity>
 
-    @Query("UPDATE saved_plants SET synced = 1 WHERE id = :id")
-    suspend fun markSynced(id: String)
+    @Query("UPDATE saved_plants SET synced = 1, userId = :userId WHERE id = :id")
+    suspend fun markSynced(id: String, userId: String)
 
     @Query("SELECT id FROM saved_plants")
     suspend fun getAllIds(): List<String>
@@ -80,4 +80,7 @@ interface SavedPlantDao {
 
     @Query("UPDATE saved_plants SET lastWateredAt = :timestamp, synced = 0 WHERE id IN (:ids)")
     suspend fun updateLastWateredBulk(ids: List<String>, timestamp: Long?)
+
+    @Query("DELETE FROM saved_plants")
+    suspend fun deleteAll()
 }

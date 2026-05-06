@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.WbSunny
@@ -231,34 +230,18 @@ private fun MyGardenTopBar(onAddClick: () -> Unit) {
                 letterSpacing = (-0.5).sp,
             )
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            IconButton(
-                onClick = onAddClick,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(scheme.surfaceContainerHigh),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    tint = scheme.primary,
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(scheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = null,
-                    tint = scheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
+        IconButton(
+            onClick = onAddClick,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(scheme.surfaceContainerHigh),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                tint = scheme.primary,
+            )
         }
     }
 }

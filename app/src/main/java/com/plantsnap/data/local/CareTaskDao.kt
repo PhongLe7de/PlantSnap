@@ -112,4 +112,7 @@ interface CareTaskDao {
         """
     )
     suspend fun setEnabled(id: String, enabled: Boolean, cadenceDays: Int, nextDueAt: Long, updatedAt: Long)
+
+    @Query("DELETE FROM care_tasks")
+    suspend fun deleteAll()
 }
