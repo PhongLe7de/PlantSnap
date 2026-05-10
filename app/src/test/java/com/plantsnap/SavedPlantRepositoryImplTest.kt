@@ -7,6 +7,7 @@ import com.plantsnap.data.local.ScanDao
 import com.plantsnap.data.local.model.SavedPlantEntity
 import com.plantsnap.data.local.model.SavedPlantWithDetails
 import com.plantsnap.data.repository.SavedPlantRepositoryImpl
+import com.plantsnap.domain.repository.CareTaskRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -17,6 +18,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -29,6 +31,8 @@ class SavedPlantRepositoryImplTest {
     private val dao: SavedPlantDao = mockk(relaxed = true)
     private val plantDetailsDao: PlantDetailsDao = mockk(relaxed = true)
     private val scanDao: ScanDao = mockk(relaxed = true)
+    private val careTaskRepository: CareTaskRepository = mockk(relaxed = true)
+    private val json: Json = Json { ignoreUnknownKeys = true }
 
     private lateinit var repo: SavedPlantRepositoryImpl
 
@@ -36,7 +40,9 @@ class SavedPlantRepositoryImplTest {
     fun setUp() {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
-        repo = SavedPlantRepositoryImpl(dao, plantDetailsDao, scanDao)
+        every { Log.w(any<String>(), any<String>()) } returns 0
+        every { Log.w(any<String>(), any<String>(), any()) } returns 0
+        repo = SavedPlantRepositoryImpl(dao, plantDetailsDao, scanDao, careTaskRepository, json)
     }
 
     @After

@@ -8,10 +8,13 @@ import com.plantsnap.data.local.model.PlantDetailsEntity
 import com.plantsnap.data.local.model.SavedPlantEntity
 import com.plantsnap.data.local.model.toDomain
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.SavedPlant
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,6 +24,8 @@ class SavedPlantRepositoryImpl @Inject constructor(
     private val dao: SavedPlantDao,
     private val plantDetailsDao: PlantDetailsDao,
     private val scanDao: ScanDao,
+    private val careTaskRepository: CareTaskRepository,
+    private val json: Json,
 ) : SavedPlantRepository {
 
     private companion object {
@@ -39,6 +44,11 @@ class SavedPlantRepositoryImpl @Inject constructor(
 
     override fun observeIsSaved(scanId: String, plantGbifId: Long): Flow<Boolean> =
         dao.observeIsSaved(scanId, plantGbifId)
+
+    override fun observeSavedFor(scanId: String, plantGbifId: Long): Flow<SavedPlant?> =
+        dao.observeSavedFor(scanId, plantGbifId).map { row ->
+            row?.saved?.toDomain(scientificName = row.scientificName)
+        }
 
     override suspend fun findExisting(scanId: String, plantGbifId: Long): SavedPlant? {
         val entity = dao.findExisting(scanId, plantGbifId) ?: return null
@@ -82,6 +92,27 @@ class SavedPlantRepositoryImpl @Inject constructor(
         }
         dao.upsert(entity)
         Log.d(TAG, "save: id=${entity.id} scanId=$scanId name=${candidate.scientificName} gbif=$gbifId synced=${entity.synced}")
+
+        // Generate care tasks if Gemini's AI info is already cached on the candidate.
+        // The in-memory `candidate.aiInfo` is unreliable (the candidate is created
+        // before requestAdditionalInfo writes back), so read from disk. If still null
+        // here, PlantService.requestAdditionalInfo's hook 2 will catch it later.
+        val aiInfoJson = scanId?.let { scanDao.getCandidateAiInfo(it, candidate.scientificName) }
+        if (aiInfoJson != null) {
+            val careInfo = runCatching {
+                json.decodeFromString(PlantAiInfo.serializer(), aiInfoJson).care
+            }.onFailure {
+                Log.w(TAG, "save: failed to decode aiInfo for ${entity.id}", it)
+            }.getOrNull()
+            try {
+                careTaskRepository.generateForSavedPlant(entity.id, careInfo)
+            } catch (e: Exception) {
+                Log.w(TAG, "save: care task generation failed for ${entity.id}", e)
+            }
+        } else {
+            Log.d(TAG, "save: no cached aiInfo for ${entity.id}; care tasks deferred")
+        }
+
         return entity.toDomain(scientificName = candidate.scientificName)
     }
 

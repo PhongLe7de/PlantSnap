@@ -11,13 +11,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SavedPlantSyncObserver @Inject constructor(
+class CareTaskSyncObserver @Inject constructor(
     private val supabase: SupabaseClient,
-    private val savedPlantSyncManager: SavedPlantSyncManager,
+    private val careTaskSyncManager: CareTaskSyncManager,
     private val userSessionGate: UserSessionGate,
 ) {
     private companion object {
-        const val TAG = "SavedPlantSyncObserver"
+        const val TAG = "CareTaskSyncObserver"
     }
 
     fun start(scope: CoroutineScope) {
@@ -26,18 +26,18 @@ class SavedPlantSyncObserver @Inject constructor(
             supabase.auth.sessionStatus
                 .distinctUntilChangedBy { it::class }
                 .collect { status ->
-                Log.d(TAG, "sessionStatus = ${status::class.simpleName}")
-                if (status is SessionStatus.Authenticated) {
-                    Log.d(TAG, "session authenticated — syncing saved plants (pull + push)")
-                    try {
-                        status.session.user?.id?.let { userSessionGate.reconcile(it) }
-                        savedPlantSyncManager.sync()
-                        Log.d(TAG, "sync returned")
-                    } catch (e: Exception) {
-                        Log.w(TAG, "sync threw ${e::class.simpleName}: ${e.message}", e)
+                    Log.d(TAG, "sessionStatus = ${status::class.simpleName}")
+                    if (status is SessionStatus.Authenticated) {
+                        Log.d(TAG, "session authenticated — syncing care tasks (pull + push)")
+                        try {
+                            status.session.user?.id?.let { userSessionGate.reconcile(it) }
+                            careTaskSyncManager.sync()
+                            Log.d(TAG, "sync returned")
+                        } catch (e: Exception) {
+                            Log.w(TAG, "sync threw ${e::class.simpleName}: ${e.message}", e)
+                        }
                     }
                 }
-            }
         }
     }
 }

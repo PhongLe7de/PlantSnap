@@ -40,6 +40,7 @@ fun SavedPlantDetailScreen(
     val displayName by viewModel.displayName.collectAsState()
     val isFavourite by viewModel.isFavourite.collectAsState()
     val lastWateredAt by viewModel.lastWateredAt.collectAsState()
+    val careTasks by viewModel.careTasks.collectAsState()
 
     LaunchedEffect(savedPlantId) {
         viewModel.loadSavedPlant(savedPlantId)
@@ -54,13 +55,18 @@ fun SavedPlantDetailScreen(
         safetyAlerts = safetyAlerts,
         showScanMetadata = false,
         showAddToGarden = false,
+        showCareSchedule = true,
         isSaved = true,
         isFavorite = isFavourite,
         displayName = displayName.takeIf { it.isNotBlank() },
         lastWateredAt = lastWateredAt,
+        careTasks = careTasks,
         onBack = onBack,
         onRetryAi = viewModel::retryAiInfo,
         onToggleFavorite = viewModel::toggleFavourite,
+        onMarkCareTaskDone = viewModel::markCareTaskDone,
+        onSetCareTaskCadence = viewModel::setCareTaskCadence,
+        onSetCareTaskEnabled = viewModel::setCareTaskEnabled,
         onMarkWatered = viewModel::markWatered,
         onEditNickname = { showRenameDialog = true },
         onArchive = {

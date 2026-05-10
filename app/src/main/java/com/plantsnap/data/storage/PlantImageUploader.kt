@@ -11,6 +11,8 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
+internal const val PLANT_IMAGES_BUCKET = "plant_images"
+
 /**
  * Uploads the original captured scan image to the `plant_images` Supabase Storage
  * bucket at `{userId}/{scanId}.jpg`. Returns the bucket path (not a URL) so callers
@@ -23,7 +25,6 @@ class PlantImageUploader @Inject constructor(
 ) {
     private companion object {
         const val TAG = "PlantImageUploader"
-        const val BUCKET = "plant_images"
     }
 
     /** Returns `{userId}/{scanId}.jpg` on success, null otherwise. */
@@ -46,7 +47,7 @@ class PlantImageUploader @Inject constructor(
             }
             val path = "$userId/$scanId.jpg"
             try {
-                supabase.storage.from(BUCKET).upload(path, bytes) {
+                supabase.storage.from(PLANT_IMAGES_BUCKET).upload(path, bytes) {
                     upsert = true
                     contentType = ContentType.Image.JPEG
                 }

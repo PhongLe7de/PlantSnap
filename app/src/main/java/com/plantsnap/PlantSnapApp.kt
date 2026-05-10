@@ -5,6 +5,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import com.plantsnap.data.sync.CareTaskSyncObserver
 import com.plantsnap.data.sync.SavedPlantSyncObserver
 import com.plantsnap.data.sync.ScanSyncObserver
 import dagger.hilt.android.HiltAndroidApp
@@ -19,6 +20,7 @@ class PlantSnapApp : Application(), SingletonImageLoader.Factory {
 
     @Inject lateinit var scanSyncObserver: ScanSyncObserver
     @Inject lateinit var savedPlantSyncObserver: SavedPlantSyncObserver
+    @Inject lateinit var careTaskSyncObserver: CareTaskSyncObserver
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -26,6 +28,7 @@ class PlantSnapApp : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         scanSyncObserver.start(appScope)
         savedPlantSyncObserver.start(appScope)
+        careTaskSyncObserver.start(appScope)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =

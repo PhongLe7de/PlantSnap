@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import com.plantsnap.data.local.PlantOfTheDayDao
+import com.plantsnap.data.local.SavedPlantDao
+import com.plantsnap.data.local.ScanDao
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -16,6 +18,7 @@ import com.plantsnap.data.plantnet.Species
 import com.plantsnap.data.plantnet.Taxon
 import com.plantsnap.data.storage.PlantImageUploader
 import com.plantsnap.data.sync.ScanSyncManager
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.GeminiRepository
 import com.plantsnap.domain.repository.PlantDetailsRepository
 import com.plantsnap.domain.repository.PlantNetRepository
@@ -49,6 +52,9 @@ class PlantServiceTest {
     private lateinit var plantDetailsRepository: PlantDetailsRepository
     private lateinit var plantImageUploader: PlantImageUploader
     private lateinit var plantOfTheDayDao: PlantOfTheDayDao
+    private lateinit var savedPlantDao: SavedPlantDao
+    private lateinit var scanDao: ScanDao
+    private lateinit var careTaskRepository: CareTaskRepository
     private val json = Json { ignoreUnknownKeys = true }
     private lateinit var service: PlantService
 
@@ -72,6 +78,9 @@ class PlantServiceTest {
         scanSyncManager = mockk(relaxed = true)
         plantDetailsRepository = mockk(relaxed = true)
         plantImageUploader = mockk(relaxed = true)
+        savedPlantDao = mockk(relaxed = true)
+        scanDao = mockk(relaxed = true)
+        careTaskRepository = mockk(relaxed = true)
         service = PlantService(
             context,
             plantNetRepo,
@@ -81,6 +90,9 @@ class PlantServiceTest {
             plantDetailsRepository,
             plantImageUploader,
             plantOfTheDayDao,
+            savedPlantDao,
+            scanDao,
+            careTaskRepository,
             json,
         )
     }

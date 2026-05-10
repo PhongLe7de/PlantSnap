@@ -6,6 +6,7 @@ import com.plantsnap.data.sync.SavedPlantSyncManager
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.SavedPlant
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.services.PlantService
@@ -43,6 +44,9 @@ class SavedPlantDetailViewModelTest {
     private val syncManager: SavedPlantSyncManager = mockk(relaxed = true)
     private val imageUrlResolver: PlantImageUrlResolver = mockk {
         coEvery { resolve(any()) } returns null
+    }
+    private val careTaskRepository: CareTaskRepository = mockk(relaxed = true) {
+        every { observeForPlant(any()) } returns flowOf(emptyList())
     }
 
     private lateinit var viewModel: SavedPlantDetailViewModel
@@ -88,6 +92,7 @@ class SavedPlantDetailViewModelTest {
             profileRepository = profileRepository,
             savedPlantSyncManager = syncManager,
             imageUrlResolver = imageUrlResolver,
+            careTaskRepository = careTaskRepository,
         )
     }
 

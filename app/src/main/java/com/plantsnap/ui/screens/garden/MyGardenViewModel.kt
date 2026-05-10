@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.plantsnap.data.storage.PlantImageUrlResolver
 import com.plantsnap.data.sync.SavedPlantSyncManager
-import com.plantsnap.domain.models.SavedPlant
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.ui.screens.identify.camera.CapturedPhotosHolder
 import com.plantsnap.ui.state.UiState
@@ -16,19 +16,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 data class SavedPlantUi(
-    val plant: SavedPlant,
+    val plant: com.plantsnap.domain.models.SavedPlant,
     val displayImageUrl: String?,
 )
 
 @HiltViewModel
 class MyGardenViewModel @Inject constructor(
     private val repo: SavedPlantRepository,
+    private val careTaskRepository: CareTaskRepository,
     private val imageUrlResolver: PlantImageUrlResolver,
     private val photosHolder: CapturedPhotosHolder,
     private val syncManager: SavedPlantSyncManager,
@@ -44,21 +47,38 @@ class MyGardenViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val plants: StateFlow<UiState<List<SavedPlantUi>>> =
         repo.observeAll()
-            .flatMapLatest { saved ->
-                flow {
-                    val resolved = imageUrlResolver.resolveAll(saved.map { it.plant.imageUrl })
-                    emit(UiState.Success(saved.map { sp ->
-                        SavedPlantUi(
-                            plant = sp,
-                            displayImageUrl = sp.plant.imageUrl?.let { resolved[it] },
-                        )
-                    }))
-                }
+            .mapLatest { saved ->
+                val resolved = imageUrlResolver.resolveAll(saved.map { it.plant.imageUrl })
+                UiState.Success(saved.map { sp ->
+                    SavedPlantUi(
+                        plant = sp,
+                        displayImageUrl = sp.plant.imageUrl?.let { resolved[it] },
+                    )
+                })
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState.Loading)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val dueTasks: StateFlow<List<CareTaskUi>> =
+        careTaskRepository.observeDueBy(endOfTodayLocalMillis())
+            .mapLatest { rows ->
+                val resolved = imageUrlResolver.resolveAll(rows.map { it.plantImageUrl })
+                rows.map { it.toUi(resolvedImageUrl = it.plantImageUrl?.let { url -> resolved[url] }) }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     fun resetIdentifyFlow() {
         photosHolder.clear()
+    }
+
+    fun markTaskDone(taskId: String) {
+        viewModelScope.launch {
+            try {
+                careTaskRepository.markCompleted(taskId)
+            } catch (e: Exception) {
+                Log.w(TAG, "markTaskDone failed for $taskId", e)
+            }
+        }
     }
 
     fun setWateredToday(savedPlantId: String, watered: Boolean) {
@@ -90,4 +110,11 @@ class MyGardenViewModel @Inject constructor(
             }
         }
     }
+
+    private fun endOfTodayLocalMillis(zoneId: ZoneId = ZoneId.systemDefault()): Long =
+        LocalDate.now(zoneId)
+            .atTime(LocalTime.MAX)
+            .atZone(zoneId)
+            .toInstant()
+            .toEpochMilli()
 }

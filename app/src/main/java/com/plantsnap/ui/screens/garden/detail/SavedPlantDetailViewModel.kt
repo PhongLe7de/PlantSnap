@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.plantsnap.data.storage.PlantImageUrlResolver
 import com.plantsnap.data.sync.SavedPlantSyncManager
 import com.plantsnap.domain.models.Candidate
+import com.plantsnap.domain.models.CareTask
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.SupabaseProfile
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.safety.SafetyAdvisor
@@ -15,12 +17,15 @@ import com.plantsnap.domain.safety.SafetyAlert
 import com.plantsnap.domain.services.PlantService
 import com.plantsnap.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,6 +37,7 @@ class SavedPlantDetailViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val savedPlantSyncManager: SavedPlantSyncManager,
     private val imageUrlResolver: PlantImageUrlResolver,
+    private val careTaskRepository: CareTaskRepository,
 ) : ViewModel() {
 
     private companion object {
@@ -63,6 +69,15 @@ class SavedPlantDetailViewModel @Inject constructor(
     private val _canRetry = MutableStateFlow(true)
     val canRetry: StateFlow<Boolean> = _canRetry.asStateFlow()
 
+    private val _savedPlantIdFlow = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val careTasks: StateFlow<List<CareTask>> = _savedPlantIdFlow
+        .flatMapLatest { id ->
+            if (id == null) flowOf(emptyList()) else careTaskRepository.observeForPlant(id)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     private var aiRetryCount = 0
     private var savedPlantId: String? = null
     private var lastScanId: String? = null
@@ -73,6 +88,7 @@ class SavedPlantDetailViewModel @Inject constructor(
     fun loadSavedPlant(savedPlantId: String) {
         if (this.savedPlantId == savedPlantId) return
         this.savedPlantId = savedPlantId
+        _savedPlantIdFlow.value = savedPlantId
         _candidateState.value = UiState.Loading
         _aiInfoState.value = UiState.Idle
         aiRetryCount = 0
@@ -189,6 +205,36 @@ class SavedPlantDetailViewModel @Inject constructor(
                 triggerSync()
             } catch (e: Exception) {
                 Log.w(TAG, "archive failed", e)
+            }
+        }
+    }
+
+    fun markCareTaskDone(taskId: String) {
+        viewModelScope.launch {
+            try {
+                careTaskRepository.markCompleted(taskId)
+            } catch (e: Exception) {
+                Log.w(TAG, "markCareTaskDone failed for $taskId", e)
+            }
+        }
+    }
+
+    fun setCareTaskCadence(taskId: String, cadenceDays: Int) {
+        viewModelScope.launch {
+            try {
+                careTaskRepository.setCadence(taskId, cadenceDays)
+            } catch (e: Exception) {
+                Log.w(TAG, "setCareTaskCadence failed for $taskId", e)
+            }
+        }
+    }
+
+    fun setCareTaskEnabled(taskId: String, enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                careTaskRepository.setEnabled(taskId, enabled)
+            } catch (e: Exception) {
+                Log.w(TAG, "setCareTaskEnabled failed for $taskId", e)
             }
         }
     }

@@ -1,5 +1,8 @@
 package com.plantsnap
 
+import com.plantsnap.data.local.CareTaskDao
+import com.plantsnap.data.local.SavedPlantDao
+import com.plantsnap.data.local.ScanDao
 import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.ui.screens.profile.AuthViewModel
 import io.github.jan.supabase.SupabaseClient
@@ -79,7 +82,13 @@ class AuthViewModelTest {
         every { supabaseClient.auth } returns auth
 
         coEvery { profileRepository.hasCompletedOnboarding() } returns true
-        viewModel = AuthViewModel(supabaseClient, profileRepository)
+        viewModel = AuthViewModel(
+            supabaseClient,
+            profileRepository,
+            scanDao = mockk(relaxed = true),
+            savedPlantDao = mockk(relaxed = true),
+            careTaskDao = mockk(relaxed = true),
+        )
     }
 
     @After

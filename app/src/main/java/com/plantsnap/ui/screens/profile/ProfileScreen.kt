@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.plantsnap.R
-import com.plantsnap.ui.components.TopBar
 import com.plantsnap.ui.screens.profile.model.PlantRank
 import com.plantsnap.ui.theme.PlantSnapTheme
 import java.text.SimpleDateFormat
@@ -79,11 +78,6 @@ fun ProfileScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        TopBar(
-            profilePhotoUrl = authState.profilePhotoUrl,
-            onProfileSelected = onProfileSelected,
-        )
-
         if (isSynced) {
             Row(
                 modifier = Modifier
@@ -431,7 +425,7 @@ fun StatsBentoGrid(
                 )
                 Column(modifier = Modifier.align(Alignment.BottomStart)) {
                     Text(
-                        text = statsState.totalScans.toString(),
+                        text = statsState.plantsFound.toString(),
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.ExtraBold,
                         color = scheme.primary,
@@ -456,7 +450,6 @@ fun StatsBentoGrid(
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .weight(1f)
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(28.dp))
@@ -575,6 +568,7 @@ private val previewAuthState = AuthUiState(
 
 private val previewStatsState = ProfileStatsState(
     totalScans = 12,
+    plantsFound = 7,
     firstScanTimestamp = 1704067200000, // Jan 2024
     rank = PlantRank.SPROUT,
     rankProgress = 0.7f,

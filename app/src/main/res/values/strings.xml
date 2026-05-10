@@ -133,6 +133,9 @@
     <string name="add_garden_dialog_confirm">Add</string>
     <string name="garden_task_fertilize">Fertilize (%s)</string>
     <string name="garden_task_mist">Mist Leaves</string>
+    <string name="garden_task_rotate">Rotate (%s)</string>
+    <string name="garden_task_repot">Repot (%s)</string>
+    <string name="garden_tasks_empty">All caught up for today</string>
     <string name="garden_empty_title">No saved plants yet</string>
     <string name="garden_empty_desc">Scan a plant and tap ♡ to add it to your garden.</string>
     <string name="garden_mark_unwatered">Mark as unwatered</string>
@@ -150,6 +153,24 @@
     <string name="garden_detail_remove_confirm">Remove from garden</string>
     <string name="garden_detail_edit_nickname">Edit nickname</string>
     <string name="garden_detail_more_options">More options</string>
+
+    <!-- Care Routine -->
+    <string name="care_task_water_short">Water</string>
+    <string name="care_task_fertilize_short">Fertilize</string>
+    <string name="care_task_mist_short">Mist</string>
+    <string name="care_task_rotate_short">Rotate</string>
+    <string name="care_task_repot_short">Repot</string>
+    <string name="care_due_today">Due today</string>
+    <string name="home_daily_care">Daily care</string>
+    <string name="home_care_empty">No upcoming care tasks</string>
+    <string name="care_schedule_title">Care schedule</string>
+    <string name="care_last_done">last done %s</string>
+    <string name="care_never_done">never completed</string>
+    <string name="care_cadence_dialog_title">Edit cadence</string>
+    <string name="care_cadence_dialog_label">Days between</string>
+    <string name="care_cadence_dialog_save">Save</string>
+    <string name="care_cadence_dialog_cancel">Cancel</string>
+    <string name="care_cadence_dialog_invalid">Enter 1–3650</string>
 
     <!-- History Screen -->
     <string name="history_title">History</string>

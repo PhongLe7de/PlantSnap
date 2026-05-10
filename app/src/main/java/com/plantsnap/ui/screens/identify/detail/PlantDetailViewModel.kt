@@ -3,10 +3,12 @@ package com.plantsnap.ui.screens.identify.detail
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plantsnap.domain.models.CareTask
 import com.plantsnap.domain.models.Candidate
 import com.plantsnap.domain.models.PlantAiInfo
 import com.plantsnap.domain.models.SupabaseProfile
 import com.plantsnap.data.sync.SavedPlantSyncManager
+import com.plantsnap.domain.repository.CareTaskRepository
 import com.plantsnap.domain.repository.ProfileRepository
 import com.plantsnap.domain.repository.SavedPlantRepository
 import com.plantsnap.domain.repository.ScanRepository
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -36,6 +39,7 @@ class PlantDetailViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val savedPlantRepo: SavedPlantRepository,
     private val savedPlantSyncManager: SavedPlantSyncManager,
+    private val careTaskRepository: CareTaskRepository,
     private val json: Json,
 ) : ViewModel() {
 
@@ -74,6 +78,25 @@ class PlantDetailViewModel @Inject constructor(
             else savedPlantRepo.observeIsSaved(scanId, gbifId)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val savedPlantId: StateFlow<String?> = candidateState
+        .flatMapLatest { state ->
+            val c = (state as? UiState.Success)?.data
+            val scanId = currentScanId
+            val gbifId = c?.gbifId
+            if (c == null || scanId == null || gbifId == null) flowOf(null)
+            else savedPlantRepo.observeSavedFor(scanId, gbifId).map { it?.id }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val careTasks: StateFlow<List<CareTask>> = savedPlantId
+        .flatMapLatest { id ->
+            if (id == null) flowOf(emptyList())
+            else careTaskRepository.observeForPlant(id)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
@@ -169,6 +192,36 @@ class PlantDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to toggle favorite", e)
                 _isFavorite.value = !newValue
+            }
+        }
+    }
+
+    fun markCareTaskDone(taskId: String) {
+        viewModelScope.launch {
+            try {
+                careTaskRepository.markCompleted(taskId)
+            } catch (e: Exception) {
+                Log.w(TAG, "markCareTaskDone failed for $taskId", e)
+            }
+        }
+    }
+
+    fun setCareTaskCadence(taskId: String, cadenceDays: Int) {
+        viewModelScope.launch {
+            try {
+                careTaskRepository.setCadence(taskId, cadenceDays)
+            } catch (e: Exception) {
+                Log.w(TAG, "setCareTaskCadence failed for $taskId", e)
+            }
+        }
+    }
+
+    fun setCareTaskEnabled(taskId: String, enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                careTaskRepository.setEnabled(taskId, enabled)
+            } catch (e: Exception) {
+                Log.w(TAG, "setCareTaskEnabled failed for $taskId", e)
             }
         }
     }
