@@ -5,17 +5,50 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve line numbers for crash reports
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ============ Kotlinx Serialization ============
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.**
+-keepclassmembers class kotlinx.serialization.json.** { *; }
+-keep,includedescriptorclasses class com.plantsnap.**$$serializer { *; }
+-keepclassmembers class com.plantsnap.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.plantsnap.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep class com.plantsnap.data.remote.** { *; }
+-keep class com.plantsnap.domain.models.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ============ Retrofit ============
+-keepattributes Signature, Exceptions
+-keepclassmembers,allowshrinking,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+-dontwarn retrofit2.**
+-keep class com.plantsnap.data.plantnet.** { *; }
+
+# ============ OkHttp ============
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keep class okhttp3.** { *; }
+
+# ============ Supabase / Ktor ============
+-keep class io.github.jan.supabase.** { *; }
+-keep class io.ktor.** { *; }
+-dontwarn io.ktor.**
+
+# ============ Room ============
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-dontwarn androidx.room.paging.**
+
+# ============ Google GenAI ============
+-keep class com.google.genai.** { *; }
+-dontwarn com.google.genai.**
+
+# ============ Compose ============
+-dontwarn androidx.compose.**

@@ -1,5 +1,6 @@
 package com.plantsnap.data
 
+import com.plantsnap.BuildConfig
 import com.plantsnap.data.plantnet.PlantNetApi
 import com.plantsnap.data.repository.PlantNetRepositoryImpl
 import com.plantsnap.domain.repository.PlantNetRepository
@@ -39,7 +40,11 @@ abstract class PlantNetModule {
         fun provideOkHttpClient(): OkHttpClient {
             return OkHttpClient.Builder()
                 .addInterceptor(HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
+                    level = if (BuildConfig.DEBUG) {
+                        HttpLoggingInterceptor.Level.HEADERS  // was BODY — no more body logging
+                    } else {
+                        HttpLoggingInterceptor.Level.NONE
+                    }
                 })
                 .build()
         }

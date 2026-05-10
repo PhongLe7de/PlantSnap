@@ -86,6 +86,7 @@ open class GeminiRepositoryImpl @Inject constructor(
         """.trimIndent()
 
         val raw = callGemini(prompt)
+        // Gemini sometimes wraps JSON in markdown fences despite the prompt saying not to
         val cleaned = raw.trim()
             .removePrefix("```json")
             .removePrefix("```")

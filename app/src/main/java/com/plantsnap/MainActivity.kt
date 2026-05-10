@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 31+ (Android 12) for full native splash with icon animations
         installSplashScreen().apply {
             setKeepOnScreenCondition {
                 authViewModel.uiState.value.hasCompletedOnboarding == null
